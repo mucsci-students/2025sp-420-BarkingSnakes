@@ -5,6 +5,27 @@
 
 import os
 import json
+import re
+
+def load(fpath:str) -> dict:
+    """Read data from the provided .json file.
+    :param fpath: String containing the full path to the .json file.
+    :return: 
+    """
+
+    error_dict = {"error": "Invalid file path."}
+
+    if not os.path.exists(fpath):
+        return error_dict
+    
+    if not os.path.isfile(fpath):
+        return error_dict
+    
+    if not re.search('\.json', fpath, flags=re.IGNORECASE):
+        return error_dict
+
+    with open(fpath, "r") as f:
+        return json.load(f)
 
 def setup_program():
     """Validates requirements for the program are met before attempting to start."""
