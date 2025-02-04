@@ -27,6 +27,21 @@ def load(fpath:str) -> dict:
     with open(fpath, "r") as f:
         return json.load(f)
 
+class UML_Class:
+    """"""
+
+    def __init__(self, name:str, attributes):
+        """"""
+        self.name = name
+        self.attributes = attributes
+
+class UML_Project:
+    """"""
+
+    def __init__(self, classes:list[UML_Class]):
+        """"""
+        self.classes = classes
+
 def setup_program():
     """Validates requirements for the program are met before attempting to start."""
 
