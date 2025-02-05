@@ -5,7 +5,7 @@
 class Attribute:
     # note: list elements changed
     # Precondition:
-    #
+    # 
     # Postcondition:
     def addAttr(classList):
         """Adds an attribute to a class.
