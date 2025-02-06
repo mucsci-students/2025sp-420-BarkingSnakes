@@ -3,16 +3,16 @@
 # Date 2-5/2025
 # class for object attribute methods and design
 class Attribute:
-    # note: list elements changed
-    # Precondition:
-    # 
-    # Postcondition:
-    def addAttr(classList):
+    def __init__(self):
+        pass
+    # note: list elements changeable
+    def addAttr(attribute, classObj):
         """Adds an attribute to a class.
-
+        
         Returns:
             True if attribute added to the class
-            False if classA
+            False if attribute was not added to class
         """
+        
         return False
     
