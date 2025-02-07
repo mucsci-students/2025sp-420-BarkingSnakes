@@ -4,15 +4,15 @@
 # Description: umlclass methods
 
 # Public add
-def add_umlclass(umlclass) :
+def add_umlclass(classname) :
     pass
 
 # Public delete
-def delete_umlclass(umlclass) :
+def delete_umlclass(classname) :
     pass
 
 # Public rename
 
-def rename_umlclass(umlclass) :
+def rename_umlclass(classname) :
     pass
 
