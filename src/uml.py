@@ -6,10 +6,7 @@
 import os
 import json
 import sys
-#run this for cross folder linking
-if os.path.abspath('..') not in sys.path:
-    sys.path.append(os.path.abspath('..'))
-print(sys.path)
+
 class UML_Class:
     """"""
 
@@ -27,6 +24,7 @@ class UML_Project:
 
 def setup_program():
     """Validates requirements for the program are met before attempting to start."""
+
 
 def main():
     """Entry point for the program."""
