@@ -1,7 +1,9 @@
 # Filename: attribute.py
 # Authors: John Hershey
 # Date 2-5/2025
-# class for object attribute methods and design
+# Description: class for object attribute methods and design
+
+import errors
 class Attribute:
     def __init__(self):
         pass
@@ -10,8 +12,9 @@ class Attribute:
         """Adds an attribute to a class.
         
         Returns:
-            True if attribute added to the class
-            False if attribute was not added to class
+            0 if attribute added to the class
+            a number corresponding to an error in the errors class
+            if attribute was not added to class
         """
         
         return False
