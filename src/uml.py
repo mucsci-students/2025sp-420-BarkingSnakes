@@ -5,7 +5,11 @@
 
 import os
 import json
-
+import sys
+#run this for cross folder linking
+if os.path.abspath('..') not in sys.path:
+    sys.path.append(os.path.abspath('..'))
+print(sys.path)
 class UML_Class:
     """"""
 
