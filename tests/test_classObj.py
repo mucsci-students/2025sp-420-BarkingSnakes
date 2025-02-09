@@ -5,6 +5,7 @@
 import pytest
 import os
 import sys
+import logging
 # use below to add directory to system path
 # sys.path.append(os.path.abspath(os.path.join('..', '2025sp-420-BarkingSnakes')))
 # adds the repo directory to sys.path
@@ -25,7 +26,7 @@ def testInvalidName():
     try:
         errors.validName("class")
     except Exception as e:
-        print(f"error name is {e.name}, num={e.errorNum}")
+        logging.log(0,f"error name is {e.name}, num={e.errorNum}")
     assert x == errors.errorList["InvalidNameError"]
 
     
@@ -40,7 +41,7 @@ def testDeleteEmpty():
     try:
         errors.noClass(None)
     except Exception as e:
-        print(f"error name is {e.name}, num={e.errorNum}")
+        logging.log(0,f"error name is {e.name}, num={e.errorNum}")
         x=e
     assert x.errorNum == errors.errorList["NullObjectError"]
 #Delete an invalid class name
