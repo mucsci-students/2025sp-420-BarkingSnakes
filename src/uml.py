@@ -5,6 +5,7 @@
 
 import os
 import json
+import sys
 
 class UML_Class:
     """"""
@@ -23,6 +24,7 @@ class UML_Project:
 
 def setup_program():
     """Validates requirements for the program are met before attempting to start."""
+
 
 def main():
     """Entry point for the program."""
