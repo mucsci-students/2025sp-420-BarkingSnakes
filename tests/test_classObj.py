@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 from src.umlclass import UmlClass
+from src import errors
 # from src import errors
 
 # use below to add directory to system path
@@ -30,7 +31,18 @@ def test_rename_existing_class():
     assert test_class.class_name == "NewName"
         
 # Rename an existing class to an invalid class name
-
+def test_rename_class_invalid():
+    """"""
+    test_class = UmlClass
+    test_class.class_name = "OriginalName"
+    try:
+        UmlClass.rename_umlclass(test_class,"class")
+    except Exception as e:
+        assert e == errors.errorList["InvalidNameError"]
+        
+    assert test_class.class_name == "OriginalName"    
+    
+    
 # Rename Rename a class that does not exist
 
 # Add a valid Attribute
