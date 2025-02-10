@@ -21,10 +21,9 @@ if os.path.abspath('.') not in sys.path:
 # Rename an existing class to a valid class name
 def test_rename_existing_class():
     """"""
-    test_class = UmlClass
-    test_class.class_name = "OriginalName"
+    test_class = UmlClass("OriginalName",{})
     try:
-        UmlClass.rename_umlclass(test_class,"NewName")
+        test_class.rename_umlclass("NewName")
     except:
         pass
 
@@ -33,10 +32,9 @@ def test_rename_existing_class():
 # Rename an existing class to an invalid class name
 def test_rename_class_invalid():
     """"""
-    test_class = UmlClass
-    test_class.class_name = "OriginalName"
+    test_class = UmlClass("OriginalName",{})
     try:
-        UmlClass.rename_umlclass(test_class,"class")
+        test_class.rename_umlclass("class")
     except Exception as e:
         assert e == errors.errorList["InvalidNameError"]
         
