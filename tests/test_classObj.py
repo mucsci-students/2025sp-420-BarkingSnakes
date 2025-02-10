@@ -23,7 +23,7 @@ def test_rename_existing_class():
     test_class = UmlClass
     test_class.class_name = "OriginalName"
     try:
-        test_class.rename_umlclass("NewName")
+        UmlClass.rename_umlclass(test_class,"NewName")
     except:
         pass
 
