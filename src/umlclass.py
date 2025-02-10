@@ -3,7 +3,7 @@
 # Date: 02-07-2025
 # Description: umlclass methods
 from dataclasses import dataclass
-from attribute import Attribute
+from src.attribute import Attribute
 import keyword
 
 @dataclass
