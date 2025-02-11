@@ -21,7 +21,14 @@ class UmlProject:
         self._data:dict = {}
 
     def load(self, filepath:str) -> int:
-        """"""
+        """
+        Params: 
+            
+        Returns:
+            
+        Exceptions:
+        """
+        #method returns 0 when true, which is equivalent to false
         if self._validate_filepath(filepath):
             return -1
         
@@ -31,7 +38,13 @@ class UmlProject:
         return 0
     
     def parse_uml_data(self) -> int:
-        """"""
+        """
+        Params: 
+            
+        Returns:
+            
+        Exceptions:
+        """
         uml_classes:list[dict] = self._data.get("classes")
 
         if uml_classes is None:
@@ -40,9 +53,21 @@ class UmlProject:
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
-        """"""
+        """
+        Params: 
+            
+        Returns:
+            
+        Exceptions:
+        """
         def _parse_uml_attributes(data:dict) -> Attribute:
-            """"""
+            """
+            Params: 
+
+            Returns:
+
+            Exceptions:
+            """
             if data:
                 attribute = Attribute()
                 attribute.name = data.get("name")
@@ -60,11 +85,23 @@ class UmlProject:
 
 
     def save(self, filepath:str) -> int:
-        """"""
+        """
+        Params: 
+            
+        Returns:
+            
+        Exceptions:
+        """
         
     
     def _validate_filepath(self, filepath:str) -> int:
-        """"""
+        """
+        Params: 
+            
+        Returns:
+            
+        Exceptions:
+        """
         if not os.path.exists(filepath):
             return -1
         
@@ -77,15 +114,16 @@ class UmlProject:
         return 0
     
     def rename_umlclass(self,oldName:str, newName:str) -> int:
-        """Renames a UmlClass with the first name to the second
-        Params: 
-            oldName: current name of the class
-            newName: new name for the class
-        Returns:
-            0: if the class was successfully renamed
-            -1:if UmlClass was not renamed
-        Exceptions:
-            UMLException if the new name is invalid or duplicate
+        """
+        Renames a UmlClass with the first name to the second
+            Params: 
+                oldName: current name of the class
+                newName: new name for the class
+            Returns:
+                0: if the class was successfully renamed
+               -1: if UmlClass was not renamed
+            Exceptions:
+                UMLException if the new name is invalid or duplicate
         """
         if oldName not in self.classes:
             raise errors.UMLException("NoSuchObjectError")
@@ -93,6 +131,7 @@ class UmlProject:
             raise errors.UMLException("DuplicateNameError")
         #rename the class using its own rename method
         self.classes[oldName].rename_umlclass(newName)
+        return 0
 
 class UmlApplication:
     """"""
@@ -129,6 +168,8 @@ class UmlApplication:
     def inform_invalid_command(self, command:str) -> None:
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
 
+    def inform_invalid_input(self, input:errors.UMLException) -> None:
+        print(input)
     def get_filepath_from_user(self) -> None:
         self._current_filepath = input("Filepath: ")
     
@@ -139,14 +180,24 @@ class UmlApplication:
             self.inform_invalid_command(command)
 
     def run(self):
-        """"""
+        """
+        <class description>
+            Params:   
+                <input:description>
+            Returns:
+                <case:description>
+        """
         while self.is_running:
             try:
                 if self._command is None:
                     self.get_user_command()
                 self._command()
             except Exception as e:
-                logging.log(e)
+                #if error raised was a uml error, handle it
+                if e.__class__ == errors.UMLException:
+                    self.inform_invalid_input(e)
+                else:
+                    logging.log(f" unknown error occured: {e.args}")
 
 
 def main():

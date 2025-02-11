@@ -35,9 +35,8 @@ def test_rename_class_invalid():
     test_class = UmlClass("OriginalName",{})
     try:
         test_class.rename_umlclass("class")
-    except Exception as e:
-        assert e == errors.errorList["InvalidNameError"]
-        
+    except errors.UMLException as e:
+        assert e.getNum() == errors.errorList["InvalidNameError"]
     assert test_class.class_name == "OriginalName"    
     
     

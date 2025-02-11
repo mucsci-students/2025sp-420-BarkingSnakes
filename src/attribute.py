@@ -5,10 +5,10 @@
 
 import errors
 class Attribute:
-    def __init__(self):
-        pass
-    # note: list elements changeable
-    def addAttr(attribute, classObj):
+    attrName = ""
+    def __init__(self, name):
+        attrName = name
+    def renameAttr(name):
         """Adds an attribute to a class.
         
         Returns:
