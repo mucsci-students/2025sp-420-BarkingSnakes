@@ -6,7 +6,6 @@ import logging
 from dataclasses import dataclass
 from attribute import Attribute
 import errors
-import keyword
 
 @dataclass
 class UmlClass:
@@ -49,7 +48,7 @@ class UmlClass:
             0: if the class was successfully renamed
             -1:if UmlClass was not renamed
         Exceptions:
-            UMLException if the new name is invalid
+            UMLException if the new name is invalid or duplicate
         """
         try:
             errors.validName(name)

@@ -13,36 +13,28 @@ from src import errors
 # sys.path.append(os.path.abspath(os.path.join('..', '2025sp-420-BarkingSnakes')))
 # adds the repo directory to sys.path
 # os.path.abspath is the route to the class directory
-#rootDir = '2025sp-420-BarkingSnakes'
-#if os.path.abspath('.') not in sys.path:
-    #sys.path.append(os.path.abspath('.'))
+rootDir = '2025sp-420-BarkingSnakes'
+if os.path.abspath('.') not in sys.path:
+    sys.path.append(os.path.abspath('.'))
 # errors can be imported once the path has been added
-import src.errors as errors
 
-
-#Add a valid class
-
-#Add an invalid class 
-def testInvalidName():
-    x = None
-    #checks
+# Rename an existing class to a valid class name
+def test_rename_existing_class():
+    """"""
+    test_class = UmlClass("OriginalName",{})
     try:
-        errors.validName("class")
-    except Exception as e:
-        logging.log(0,f"error name is {e.name}, num={e.errorNum}")
-    assert x == errors.errorList["InvalidNameError"]
+        test_class.rename_umlclass("NewName")
+    except:
+        pass
 
-    
-#Add an existing class
-
-#Delete an existing class
-
-#Delete a non-existing class
-#using empty class
-def testDeleteEmpty():
-    x = None
+    assert test_class.class_name == "NewName"
+        
+# Rename an existing class to an invalid class name
+def test_rename_class_invalid():
+    """"""
+    test_class = UmlClass("OriginalName",{})
     try:
-        errors.noClass(None)
+        test_class.rename_umlclass("class")
     except Exception as e:
         assert e == errors.errorList["InvalidNameError"]
         
