@@ -1,6 +1,6 @@
 # Filename: attribute.py
-# Authors: John Hershey
-# Date 2-7/2025
+# Authors: John Hershey, Evan Magill
+# Date 2025-02-11
 # Description: class listing errors
 import keyword
 class UMLException(Exception):()
@@ -26,7 +26,8 @@ errorList = {
         "NullObjectError":1,
         "InvalidNameError":2,
         "DuplicateNameError":3,
-        "NoSuchObjectError":4
+        "NoSuchObjectError":4,
+        "ExistingRelationshipError":5
         }
 
 #class methods

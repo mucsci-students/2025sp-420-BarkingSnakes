@@ -1,16 +1,18 @@
 # Filename: umlclass.py
-# Authors: Kyle Kalbach Steven Barnes
+# Authors: Kyle Kalbach, Steven Barnes, Evan Magill
 # Date: 02-07-2025
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass
 from attribute import Attribute
+from umlrelationship import UmlRelationship
 import errors
 
 @dataclass
 class UmlClass:
     class_name:str
     class_attributes:dict[str,Attribute]
+    class_relationships:list[UmlRelationship]
 
     def add_attribute(self,attribute:Attribute) -> int:
         """Adds an attribute to the UmlClass
@@ -40,6 +42,12 @@ class UmlClass:
         self.class_attributes.pop(name)
         return 0
     
+    def has_relationship(self, relationship:UmlRelationship):
+        return relationship in self.class_relationships
+
+    def add_relationship(self, relationship:UmlRelationship):
+        self.class_relationships.append(relationship)
+
     def rename_umlclass(self,name:str) -> int:
         """Renames the UmlClass
         Params: 

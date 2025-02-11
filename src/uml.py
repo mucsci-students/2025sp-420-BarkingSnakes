@@ -1,6 +1,6 @@
 # Filename: uml.py
-# Authors: Steven Barnes
-# Date: 2025-02-02
+# Authors: Steven Barnes, Evan Magill
+# Date: 2025-02-11
 # Description: Entry point for UML editor program.
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import logging
 import errors
 
 from umlclass import UmlClass, Attribute
+from umlrelationship import UmlRelationship, RelationshipType
 
 class UmlProject:
     """"""
@@ -93,6 +94,15 @@ class UmlProject:
             raise errors.UMLException("DuplicateNameError")
         #rename the class using its own rename method
         self.classes[oldName].rename_umlclass(newName)
+    
+    def add_relationship(self, source:UmlClass, destination:UmlClass, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+        if source is None or destination is None:
+            raise errors.UMLException("NullObjectError")
+        addend = UmlRelationship(relationship_type, source, destination)
+        if source.has_relationship(addend):
+            raise errors.UMLException("ExistingRelationshipError")
+        source.add_relationship(addend)
+        destination.add_relationship(addend)
 
 class UmlApplication:
     """"""
