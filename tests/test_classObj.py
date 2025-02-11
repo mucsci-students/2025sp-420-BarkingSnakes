@@ -10,13 +10,12 @@ import logging
 # sys.path.append(os.path.abspath(os.path.join('..', '2025sp-420-BarkingSnakes')))
 # adds the repo directory to sys.path
 # os.path.abspath is the route to the class directory
-rootDir = '2025sp-420-BarkingSnakes'
-if os.path.abspath('.') not in sys.path:
-    sys.path.append(os.path.abspath('.'))
+#rootDir = '2025sp-420-BarkingSnakes'
+#if os.path.abspath('.') not in sys.path:
+    #sys.path.append(os.path.abspath('.'))
 # errors can be imported once the path has been added
-import src.errors as errors
-
-
+#import src.errors as errors
+from src import errors
 #Add a valid class
 
 #Add an invalid class 

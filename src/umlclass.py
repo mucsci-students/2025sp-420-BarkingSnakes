@@ -4,6 +4,7 @@
 # Description: umlclass methods
 from dataclasses import dataclass
 from attribute import Attribute
+import errors
 import keyword
 
 @dataclass
@@ -48,8 +49,10 @@ class UmlClass:
             a number corresponding to an error in the errors class
             if the UmlClass was not renamed
         """
-        if keyword.iskeyword(name):
-            #return errorcode for name param is python keyword
-            return -1
+        try:
+            errors.validName(name)
+        except Exception as e:
+            if e.errorNum == 2:
+                return -1
         self.class_name = name
     
