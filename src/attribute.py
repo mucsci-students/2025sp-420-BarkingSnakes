@@ -12,7 +12,7 @@ class Attribute:
     attrName:str
 
     def __init__(self, name):
-        attrName = name
+        self.attrName = name
 
     def rename_Attr(self,name:str) -> int:
         """Renames the Attribute
@@ -24,6 +24,7 @@ class Attribute:
         Exceptions:
             UMLException if the new name is invalid or duplicate
         """""
+        #this should be caught in uml
         try:
             errors.validName(name)
             self.class_name = name
