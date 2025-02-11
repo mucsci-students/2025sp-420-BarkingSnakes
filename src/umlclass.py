@@ -1,7 +1,8 @@
 # Filename: umlclass.py
-# Authors: Kyle Kalbach
+# Authors: Kyle Kalbach Steven Barnes
 # Date: 02-07-2025
 # Description: umlclass methods
+import logging
 from dataclasses import dataclass
 from attribute import Attribute
 import errors
@@ -46,13 +47,17 @@ class UmlClass:
             name: new name for the class
         Returns:
             0: if the class was successfully renamed
-            a number corresponding to an error in the errors class
-            if the UmlClass was not renamed
+            -1:if UmlClass was not renamed
+        Exceptions:
+            UMLException if the new name is invalid
         """
         try:
             errors.validName(name)
+            self.class_name = name
+            return 0
         except Exception as e:
-            if e.errorNum == 2:
-                return -1
-        self.class_name = name
+            logging.log(0,f"error name is {e.name}, num={e.errorNum}")
+            return -1
+            
+        
     

@@ -3,7 +3,7 @@
 # Date 2-5/2025
 # Description: class for object attribute methods and design
 
-import errors
+from src import errors
 class Attribute:
     def __init__(self):
         pass
