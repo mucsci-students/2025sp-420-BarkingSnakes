@@ -4,8 +4,8 @@
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass
-from src.attribute import Attribute
-from src import errors
+from attribute import Attribute
+import errors
 
 @dataclass
 class UmlClass:
@@ -48,7 +48,7 @@ class UmlClass:
             0: if the class was successfully renamed
             -1:if UmlClass was not renamed
         Exceptions:
-            UMLException if the new name is invalid
+            UMLException if the new name is invalid or duplicate
         """
         try:
             errors.validName(name)

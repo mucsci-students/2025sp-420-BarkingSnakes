@@ -9,8 +9,10 @@ import os
 import json
 import sys
 import re
+import logging
+import errors
 
-from .umlclass import UmlClass, Attribute
+from umlclass import UmlClass, Attribute
 
 class UmlProject:
     """"""
@@ -59,6 +61,7 @@ class UmlProject:
 
     def save(self, filepath:str) -> int:
         """"""
+        
     
     def _validate_filepath(self, filepath:str) -> int:
         """"""
@@ -68,10 +71,28 @@ class UmlProject:
         if not os.path.isfile(filepath):
             return -1
 
-        if not re.search('\.json', filepath, flags=re.IGNORECASE):
+        if not re.search('\\.json', filepath, flags=re.IGNORECASE):
             return -1
 
         return 0
+    
+    def rename_umlclass(self,oldName:str, newName:str) -> int:
+        """Renames a UmlClass with the first name to the second
+        Params: 
+            oldName: current name of the class
+            newName: new name for the class
+        Returns:
+            0: if the class was successfully renamed
+            -1:if UmlClass was not renamed
+        Exceptions:
+            UMLException if the new name is invalid or duplicate
+        """
+        if oldName not in self.classes:
+            raise errors.UMLException("NoSuchObjectError")
+        elif newName in self.classes:
+            raise errors.UMLException("DuplicateNameError")
+        #rename the class using its own rename method
+        self.classes[oldName].rename_umlclass(newName)
 
 class UmlApplication:
     """"""
@@ -120,9 +141,12 @@ class UmlApplication:
     def run(self):
         """"""
         while self.is_running:
-            if self._command is None:
-                self.get_user_command()
-            self._command()
+            try:
+                if self._command is None:
+                    self.get_user_command()
+                self._command()
+            except Exception as e:
+                logging.log(e)
 
 
 def main():

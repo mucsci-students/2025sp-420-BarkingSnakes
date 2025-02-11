@@ -3,7 +3,7 @@
 # Date 2-5/2025
 # Description: class for object attribute methods and design
 
-from src import errors
+import errors
 class Attribute:
     def __init__(self):
         pass
@@ -16,6 +16,7 @@ class Attribute:
             a number corresponding to an error in the errors class
             if attribute was not added to class
         """
-        
+        if False:
+            raise errors.UMLException("NullObjectError")
         return False
     
