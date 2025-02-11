@@ -22,13 +22,13 @@ class UMLException(Exception):
         #set name to specifed error
         self.name = args[0]
         #only add the number if specified
-        if self.name in errorList:
-            self.errorNum = errorList[self.name]
+        if self.name in error_list:
+            self.error_num = error_list[self.name]
         #default to -1 if not in list
         else:
-            self.errorNum = -1
+            self.error_num = -1
     
-    def getName(self) -> str:
+    def get_name(self) -> str:
         """
         Gets name of the error
             Params:   
@@ -37,7 +37,7 @@ class UMLException(Exception):
                 name: name of exception
         """
         return self.name
-    def getNum(self) -> int:
+    def get_num(self) -> int:
         """
         Gets number of the error
             Params:   
@@ -45,12 +45,12 @@ class UMLException(Exception):
             Returns:
                 errorNum: number of exception
         """
-        return self.errorNum
+        return self.error_num
 #class objects
-umlNames = ["attribute", "relation", "exit", "quit", "help"
+uml_names = ["attribute", "relation", "exit", "quit", "help"
             , "name","", " "]
-InvalidNames = umlNames + keyword.kwlist
-errorList = {
+invalid_names = uml_names + keyword.kwlist
+error_list = {
     "NullObjectError":1,
     "InvalidNameError":2,
     "DuplicateNameError":3,
@@ -58,7 +58,7 @@ errorList = {
 }
 
 #class methods
-def validName(name:str) -> int:
+def valid_name(name:str) -> int:
     """
     Checks if a class name is valid
         Params: 
@@ -68,10 +68,10 @@ def validName(name:str) -> int:
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in InvalidNames:
+    if name.lower() in invalid_names:
         raise UMLException("InvalidNameError")
     return 0
-def noClass(classObj):
+def no_class(class_obj):
     """
     don't use, simply throw no class error
         Params:   
@@ -81,7 +81,7 @@ def noClass(classObj):
         Exceptions:
             <exception type:reason>
     """
-    if classObj == None:
+    if class_obj == None:
         raise UMLException("NullObjectError")
     #else if classObj.type != umlclass.UmlClass:
     #    return -1

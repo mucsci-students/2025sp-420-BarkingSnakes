@@ -9,12 +9,12 @@ import errors
 
 @dataclass
 class Attribute:
-    attrName:str
+    attr_name:str
 
     def __init__(self, name):
-        self.attrName = name
+        self.attr_name = name
 
-    def rename_Attr(self,name:str) -> int:
+    def rename_attr(self,name:str) -> int:
         """Renames the Attribute
         Params: 
             name: new name for the Attribute
@@ -24,11 +24,6 @@ class Attribute:
         Exceptions:
             UMLException if the new name is invalid or duplicate
         """""
-        #this should be caught in uml
-        try:
-            errors.validName(name)
-            self.class_name = name
-            return 0
-        except Exception as e:
-            logging.log(0,f"error name is {e.name}, num={e.errorNum}")
-            return -1
+        errors.valid_name(name)
+        self.class_name = name
+        return 0

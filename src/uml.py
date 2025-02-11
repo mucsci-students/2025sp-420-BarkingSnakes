@@ -168,8 +168,9 @@ class UmlApplication:
     def inform_invalid_command(self, command:str) -> None:
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
 
-    def inform_invalid_input(self, input:errors.UMLException) -> None:
-        print(input)
+    def inform_invalid_input(self, user_in:errors.UMLException) -> None:
+        print(f"{user_in}")
+    
     def get_filepath_from_user(self) -> None:
         self._current_filepath = input("Filepath: ")
     
@@ -181,11 +182,11 @@ class UmlApplication:
 
     def run(self):
         """
-        <class description>
+        runs the program until user exit
             Params:   
-                <input:description>
+                None
             Returns:
-                <case:description>
+                0 if program exited successfully
         """
         while self.is_running:
             try:
@@ -198,11 +199,14 @@ class UmlApplication:
                     self.inform_invalid_input(e)
                 else:
                     logging.log(f" unknown error occured: {e.args}")
+        return 0
 
 
 def main():
     """Entry point for the program."""
     project = UmlProject()
+    app = UmlApplication()
+    app.run()
 
 if __name__ == "__main__":
     main()

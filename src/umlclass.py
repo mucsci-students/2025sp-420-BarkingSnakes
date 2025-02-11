@@ -54,7 +54,7 @@ class UmlClass:
         """
         # method will throw exception for parent to catch 
         # if name is invalid
-        errors.validName(name)
+        errors.valid_name(name)
         self.class_name = name
         return 0
             
