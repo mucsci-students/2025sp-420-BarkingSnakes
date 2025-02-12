@@ -13,15 +13,17 @@ class UmlClass:
     class_attributes:dict[str,Attribute]
 
     def add_attribute(self,attribute:Attribute) -> int:
-        """Adds an attribute to the UmlClass
-        Returns:
-            0 if attribute added to the class\n
-            a number corresponding to an error in the errors class
-            if attribute was not added to class
+        """
+        Adds an attribute to the UmlClass
+            Returns:
+                0: if attribute added to the class
+            Exceptions:
+                DuplicateNameError: if name exists
+                InvalidNameError: if name invalid
         """ 
         if attribute.name in self.class_attributes.keys():
             #return error code or handle existing key
-            return -1
+            raise errors.UMLException("DuplicateNameError")
         self.class_attributes[attribute.name] = attribute
         return 0
 
@@ -41,22 +43,20 @@ class UmlClass:
         return 0
     
     def rename_umlclass(self,name:str) -> int:
-        """Renames the UmlClass
+        """
+        Renames the UmlClass
         Params: 
             name: new name for the class
         Returns:
             0: if the class was successfully renamed
-            -1:if UmlClass was not renamed
         Exceptions:
-            UMLException if the new name is invalid or duplicate
+            UMLException if the new name is invalid
         """
-        try:
-            errors.validName(name)
-            self.class_name = name
-            return 0
-        except Exception as e:
-            logging.log(0,f"error name is {e.name}, num={e.errorNum}")
-            return -1
+        # method will throw exception for parent to catch 
+        # if name is invalid
+        errors.valid_name(name)
+        self.class_name = name
+        return 0
             
         
     

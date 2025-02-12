@@ -13,7 +13,7 @@ from src import errors
 # sys.path.append(os.path.abspath(os.path.join('..', '2025sp-420-BarkingSnakes')))
 # adds the repo directory to sys.path
 # os.path.abspath is the route to the class directory
-rootDir = '2025sp-420-BarkingSnakes'
+root_dir = '2025sp-420-BarkingSnakes'
 if os.path.abspath('.') not in sys.path:
     sys.path.append(os.path.abspath('.'))
 # errors can be imported once the path has been added
@@ -36,8 +36,7 @@ def test_rename_class_invalid():
     try:
         test_class.rename_umlclass("class")
     except Exception as e:
-        assert e == errors.errorList["InvalidNameError"]
-        
+        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_class.class_name == "OriginalName"    
     
     

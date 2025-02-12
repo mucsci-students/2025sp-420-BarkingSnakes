@@ -1,4 +1,4 @@
-Options
+#list of valid commands:
 help
 load <filename>
 save <filename>
@@ -7,11 +7,13 @@ exit
 class <classname> (brings up submenu of options for class)
     add
     delete (brings up Y/N prompt)
-    attribute add <attributename>
-    attribute delete <attributename>
-    attribute rename <oldattributename> <newattributename>
-relation add <sourceclass> <destclass>
-relation delete <sourceclass> <destclass>
+            (also brings up prompt for deleting linked relations)
+    rename <new name>
+    attribute add <attribute name>
+    attribute delete <attribute name>
+    attribute rename <old attribute name> <new attribute name>
+relation add <source class name> <dest class name>
+relation delete <source class name> <dest class name>
 -classname will be invalid if any of these keywords, or python 
     language keywords, and no action will be taken
 -input will also be invalid if classname specified does not
