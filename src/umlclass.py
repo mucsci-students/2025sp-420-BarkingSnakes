@@ -46,7 +46,18 @@ class UmlClass:
         return relationship in self.class_relationships
 
     def add_relationship(self, relationship:UmlRelationship):
-        self.class_relationships.append(relationship)
+        """Adds a UmlRelationship to the class
+        Params:
+            relationship: the UmlRelationship object to be added.
+        Returns:
+            0: if the relationship was successfully added to the class.
+            -1: if a failure occurred. Some fundamental Python problem.
+        """
+        try:
+            self.class_relationships.append(relationship)
+        except:
+            return -1 # appending to a list failed?
+        return 0
 
     def rename_umlclass(self,name:str) -> int:
         """Renames the UmlClass

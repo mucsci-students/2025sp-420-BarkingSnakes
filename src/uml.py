@@ -96,6 +96,17 @@ class UmlProject:
         self.classes[oldName].rename_umlclass(newName)
     
     def add_relationship(self, source:UmlClass, destination:UmlClass, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+        """Creates a relationship of a specified type between the specified classes.
+        Params:
+            source: source end of the relationship
+            destination: destination end of the relationship
+            relationship_type: the type of relationship, default value: DEFAULT
+        Returns:
+            Nothing
+        Exceptions:
+            UMLException:NullObjectError for nonexistent objects
+            UMLException:ExistingRelationshipError if the relationship already exists
+        """
         if source is None or destination is None:
             raise errors.UMLException("NullObjectError")
         addend = UmlRelationship(relationship_type, source, destination)
