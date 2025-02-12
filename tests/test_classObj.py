@@ -1,11 +1,12 @@
 # Filename: unit_tests.py
 # Authors: Kyle Kalbach, John Hershey
-# Creation Date: 02-06-2025, Last Edit Date: 02-08-2025
-# Description: Unit Tests for uml.py
+# Creation Date: 02-06-2025, Last Edit Date: 02-12-2025
+# Description: Unit Tests for umlclass.py
 import os
 import sys
 import logging
 from src.umlclass import UmlClass
+from src.attribute import Attribute
 from src import errors
 # from src import errors
 
@@ -39,47 +40,97 @@ def test_rename_class_invalid():
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_class.class_name == "OriginalName"    
     
-    
-# Rename Rename a class that does not exist
+# Rename a class that does not exist
+
+# Rename a class to an existing class name 
 
 # Add a valid Attribute
+def test_add_attribute_valid():
+    """"""
+    test_class = UmlClass("Car",{})
+    test_attribute = Attribute("MaxSpeed")
+
+    try:
+        test_class.add_attribute(test_attribute)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "MaxSpeed" in test_class.class_attributes
 
 # Add an invalid Attribute
+def test_add_attribute_invalid():
+    """"""
+    test_class = UmlClass("Car",{})
+    test_attribute = Attribute("exit")
+
+    try:
+        test_class.add_attribute(test_attribute)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_attributes) == 0
 
 # Remove an existing Attribute
+def test_remove_attribute_valid():
+    """"""
+    test_attribute = Attribute("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+
+    assert len(test_class.class_attributes) == 1
+    
+    try:
+        test_class.remove_attribute(test_attribute.name)
+        
+    except Exception as e:
+       assert e.get_num() == errors.error_list["NoSuchObjectError"]
+    assert len(test_class.class_attributes) == 0
 
 # Remove a nonexisting Attribute
+def test_remove_attribute_not_found():
+    """"""
+    test_attribute = Attribute("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
 
+    assert len(test_class.class_attributes) == 1
+    
+    try:
+        test_class.remove_attribute("MinSpeed")
+        
+    except Exception as e:
+       assert e.get_num() == errors.error_list["NoSuchObjectError"]
+    assert len(test_class.class_attributes) == 1
 
+# Rename an attribute
+def test_rename_attribute_valid():
+    """"""
+    test_attribute = Attribute("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    
+    try:
+        test_class.rename_attribute("MaxSpeed","MinSpeed")
+    except Exception as e:
+        pass
+    assert "MinSpeed" in test_class.class_attributes
 
+# Rename an attribute to an invalid name
+def test_rename_attribute_invalid():
+    """"""
+    test_attribute = Attribute("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    
+    try:
+        test_class.rename_attribute("MaxSpeed","relation")
+    except Exception as e:
+        assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "MaxSpeed" in test_class.class_attributes
 
-# This code needs to move to the UML project Test
+# Rename an attribute to an existing attribute
+def test_rename_attribute_existing():
+    """"""
+    test_attribute = Attribute("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
 
-# Add a valid class
+    try:
+        test_class.rename_attribute("MaxSpeed","MaxSpeed")
+    except Exception as e:
+        assert e.get_num() == errors.error_list["DuplicateNameError"]
+    assert "MaxSpeed" in test_class.class_attributes
 
-# Add an invalid class 
-# def testInvalidName():
-#     x = None
-#     #checks
-#     try:
-#         errors.validName("class")
-#     except Exception as e:
-#         logging.log(0,f"error name is {e.name}, num={e.errorNum}")
-#     assert x == errors.errorList["InvalidNameError"]
-
-# Add an existing class
-
-# Delete an existing class
-
-# Delete a non-existing class
-# using empty class
-# def testDeleteEmpty():
-#     x = None
-#     try:
-#         errors.noClass(None)
-#     except Exception as e:
-#         logging.log(0,f"error name is {e.name}, num={e.errorNum}")
-#         x=e
-#     assert x.errorNum == errors.errorList["NullObjectError"]
-
-# Delete an invalid class name
