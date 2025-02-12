@@ -24,6 +24,7 @@ class UmlClass:
         if attribute.name in self.class_attributes.keys():
             #return error code or handle existing key
             raise errors.UMLException("DuplicateNameError")
+        errors.valid_name(attribute.name)
         self.class_attributes[attribute.name] = attribute
         return 0
 
@@ -37,11 +38,35 @@ class UmlClass:
             if an attribute was not removed form the class
         """
         if name not in self.class_attributes.keys():
-            #return error code for nonexistent attribute    
+            #return error code for nonexistent attribute 
+            raise errors.UMLException("NoSuchObjectError")   
             return -1
         self.class_attributes.pop(name)
         return 0
     
+    def rename_attribute(self,oldname:str,newname:str) -> int:
+        """Renames the specified attribute
+        Params: 
+            oldname: existing attribute to rename
+            newname: name to replace oldname
+        Returns:
+            0: if the attribute was successfully renamed
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            UMLException:NoSuchObjectError if the attribute does not exist
+            UMLException:DuplicateNameError if newname exist in class_attributes
+        """
+        errors.valid_name(newname)
+
+        if newname in self.class_attributes.keys():
+            #return error code or handle existing key
+            raise errors.UMLException("DuplicateNameError")
+        
+        current_attr = self.class_attributes.pop(oldname)
+        current_attr.rename_attr(newname)
+        self.add_attribute(current_attr)
+        return 0
+
     def rename_umlclass(self,name:str) -> int:
         """
         Renames the UmlClass
@@ -50,7 +75,8 @@ class UmlClass:
         Returns:
             0: if the class was successfully renamed
         Exceptions:
-            UMLException if the new name is invalid
+            UMLException:InvalidNameError if the new name is invalid
+            UMLException:NoSuchObjectError if the class does not exist
         """
         # method will throw exception for parent to catch 
         # if name is invalid
