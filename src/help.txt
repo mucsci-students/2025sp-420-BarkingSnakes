@@ -6,6 +6,10 @@ help
     Display this help menu
 load <filename>
     Load the file at <filename>
+    If a project file is open, will prompt to save.
+new <filename>
+    Create a new project file at <filename>
+    If a project file is open, will prompt to save.
 save
     Save the file that was loaded with the load command
 quit

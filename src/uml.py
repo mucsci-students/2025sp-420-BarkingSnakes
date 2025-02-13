@@ -16,6 +16,9 @@ from umlclass import UmlClass, Attribute
 
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
 
+def is_json_file(filepath:str):
+    return re.search('\\.json', filepath, flags=re.IGNORECASE) is not None
+
 class UmlProject:
     """"""
     def __init__(self):
@@ -134,7 +137,7 @@ class UmlProject:
         if not os.path.isfile(filepath):
             return -1
 
-        if not re.search('\\.json', filepath, flags=re.IGNORECASE):
+        if not is_json_file(filepath):
             return -1
 
         return 0
@@ -233,6 +236,22 @@ class UmlApplication:
             return func(self, *args, **kwargs)
         return wrapper
 
+    def _handle_unsaved_changes(func):
+        @functools.wraps(func)
+        def wrapper(self:UmlApplication, *args, **kwargs):
+            if self.project and self.project.has_unsaved_changes:
+                prompt = "The current project has unsaved changes. Would you like to save before continuing? Y/N to continue. "
+                user_response = self.get_user_input(prompt)
+
+                if user_response.lower() == 'y':
+                    self.save_project()
+                elif user_response.lower() != 'n':
+                    print("Invalid input.")
+                    return wrapper(self, *args, **kwargs)
+            
+            return func(self, *args, **kwargs)
+        return wrapper
+
     @property
     def prompt(self) -> str:
         if self.active_class:
@@ -247,6 +266,7 @@ class UmlApplication:
             self.project = UmlProject()
             self.project.load(self._current_filepath)
     
+    @_handle_unsaved_changes
     def load_project(self, filepath:str) -> None:
         """"""
         self.project = UmlProject()
@@ -256,8 +276,21 @@ class UmlApplication:
     def save_project(self) -> None:
         self.project.save()
 
-    def new_project(self) -> None:
+    @_handle_unsaved_changes
+    def new_project(self, filepath:str) -> None:
         """"""
+        if not is_json_file(filepath):
+            """"""
+            print("Failed: file should be a .json extension.")
+            return
+        
+        template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
+
+        with open(template_path, "r") as t:
+            with open(filepath, "w") as f:
+                f.write(t.read())
+
+        self.load_project(filepath)
 
     def inform_invalid_command(self, command:str) -> None:
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
@@ -281,6 +314,9 @@ class UmlApplication:
         
         elif cmd == 'quit':
             self._command = self.command_quit
+
+        elif cmd == 'new':
+            self._command = lambda: self.new_project(args[1])
         
         elif cmd == 'load':
             self._command = lambda: self.load_project(args[1])
@@ -321,18 +357,11 @@ class UmlApplication:
         with open(self.HELP_PATH, "r") as f:
             print(f.read())
 
+    @_handle_unsaved_changes
     def command_quit(self):
         """"""
         # Check if file is unsaved and prompt user to save or discard
-        if self.project and self.project.has_unsaved_changes:
-            prompt = "You have unsaved changes. Would you like to save before exiting? Y/N to continue. "
-            user_response = self.get_user_input(prompt)
-
-            if user_response.lower() == 'y':
-                self.save_project()
-            elif user_response.lower() != 'n':
-                print("Invalid input.")
-                return self.command_quit()
+        # Above comment is handled by the decorator @_handle_unsaved_changes
 
         # Exit the program
         self.is_running = False
