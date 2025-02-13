@@ -5,8 +5,16 @@
 
 import os
 
+from src.errors import UMLException
 from src.uml import UmlProject
 
-def test_no_existing_file():
+
+def test_load_no_existing_file():
+    #try:
+        #UmlProject.load(UmlProject,"fake.json")
+    #except UMLException as e:
+        # 8 corresponds to InvalidFileError in the error list
+        #assert e.get_num == 8
     fpath = os.path.join("this_file_doesnt_exist.json")
+    
 
