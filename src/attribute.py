@@ -9,10 +9,7 @@ import errors
 
 @dataclass
 class Attribute:
-    attr_name:str
-
-    def __init__(self, name):
-        self.attr_name = name
+    name:str
 
     def rename_attr(self,name:str) -> int:
         """Renames the Attribute
@@ -25,7 +22,7 @@ class Attribute:
             UMLException if the new name is invalid or duplicate
         """""
         errors.valid_name(name)
-        self.attr_name = name
+        self.name = name
         return 0
     
     def to_dict(self) -> dict:
