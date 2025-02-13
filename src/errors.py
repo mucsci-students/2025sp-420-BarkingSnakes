@@ -3,7 +3,7 @@
 # Date 2025-02-07
 # Description: class listing errors
 import keyword
-class UMLException(Exception):()
+# class UMLException(Exception):()
 
 #object methods
 class UMLException(Exception):
@@ -86,3 +86,15 @@ def no_class(class_obj):
     #else if classObj.type != umlclass.UmlClass:
     #    return -1
     return 0
+
+class NoActiveProjectException(UMLException):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class NoActiveClassException(UMLException):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class DuplicateAttributeException(UMLException):
+    def __init__(self, *args):
+        super().__init__(*args)

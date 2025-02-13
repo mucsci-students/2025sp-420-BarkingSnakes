@@ -24,3 +24,8 @@ class Attribute:
         errors.valid_name(name)
         self.name = name
         return 0
+    
+    def to_dict(self) -> dict:
+        return {
+            'name': self.name
+        }

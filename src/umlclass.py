@@ -23,7 +23,7 @@ class UmlClass:
         """ 
         if attribute.name in self.class_attributes.keys():
             #return error code or handle existing key
-            raise errors.UMLException("DuplicateNameError")
+            raise errors.DuplicateAttributeException("DuplicateNameError")
         errors.valid_name(attribute.name)
         self.class_attributes[attribute.name] = attribute
         return 0
@@ -60,7 +60,7 @@ class UmlClass:
 
         if newname in self.class_attributes.keys():
             #return error code or handle existing key
-            raise errors.UMLException("DuplicateNameError")
+            raise errors.DuplicateAttributeException("DuplicateNameError")
         
         current_attr = self.class_attributes.pop(oldname)
         current_attr.rename_attr(newname)
