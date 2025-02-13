@@ -50,14 +50,20 @@ class UmlClass:
         Params:
             relationship: the UmlRelationship object to be added.
         Returns:
-            0: if the relationship was successfully added to the class.
-            -1: if a failure occurred. Some fundamental Python problem.
+            Nothing
         """
-        try:
-            self.class_relationships.append(relationship)
-        except:
-            return -1 # appending to a list failed?
-        return 0
+        self.class_relationships.append(relationship)
+    
+    def remove_relationship(self, relationship:UmlRelationship):
+        """Removes the first occurrence of the specified UmlRelationship from the list.
+        Params:
+            relationship: the UmlRelationship object to be removed.
+        Returns:
+            Nothing
+        Exceptions:
+            Raises a ValueError if the relationship is not found in the list.
+        """
+        self.class_relationships.remove(relationship)
 
     def rename_umlclass(self,name:str) -> int:
         """Renames the UmlClass

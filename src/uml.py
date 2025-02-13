@@ -95,25 +95,59 @@ class UmlProject:
         #rename the class using its own rename method
         self.classes[oldName].rename_umlclass(newName)
     
-    def add_relationship(self, source:UmlClass, destination:UmlClass, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+    def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
         """Creates a relationship of a specified type between the specified classes.
         Params:
-            source: source end of the relationship
-            destination: destination end of the relationship
+            source: name of UML class for source end of the relationship
+            destination: name of UML class for destination end of the relationship
             relationship_type: the type of relationship, default value: DEFAULT
         Returns:
             Nothing
         Exceptions:
             UMLException:NullObjectError for nonexistent objects
+            UMLException:NoSuchObjectError for nonexistent UMLClass names.
             UMLException:ExistingRelationshipError if the relationship already exists
         """
         if source is None or destination is None:
             raise errors.UMLException("NullObjectError")
-        addend = UmlRelationship(relationship_type, source, destination)
-        if source.has_relationship(addend):
+        if source not in self.classes or destination not in self.classes:
+            raise errors.UMLException("NoSuchObjectError")
+        source_class = self.classes[source]
+        destination_class = self.classes[destination]
+        addend = UmlRelationship(relationship_type, source_class, destination_class)
+        if source_class.has_relationship(addend):
             raise errors.UMLException("ExistingRelationshipError")
-        source.add_relationship(addend)
-        destination.add_relationship(addend)
+        source_class.add_relationship(addend)
+        if source != destination:
+            destination_class.add_relationship(addend) # Only add relationship to destination class if it is not the source class.
+    
+    def delete_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+        """Deletes a relationship of a specified type between the specified classes.
+        Params:
+            source: name of UML class for source end of the relationship
+            destination: name of UML class for destination end of the relationship
+            relationship_type: the type of relationship, default value: DEFAULT
+        Returns:
+            Nothing
+        Exceptions:
+            UMLException:NullObjectError for nonexistent objects
+            UMLException:NoSuchObjectError for nonexistent relationships or UMLClass names.
+            ValueError if the relationship isn't found during the remove.
+        """
+        if source is None or destination is None:
+            raise errors.UMLException("NullObjectError")
+        if source not in self.classes or destination not in self.classes:
+            raise errors.UMLException("NoSuchObjectError")
+        source_class = self.classes[source]
+        destination_class = self.classes[destination]
+        to_remove = UmlRelationship(relationship_type, source_class, destination_class)
+        if not source_class.has_relationship(to_remove):
+            raise errors.UMLException("NoSuchObjectError")
+        source_class.remove_relationship(to_remove) # Raises ValueError if Python's remove method cannot find the relationship in the list.
+        if source != destination:
+            destination_class.remove_relationship(to_remove) # Only remove relationship from destination class if it is not the source class.
+
+    
 
 class UmlApplication:
     """"""
