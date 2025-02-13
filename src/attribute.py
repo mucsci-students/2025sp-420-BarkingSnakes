@@ -25,5 +25,10 @@ class Attribute:
             UMLException if the new name is invalid or duplicate
         """""
         errors.valid_name(name)
-        self.class_name = name
+        self.attr_name = name
         return 0
+    
+    def to_dict(self) -> dict:
+        return {
+            'attr_name': self.attr_name
+        }
