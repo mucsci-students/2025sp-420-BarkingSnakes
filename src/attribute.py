@@ -27,5 +27,5 @@ class Attribute:
     
     def to_dict(self) -> dict:
         return {
-            'attr_name': self.attr_name
+            'name': self.name
         }

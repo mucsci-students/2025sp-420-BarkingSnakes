@@ -82,7 +82,7 @@ class UmlProject:
             Exceptions:
             """
             if data:
-                attribute = Attribute(data.get("attr_name"))
+                attribute = Attribute(data.get("name"))
                 # attribute.name = data.get("attr_name")
                 return attribute
 
@@ -93,7 +93,7 @@ class UmlProject:
             uml_attributes.extend(list(map(_parse_uml_attributes, data.get("attributes"))))
         return UmlClass(
             data.get("class_name"),
-            {attribute.attr_name:attribute for attribute in uml_attributes}
+            {attribute.name:attribute for attribute in uml_attributes}
         )
 
     def save(self) -> int:
@@ -217,11 +217,19 @@ class UmlApplication:
         self.is_running = True
         self.active_class:UmlClass = None
 
+    def _requires_active_project(func):
+        @functools.wraps(func)
+        def wrapper(self:UmlApplication, *args, **kwargs):
+            if self.project is None:
+                raise errors.NoActiveProjectException("NullObjectError")
+            return func(self, *args, **kwargs)
+        return wrapper
+
     def _requires_active_class(func):
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.active_class is None:
-                raise errors.NoActiveClassException("InvalidNameError")
+                raise errors.NoActiveClassException("NullObjectError")
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -244,6 +252,7 @@ class UmlApplication:
         self.project = UmlProject()
         self._retval = self.project.load(filepath)
 
+    @_requires_active_project
     def save_project(self) -> None:
         self.project.save()
 
@@ -254,7 +263,7 @@ class UmlApplication:
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
 
     def inform_invalid_input(self, user_in:errors.UMLException) -> None:
-        print(f"{user_in}")
+        print(f"Operation failed:UML Error:{user_in}")
     
     def get_filepath_from_user(self) -> None:
         self._current_filepath = input("Filepath: ")
@@ -315,7 +324,7 @@ class UmlApplication:
     def command_quit(self):
         """"""
         # Check if file is unsaved and prompt user to save or discard
-        if self.project.has_unsaved_changes:
+        if self.project and self.project.has_unsaved_changes:
             prompt = "You have unsaved changes. Would you like to save before exiting? Y/N to continue. "
             user_response = self.get_user_input(prompt)
 
@@ -332,12 +341,14 @@ class UmlApplication:
         if self.active_class:
             self.active_class = None
 
+    @_requires_active_project
     def command_list(self) -> None:
         if not self.active_class:
             self._render_umlproject()
         else:
             self._render_umlclass(self.active_class)
 
+    @_requires_active_project
     def command_class(self, name:str) -> None:
         """"""
         if self.active_class and self.active_class.class_name == name:
@@ -346,6 +357,7 @@ class UmlApplication:
         self.active_class = self.project.get_umlclass(name)
 
         if not self.active_class:
+            errors.valid_name(name)
             self.active_class = UmlClass(name, {})
     
     @_requires_active_class
@@ -402,7 +414,7 @@ class UmlApplication:
 
     @_requires_active_class
     def command_rename_attribute(self, oldname:str, newname:str) -> None:
-        self.active_class.class_attributes.get(oldname).rename_attr(newname)
+        self.active_class.rename_attribute(oldname, newname)
 
     def run(self):
         """
@@ -417,12 +429,16 @@ class UmlApplication:
                 if self._command is None:
                     self.get_user_command()
                 self._command()
+            except errors.NoActiveProjectException:
+                print("No project has been loaded. Use command: load <filepath> or new <filepath> to get started.")
             except errors.NoActiveClassException:
                 print("No active class selection. Use command: class <class name> to select a class.")
+            except errors.DuplicateAttributeException:
+                print("Failed: An attribute with that name already exists on this class.")
             except errors.UMLException as uml_e:
-                # self.inform_invalid_input(e)
-                print("Hit an error!")
+                self.inform_invalid_input(uml_e)
             except Exception as e:
+                self.inform_invalid_input(e)
                 logging.info(f" unknown error occured: {e.args}")
             finally:
                 self._command = None

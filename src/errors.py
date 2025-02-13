@@ -87,6 +87,14 @@ def no_class(class_obj):
     #    return -1
     return 0
 
+class NoActiveProjectException(UMLException):
+    def __init__(self, *args):
+        super().__init__(*args)
+
 class NoActiveClassException(UMLException):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class DuplicateAttributeException(UMLException):
     def __init__(self, *args):
         super().__init__(*args)
