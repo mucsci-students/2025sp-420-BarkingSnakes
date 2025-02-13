@@ -21,10 +21,10 @@ class UmlClass:
                 DuplicateNameError: if name exists
                 InvalidNameError: if name invalid
         """ 
-        if attribute.name in self.class_attributes.keys():
+        if attribute.attr_name in self.class_attributes.keys():
             #return error code or handle existing key
             raise errors.UMLException("DuplicateNameError")
-        self.class_attributes[attribute.name] = attribute
+        self.class_attributes[attribute.attr_name] = attribute
         return 0
 
     def remove_attribute(self,name:str) -> int:
