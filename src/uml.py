@@ -1,6 +1,6 @@
 # Filename: uml.py
-# Authors: Steven Barnes
-# Date: 2025-02-12
+# Authors: Steven Barnes, John Hershey
+# Date: 2025-02-13
 # Description: Entry point for UML editor program.
 
 from __future__ import annotations
@@ -42,8 +42,9 @@ class UmlProject:
         Exceptions:
         """
         #method returns 0 when true, which is equivalent to false
+        #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
-            return -1
+            raise errors.InvalidFileException()
         
         self._save_path = filepath
 
@@ -125,20 +126,21 @@ class UmlProject:
 
     def _validate_filepath(self, filepath:str) -> int:
         """
-        Params: 
+        validates the filepath
+            Params: 
             
-        Returns:
+            Returns:
             
-        Exceptions:
+            Exceptions:
         """
         if not os.path.exists(filepath):
-            return -1
+            raise errors.InvalidFileException()
         
         if not os.path.isfile(filepath):
-            return -1
+            raise errors.InvalidFileException()
 
         if not is_json_file(filepath):
-            return -1
+            raise errors.InvalidFileException()
 
         return 0
     
@@ -157,6 +159,8 @@ class UmlProject:
         Exceptions:  
             UMLException if the class couldn't be added.
         """
+        if uml_class.class_name in self.classes:
+            raise errors.DuplicateClassException()
         self.classes[uml_class.class_name] = uml_class
     
     @_has_changed
@@ -178,9 +182,9 @@ class UmlProject:
                 UMLException if the new name is invalid or duplicate
         """
         if oldName not in self.classes.keys():
-            raise errors.UMLException("NoSuchObjectError")
+            raise errors.NoSuchObjectException()
         elif newName in self.classes.keys():
-            raise errors.UMLException("DuplicateNameError")
+            raise errors.DuplicateClassException()
         #rename the class using its own rename method
         uml_class = self.classes.pop(oldName)
         uml_class.rename_umlclass(newName)
@@ -199,7 +203,7 @@ class UmlProject:
             # self.delete_relationships(uml_class)
             return 0
 
-        return -1   
+        raise errors.NoSuchObjectException()
 
     @_has_changed
     def add_attribute(self, classname:str, attr_name:str)  -> int:
@@ -224,7 +228,7 @@ class UmlApplication:
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.project is None:
-                raise errors.NoActiveProjectException("NullObjectError")
+                raise errors.NoActiveProjectException()
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -232,7 +236,7 @@ class UmlApplication:
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.active_class is None:
-                raise errors.NoActiveClassException("NullObjectError")
+                raise errors.NoActiveClassException()
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -240,7 +244,7 @@ class UmlApplication:
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.project and self.project.has_unsaved_changes:
-                prompt = "The current project has unsaved changes. Would you like to save before continuing? Y/N to continue. "
+                prompt = "The current project has unsaved changes. Would you like to save before continuing? Y/N. "
                 user_response = self.get_user_input(prompt)
 
                 if user_response.lower() == 'y':
@@ -306,31 +310,12 @@ class UmlApplication:
 
     def get_user_command(self) -> None:
         command = self.get_user_input()
-        args = command.split(" ")
+        args = command.split()
         cmd = args[0].lower()
         # self._command = self.COMMANDS.get(command.upper())
-        if cmd == 'help':
-            self._command = self.command_show_help
-        
-        elif cmd == 'quit':
-            self._command = self.command_quit
-
-        elif cmd == 'new':
-            self._command = lambda: self.new_project(args[1])
-        
-        elif cmd == 'load':
-            self._command = lambda: self.load_project(args[1])
-        
-        elif cmd == 'save':
-            self._command = self.save_project
-
-        elif cmd == 'class':
-            self._command = lambda: self.command_class(args[1])
-        
-        elif cmd == 'list':
-            self._command = self.command_list
-        
-        elif cmd == 'back':
+        # commands that raise handled exceptions when outside of a class,
+        # and function otherwise
+        if cmd == 'back':
             self._command = self.command_back
 
         elif cmd == 'add':
@@ -340,12 +325,48 @@ class UmlApplication:
             self._command = self.command_delete_umlclass
 
         elif cmd == 'rename':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter new class name ").split()
             self._command = lambda: self.command_rename_umlclass(args[1])
 
         elif cmd == 'attribute':
             self._command = self.command_attribute(args)
 
-        elif self._command is None:
+        #commands that function differently based on whether in or out of a class
+        elif cmd == 'class':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter class name ").split()
+            self._command = lambda: self.command_class(args[1])
+            
+        elif cmd == 'list':
+            self._command = self.command_list
+
+        #commands that function either in or out of a class context
+        elif cmd == 'help':
+            self._command = self.command_show_help
+        
+        elif cmd == 'quit':
+            self._command = self.command_quit
+
+        elif cmd == 'save':
+            self._command = self.save_project
+            
+        elif cmd == 'new':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter new project file name ").split()
+            self._command = lambda: self.new_project(args[1])
+            
+        elif cmd == 'load':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter project file name ").split()
+            self._command = lambda: self.load_project(args[1])
+        
+        # now catches all cases
+        else:
             self._command = lambda: self.inform_invalid_command(command)
 
     # APPLICATION COMMANDS
@@ -379,7 +400,9 @@ class UmlApplication:
 
     @_requires_active_project
     def command_class(self, name:str) -> None:
-        """"""
+        """
+        Handles the user command "class"
+        """
         if self.active_class and self.active_class.class_name == name:
             return
         
@@ -397,7 +420,7 @@ class UmlApplication:
     def command_delete_umlclass(self):
         """"""        
         # Confirm with user
-        prompt = "Deleting a class will also remove it's relationships. Y/N to continue. "
+        prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         user_response = self.get_user_input(prompt)
         if user_response.lower() == "n":
             return
@@ -464,6 +487,9 @@ class UmlApplication:
                 print("No active class selection. Use command: class <class name> to select a class.")
             except errors.DuplicateAttributeException:
                 print("Failed: An attribute with that name already exists on this class.")
+            except errors.InvalidFileException:
+                print("Invalid file: Use command: new <filename> to make a new file, \
+                    \n or command: load <filename> to load a .json file that exists")
             except errors.UMLException as uml_e:
                 self.inform_invalid_input(uml_e)
             except Exception as e:
