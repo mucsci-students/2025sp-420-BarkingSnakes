@@ -1,0 +1,20 @@
+{
+    "classes": [
+        {
+            "class_name": "",
+            "attributes": []
+        },
+        {
+            "class_name": "snake",
+            "attributes": []
+        },
+        {
+            "class_name": "bark",
+            "attributes": [
+                {
+                    "name": "goldenretriever"
+                }
+            ]
+        }
+    ]
+}

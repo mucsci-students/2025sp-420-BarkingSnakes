@@ -12,14 +12,6 @@ class Relation:
     source:str
     dest:str
 
-    def __init__(self, src_name, des_name):
-        self.source = src_name
-        self.dest = des_name
-
-    def del_rel(self,name:str) -> int:
-        """
-        
-        """
-        errors.valid_name(name)
-        self.class_name = name
-        return 0
+def __init__(self, src_name, des_name):
+    self.source = src_name
+    self.dest = des_name

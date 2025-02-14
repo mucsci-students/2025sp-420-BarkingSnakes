@@ -1,10 +1,11 @@
 # Filename: umlclass.py
-# Authors: Kyle Kalbach Steven Barnes
+# Authors: Kyle Kalbach, Steven Barnes, Evan Magill
 # Date: 02-07-2025
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass
 from attribute import Attribute
+from umlrelationship import UmlRelationship
 import errors
 
 @dataclass

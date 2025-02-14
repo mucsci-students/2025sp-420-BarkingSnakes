@@ -1,6 +1,6 @@
 # Filename: attribute.py
-# Authors: John Hershey
-# Date 2025-02-07
+# Authors: John Hershey, Evan Magill
+# Date 2025-02-11
 # Description: class listing errors
 import keyword
 class UMLException(Exception):()
@@ -22,8 +22,8 @@ class UMLException(Exception):
         #set name to specifed error
         self.name = args[0]
         #only add the number if specified
-        if self.name in error_list:
-            self.error_num = error_list[self.name]
+        if self.name in InvalidNames:
+            self.error_num = InvalidNames[self.name]
         #default to -1 if not in list
         else:
             self.error_num = -1
@@ -47,15 +47,15 @@ class UMLException(Exception):
         """
         return self.error_num
 #class objects
-uml_names = ["attribute", "relation", "exit", "quit", "help"
-            , "name","", " "]
-invalid_names = uml_names + keyword.kwlist
-error_list = {
-    "NullObjectError":1,
-    "InvalidNameError":2,
-    "DuplicateNameError":3,
-    "NoSuchObjectError":4
-}
+InvalidNames = ["attribute", "relation", "exit", "quit"]
+InvalidNames += keyword.kwlist
+errorList = {
+        "NullObjectError":1,
+        "InvalidNameError":2,
+        "DuplicateNameError":3,
+        "NoSuchObjectError":4,
+        "ExistingRelationshipError":5
+        }
 
 #class methods
 def valid_name(name:str) -> int:
@@ -68,7 +68,7 @@ def valid_name(name:str) -> int:
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in invalid_names:
+    if name.lower() in InvalidNames:
         raise UMLException("InvalidNameError")
     return 0
 def no_class(class_obj):
