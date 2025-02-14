@@ -313,59 +313,61 @@ class UmlApplication:
         args = command.split()
         cmd = args[0].lower()
         # self._command = self.COMMANDS.get(command.upper())
-        if self.active_class:
-            if cmd == 'back':
-                self._command = self.command_back
+        # commands that raise handled exceptions when outside of a class,
+        # and function otherwise
+        if cmd == 'back':
+            self._command = self.command_back
 
-            elif cmd == 'add':
-                self._command = self.command_add_umlclass
+        elif cmd == 'add':
+            self._command = self.command_add_umlclass
 
-            elif cmd == 'delete':
-                self._command = self.command_delete_umlclass
+        elif cmd == 'delete':
+            self._command = self.command_delete_umlclass
 
-            elif cmd == 'rename':
-                #ask for rest of input
-                if len(args) == 1:
-                    args += self.get_user_input("Enter new class name ").split()
-                self._command = lambda: self.command_rename_umlclass(args[1])
+        elif cmd == 'rename':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter new class name ").split()
+            self._command = lambda: self.command_rename_umlclass(args[1])
 
-            elif cmd == 'attribute':
-                self._command = self.command_attribute(args)
-            # now catches all cases
-            else:
-                self._command = lambda: self.inform_invalid_command(command)
+        elif cmd == 'attribute':
+            self._command = self.command_attribute(args)
+
+        #commands that function differently based on whether in or out of a class
+        elif cmd == 'class':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter class name ").split()
+            self._command = lambda: self.command_class(args[1])
+            
+        elif cmd == 'list':
+            self._command = self.command_list
+
+        #commands that function either in or out of a class context
+        elif cmd == 'help':
+            self._command = self.command_show_help
+        
+        elif cmd == 'quit':
+            self._command = self.command_quit
+
+        elif cmd == 'save':
+            self._command = self.save_project
+            
+        elif cmd == 'new':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter new project file name ").split()
+            self._command = lambda: self.new_project(args[1])
+            
+        elif cmd == 'load':
+            #ask for rest of input
+            if len(args) == 1:
+                args += self.get_user_input("Enter project file name ").split()
+            self._command = lambda: self.load_project(args[1])
+        
+        # now catches all cases
         else:
-            if cmd == 'help':
-                self._command = self.command_show_help
-            
-            elif cmd == 'quit':
-                self._command = self.command_quit
-
-            elif cmd == 'save':
-                self._command = self.save_project
-            
-            elif cmd == 'new':
-                #ask for rest of input
-                if len(args) == 1:
-                    args += self.get_user_input("Enter new project file name ").split()
-                self._command = lambda: self.new_project(args[1])
-            
-            elif cmd == 'load':
-                #ask for rest of input
-                if len(args) == 1:
-                    args += self.get_user_input("Enter project file name ").split()
-                self._command = lambda: self.load_project(args[1])
-            
-            elif cmd == 'class':
-                #ask for rest of input
-                if len(args) == 1:
-                    args += self.get_user_input("Enter class name ").split()
-                self._command = lambda: self.command_class(args[1])
-            elif cmd == 'list':
-                self._command = self.command_list
-            # now catches all cases
-            else:
-                self._command = lambda: self.inform_invalid_command(command)
+            self._command = lambda: self.inform_invalid_command(command)
 
     # APPLICATION COMMANDS
 
