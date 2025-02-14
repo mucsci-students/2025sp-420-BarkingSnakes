@@ -131,6 +131,6 @@ def test_rename_attribute_existing():
     try:
         test_class.rename_attribute("MaxSpeed","MaxSpeed")
     except Exception as e:
-        assert e.get_num() == errors.error_list["DuplicateNameError"]
+        assert e.get_num() == errors.error_list["DuplicateAttributeError"]
     assert "MaxSpeed" in test_class.class_attributes
 

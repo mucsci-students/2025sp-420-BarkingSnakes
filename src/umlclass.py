@@ -24,7 +24,7 @@ class UmlClass:
         """ 
         if attribute.name in self.class_attributes.keys():
             #return error code or handle existing key
-            raise errors.UMLException("DuplicateNameError")
+            raise errors.DuplicateAttributeException()
         errors.valid_name(attribute.name)
         self.class_attributes[attribute.name] = attribute
         return 0
@@ -40,8 +40,7 @@ class UmlClass:
         """
         if name not in self.class_attributes.keys():
             #return error code for nonexistent attribute 
-            raise errors.UMLException("NoSuchObjectError")   
-            return -1
+            raise errors.NoSuchObjectException()
         self.class_attributes.pop(name)
         return 0
     
@@ -61,7 +60,7 @@ class UmlClass:
 
         if newname in self.class_attributes.keys():
             #return error code or handle existing key
-            raise errors.UMLException("DuplicateNameError")
+            raise errors.DuplicateAttributeException()
         
         current_attr = self.class_attributes.pop(oldname)
         current_attr.rename_attr(newname)

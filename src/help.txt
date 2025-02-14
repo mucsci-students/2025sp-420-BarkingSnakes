@@ -1,17 +1,39 @@
-#list of valid commands:
++-----------------------------------------------------------------------------+
+| Barking Snakes UML - No Bull!                                               |
++-----------------------------------------------------------------------------+
+#BS-uml Commands:
 help
+    Display this help menu
 load <filename>
-save <filename>
+    Load the file at <filename>
+    If a project file is open, will prompt to save.
+new <filename>
+    Create a new project file at <filename>
+    If a project file is open, will prompt to save.
+save
+    Save the file that was loaded with the load command
 quit
-exit
-class <classname> (brings up submenu of options for class)
-    add
-    delete (brings up Y/N prompt)
-            (also brings up prompt for deleting linked relations)
-    rename <new name>
-    attribute add <attribute name>
-    attribute delete <attribute name>
-    attribute rename <old attribute name> <new attribute name>
+    Quits the program. Prompts to save any unsaved changes.
+back
+    When inside a class context, returns to the project context.
+class <classname>
+    Enters the context for the class with the specified <classname>
+
+    class subcommands:
+        add
+            Adds the class to the project if it doesn't already exists
+        delete
+            Removes the class from the project and any of its relationships.
+            Issues a Y/N prompt to confirm the action.
+        rename <new name>
+            Renames the class to the provided <new name>
+        attribute add <attribute name>
+            Adds the attribute with name <attribute name> to the class.
+        attribute delete <attribute name>
+            Deletes the attribute with name <attribute name> from the class.
+        attribute rename <old attribute name> <new attribute name>
+            Renames the attribute on the class with <old attribute name>
+            to <new attribute name>
 relation add <source class name> <dest class name>
 relation delete <source class name> <dest class name>
 -classname will be invalid if any of these keywords, or python 
