@@ -102,13 +102,15 @@ class UmlProject:
 
     def save(self) -> int:
         """
-        Params: 
+        
+            Params: 
             
-        Returns:
+            Returns:
             
-        Exceptions:
+            Exceptions:
         """
-
+        if not self._save_path:
+            raise errors.NoActiveProjectException()
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
 
@@ -297,6 +299,14 @@ class UmlApplication:
         self.load_project(filepath)
 
     def inform_invalid_command(self, command:str) -> None:
+        """
+        enters the terminal into the class context\
+        with the specified class name
+            Params:   
+                command: 
+            Returns:
+                None
+        """
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
 
     def inform_invalid_input(self, user_in:errors.UMLException) -> None:
@@ -306,6 +316,14 @@ class UmlApplication:
         self._current_filepath = input("Filepath: ")
     
     def get_user_input(self, text:str = "") -> str:
+        """
+        gets user input from the terminal, after prompting with uml name \
+        and specified text
+            Params:   
+                text: the text to prompt the user after the uml name
+            Returns:
+                the text the user types into the terminal
+        """
         return input(f"{self.prompt}{text}")
 
     def get_user_command(self) -> None:
@@ -388,11 +406,26 @@ class UmlApplication:
         self.is_running = False
 
     def command_back(self) -> None:
+        """
+        Brings terminal out of class xontext
+            Params:   
+                none
+            Returns:
+                none
+        """
         if self.active_class:
             self.active_class = None
 
     @_requires_active_project
     def command_list(self) -> None:
+        """
+        Displays list of classes when out of class context,
+        and displays class contents when in a class
+            Params:   
+                none
+            Returns:
+                none
+        """
         if not self.active_class:
             self._render_umlproject()
         else:
@@ -401,7 +434,12 @@ class UmlApplication:
     @_requires_active_project
     def command_class(self, name:str) -> None:
         """
-        Handles the user command "class"
+        enters the terminal into the class context\
+        with the specified class name
+            Params:   
+                name: the name of the class to enter the context of
+            Returns:
+                None: if the terminal is already in that class context
         """
         if self.active_class and self.active_class.class_name == name:
             return
@@ -414,6 +452,13 @@ class UmlApplication:
     
     @_requires_active_class
     def command_add_umlclass(self) -> None:
+        """
+        adds the class the context is in to the project
+            Params:   
+                None:
+            Returns:
+                None:
+        """
         self.project.add_umlclass(self.active_class)
 
     @_requires_active_class
@@ -458,6 +503,7 @@ class UmlApplication:
 
     @_requires_active_class
     def command_add_attribute(self, name:str) -> None:
+        """"""
         self.active_class.add_attribute(Attribute(name))
 
     @_requires_active_class
@@ -485,11 +531,14 @@ class UmlApplication:
                 print("No project has been loaded. Use command: load <filepath> or new <filepath> to get started.")
             except errors.NoActiveClassException:
                 print("No active class selection. Use command: class <class name> to select a class.")
+            except errors.DuplicateClassException:
+                print("Failed: An class with that name already exists in this project.")
             except errors.DuplicateAttributeException:
                 print("Failed: An attribute with that name already exists on this class.")
             except errors.InvalidFileException:
-                print("Invalid file: Use command: new <filename> to make a new file, \
-                    \n or command: load <filename> to load a .json file that exists")
+                print("Invalid file: Use command: new <filename.json> to make a new file, \
+                    \n or command: load <filename.json> to load a file that exists \
+                    \n in current folder, or specify subfolder with <filepath/filename.json>")
             except errors.UMLException as uml_e:
                 self.inform_invalid_input(uml_e)
             except Exception as e:
@@ -512,7 +561,6 @@ class UmlApplication:
             # return s
             return s + " " * (size_delta + 1)
             
-
         header = uml_class.class_name
         body = []
 
@@ -539,7 +587,6 @@ class UmlApplication:
                 self._render_umlclass(c)
         else:
             print("No classes to display.")
-
 
 def main():
     """Entry point for the program."""

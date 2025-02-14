@@ -3,7 +3,8 @@
 # Date 2025-02-07
 # Description: class listing errors
 import keyword
-# class UMLException(Exception):()
+#predeclaration of class
+class UMLException(Exception):()
 
 #object methods
 class UMLException(Exception):
@@ -17,7 +18,17 @@ class UMLException(Exception):
         Exceptions:
             NoSuchErrorError: if error name not in error_list
     """
+    
+    def equals(self, other:UMLException):
+        """checks if self and other have the same error num"""
+        return self.error_num == other.error_num
+    
+    def __eq__(self,other:UMLException):
+        """checks if self and other have the same error num, using =="""
+        return self.error_num == other.error_num
+    
     def __init__(self, *args):
+        """initializes the error name and error number"""
         #initalize superclass as well
         super().__init__(*args)
         #set name to specifed error
@@ -47,9 +58,10 @@ class UMLException(Exception):
                 errorNum: number of exception
         """
         return self.error_num
-#class objects
-uml_names = ["attribute", "relation", "exit", "quit", "help"
-            , "name","", " "]
+#class objects to prevent from being used
+uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
+             "back", "add", "delete", "rename", "umlclass", "", " "]
+#adds python keywords to list of invalid works
 invalid_names = uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
