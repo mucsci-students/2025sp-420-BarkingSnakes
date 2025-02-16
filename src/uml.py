@@ -204,9 +204,6 @@ class UmlProject:
         uml_class = self.classes.pop(oldName)
         uml_class.rename_umlclass(newName)
         self.add_umlclass(uml_class)
-
-        # Relationships keep up-to-date reference to the class.
-
         return 0
     
     @_has_changed
