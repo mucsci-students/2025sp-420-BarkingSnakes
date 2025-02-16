@@ -1,6 +1,6 @@
 # Filename: uml.py
-# Authors: Steven Barnes, John Hershey
-# Date: 2025-02-13
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
+# Date: 2025-02-14
 # Description: Entry point for UML editor program.
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import logging
 
 import errors
 from umlclass import UmlClass, Attribute
+from umlrelationship import UmlRelationship, RelationshipType
 
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -23,6 +24,7 @@ class UmlProject:
     """"""
     def __init__(self):
         self.classes:dict[str,UmlClass] = {}
+        self.relationships:set[UmlRelationship] = set()
         self._save_path = None
         self.has_unsaved_changes = False
 
@@ -69,6 +71,10 @@ class UmlProject:
         
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
 
+        uml_relationships:list[dict] = data.get("relationships")
+
+        self.relationships = set([self._parse_uml_relationship(r) for r in uml_relationships])
+
     def _parse_uml_class(self, data:dict) -> UmlClass:
         """
         Params: 
@@ -100,6 +106,9 @@ class UmlProject:
             {attribute.name:attribute for attribute in uml_attributes}
         )
 
+    def _parse_uml_relationship(self, data:dict):
+        return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+
     def save(self) -> int:
         """
         
@@ -123,7 +132,11 @@ class UmlProject:
             'classes': [{
                 'class_name': c.class_name,
                 'attributes': [a.to_dict() for a in c.class_attributes.values()]
-            } for c in self.classes.values()]
+            } for c in self.classes.values()],
+            'relationships': [{
+                'source': r.source_class.class_name,
+                'destination': r.destination_class.class_name
+            } for r in self.relationships]
         }
 
     def _validate_filepath(self, filepath:str) -> int:
@@ -146,9 +159,9 @@ class UmlProject:
 
         return 0
     
-    def contains_umlclass(self, uml_class:UmlClass) -> bool:
+    def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project."""
-        return uml_class.class_name in self.classes.keys()
+        return uml_class_name in self.classes.keys()
     
     @_has_changed
     def add_umlclass(self, uml_class:UmlClass):
@@ -187,7 +200,7 @@ class UmlProject:
             raise errors.NoSuchObjectException()
         elif newName in self.classes.keys():
             raise errors.DuplicateClassException()
-        #rename the class using its own rename method
+        # rename the class using its own rename method
         uml_class = self.classes.pop(oldName)
         uml_class.rename_umlclass(newName)
         self.add_umlclass(uml_class)
@@ -200,6 +213,7 @@ class UmlProject:
 
         if uml_class:
             # self.delete_relationships(uml_class)
+            self.relationships = set(filter(lambda element: element.source_class != uml_class and element.destination_class != uml_class, self.relationships))
             return 0
 
         raise errors.NoSuchObjectException()
@@ -208,6 +222,77 @@ class UmlProject:
     def add_attribute(self, classname:str, attr_name:str)  -> int:
         if self.classes.get(classname):
             self.classes.get(classname).add_attribute(Attribute(attr_name))
+
+    def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
+        """"""
+        if source is None or destination is None:
+            raise errors.UMLException("NullObjectError")
+        
+        if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
+            raise errors.UMLException("NoSuchObjectError")
+        
+        search_target = UmlRelationship(relationship_type, self.get_umlclass(source), self.get_umlclass(destination))
+        for relation in self.relationships:
+            if search_target == relation:
+                return relation
+
+        raise errors.UMLException("NoSuchObjectError")
+
+    @_has_changed
+    def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+        """Creates a relationship of a specified type between the specified classes.
+        Params:
+            source: name of UML class for source end of the relationship
+            destination: name of UML class for destination end of the relationship
+            relationship_type: the type of relationship, default value: DEFAULT
+        Returns:
+            Nothing
+        Exceptions:
+            UMLException:NullObjectError for nonexistent objects
+            UMLException:NoSuchObjectError for nonexistent UMLClass names.
+            UMLException:ExistingRelationshipError if the relationship already exists
+        """
+        if source is None or destination is None:
+            raise errors.UMLException("NullObjectError")
+        
+        if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
+            raise errors.UMLException("NoSuchObjectError")
+        
+        source_class = self.get_umlclass(source)
+        destination_class = self.get_umlclass(destination)
+        addend = UmlRelationship(relationship_type, source_class, destination_class)
+
+        if addend in self.relationships:
+            raise errors.UMLException("ExistingRelationshipError")
+        
+        self.relationships.add(addend)
+        
+    @_has_changed
+    def delete_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+        """Deletes a relationship of a specified type between the specified classes.
+        Params:
+            source: name of UML class for source end of the relationship
+            destination: name of UML class for destination end of the relationship
+            relationship_type: the type of relationship, default value: DEFAULT
+        Returns:
+            Nothing
+        Exceptions:
+            UMLException:NullObjectError for nonexistent objects
+            UMLException:NoSuchObjectError for nonexistent relationships or UMLClass names.
+            ValueError if the relationship isn't found during the remove.
+        """
+        if source is None or destination is None:
+            raise errors.UMLException("NullObjectError")
+        
+        if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
+            raise errors.UMLException("NoSuchObjectError")
+        
+        match = self.get_relationship(source, destination, relationship_type)
+
+        if not match:
+            raise errors.UMLException("NoSuchObjectError") # Note, an error is raised by get_relationship. This should never occur.
+        
+        self.relationships.remove(match)
 
 class UmlApplication:
     """"""
@@ -362,6 +447,9 @@ class UmlApplication:
             self._command = self.command_list
 
         #commands that function either in or out of a class context
+        elif cmd == 'relation':
+            self._command = self.command_relation(args)
+
         elif cmd == 'help':
             self._command = self.command_show_help
         
@@ -514,6 +602,33 @@ class UmlApplication:
     def command_rename_attribute(self, oldname:str, newname:str) -> None:
         self.active_class.rename_attribute(oldname, newname)
 
+    @_requires_active_project
+    def command_relation(self, args:list[str]):
+        if len(args) < 2:
+            return lambda: self.inform_invalid_command(" ".join(args))
+        
+        cmd = args[1].lower()
+
+        if cmd == 'add':
+            return lambda: self.command_add_relation(args[2], args[3])
+        elif cmd == 'delete':
+            return lambda: self.command_delete_relation(args[2], args[3])
+        elif cmd == 'list':
+            return self.command_list_relation
+        return lambda: self.inform_invalid_command(" ".join(args))
+
+    @_requires_active_project
+    def command_add_relation(self, source:str, destination:str) -> None:
+        self.project.add_relationship(source, destination)
+
+    @_requires_active_project
+    def command_delete_relation(self, source:str, destination:str) -> None:
+        self.project.delete_relationship(source, destination)
+
+    @_requires_active_project
+    def command_list_relation(self):
+        print("\n".join(map(str, self.project.relationships)))
+
     def run(self):
         """
         runs the program until user exit
@@ -553,7 +668,7 @@ class UmlApplication:
             size_delta = abs(len(s) - l)
 
             if not size_delta:
-                return f" {s} "
+                return f"{s} "
             
             if not size_delta % 2:
                 return s + " " * size_delta

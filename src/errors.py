@@ -1,6 +1,6 @@
 # Filename: attribute.py
-# Authors: John Hershey
-# Date 2025-02-07
+# Authors: John Hershey, Evan Magill
+# Date 2025-02-11
 # Description: class listing errors
 import keyword
 #predeclaration of class
@@ -72,7 +72,8 @@ error_list = {
     "NoActiveProjectError":5,
     "NoActiveClassError":6,
     "DuplicateAttributeError":7,
-    "InvalidFileError":8
+    "InvalidFileError":8,
+    "ExistingRelationshipError":9
 }
 
 #class methods
