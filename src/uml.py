@@ -146,9 +146,9 @@ class UmlProject:
 
         return 0
     
-    def contains_umlclass(self, uml_class:UmlClass) -> bool:
+    def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project."""
-        return uml_class.class_name in self.classes.keys()
+        return uml_class_name in self.classes.keys()
     
     @_has_changed
     def add_umlclass(self, uml_class:UmlClass):
@@ -419,6 +419,9 @@ class UmlApplication:
             self._command = self.command_list
 
         #commands that function either in or out of a class context
+        elif cmd == 'relation':
+            self._command = self.command_relation(args)
+
         elif cmd == 'help':
             self._command = self.command_show_help
         
@@ -543,6 +546,27 @@ class UmlApplication:
     def command_rename_attribute(self, oldname:str, newname:str) -> None:
         self.active_class.rename_attribute(oldname, newname)
 
+    @_requires_active_project
+    def command_relation(self, args:list[str]):
+        if len(args) != 4:
+            return lambda: self.inform_invalid_command(" ".join(args))
+        
+        cmd = args[1].lower()
+
+        if cmd == 'add':
+            return lambda: self.command_add_relation(args[2], args[3])
+        elif cmd == 'delete':
+            return lambda: self.command_delete_relation(args[2], args[3])
+        return lambda: self.inform_invalid_command(" ".join(args))
+
+    @_requires_active_project
+    def command_add_relation(self, source:str, destination:str) -> None:
+        self.project.add_relationship(source, destination)
+
+    @_requires_active_project
+    def command_delete_relation(self, source:str, destination:str) -> None:
+        self.active_class.remove_attribute(source, destination)
+
     def run(self):
         """
         runs the program until user exit
@@ -579,7 +603,7 @@ class UmlApplication:
             size_delta = abs(len(s) - l)
 
             if not size_delta:
-                return f" {s} "
+                return f"{s} "
             
             if not size_delta % 2:
                 return s + " " * size_delta

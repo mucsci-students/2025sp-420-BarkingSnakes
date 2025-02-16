@@ -2,11 +2,8 @@
 # Authors: Evan Magill, Steven Barnes
 # Date: 2025-02-11
 # Description: Class encapsulating umlrelationships
-import logging
 from dataclasses import dataclass
-from umlclass import UmlClass
 from enum import Enum
-import errors
 
 class RelationshipType(Enum):
     DEFAULT = 0
@@ -14,8 +11,8 @@ class RelationshipType(Enum):
 @dataclass
 class UmlRelationship:
     relationship_type:RelationshipType
-    source_class:UmlClass
-    destination_class:UmlClass
+    source_class:None
+    destination_class:None
 
     def __eq__(self, other):
         if self.relationship_type != other.relationship_type:
