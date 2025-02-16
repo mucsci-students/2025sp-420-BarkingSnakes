@@ -191,9 +191,6 @@ class UmlProject:
         uml_class = self.classes.pop(oldName)
         uml_class.rename_umlclass(newName)
         self.add_umlclass(uml_class)
-
-        # Update relationships
-
         return 0
     
     @_has_changed

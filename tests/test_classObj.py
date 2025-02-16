@@ -40,10 +40,6 @@ def test_rename_class_invalid():
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_class.class_name == "OriginalName"    
     
-# Rename a class that does not exist
-
-# Rename a class to an existing class name 
-
 # Add a valid Attribute
 def test_add_attribute_valid():
     """"""
