@@ -19,11 +19,10 @@
 4. To Activate the virtual environment use `./venv/bin/activate`
 5. Install required packages using `pip install -r requirements.txt`
 6. To deactivate virtual environment type `deactivate`
-7. To run the uml program ``
 
 ## Running the program
-   Windows:`python3 src\uml.py`
-   Linux:`python3 src/uml.py`
+   Windows: `python3 src\uml.py`
+   Linux: `python3 src/uml.py`
 
 ## Running tests
 - Use for specific test 
