@@ -3,15 +3,13 @@
 # Date: 02-07-2025
 # Description: umlclass methods
 import logging
-from dataclasses import dataclass
 from attribute import Attribute
-from umlrelationship import UmlRelationship
 import errors
 
-@dataclass
 class UmlClass:
-    class_name:str
-    class_attributes:dict[str,Attribute]
+    def __init__(self, class_name:str, class_attributes:dict[str, Attribute]):
+        self.class_name = class_name
+        self.class_attributes = class_attributes
 
     def add_attribute(self,attribute:Attribute) -> int:
         """
