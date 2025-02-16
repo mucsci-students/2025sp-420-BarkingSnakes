@@ -36,6 +36,7 @@ class <classname>
             to <new attribute name>
 relation add <source class name> <dest class name>
 relation delete <source class name> <dest class name>
+relation list
 -classname will be invalid if any of these keywords, or python 
     language keywords, and no action will be taken
 -input will also be invalid if classname specified does not
