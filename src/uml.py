@@ -324,13 +324,16 @@ class UmlApplication:
             Returns:
                 the text the user types into the terminal
         """
-        return input(f"{self.prompt}{text}")
+        user_input = input(f"{self.prompt}{text}")
+        while user_input == '':
+            user_input = input(f"{self.prompt}{text}")
+        return user_input
 
     def get_user_command(self) -> None:
         command = self.get_user_input()
         args = command.split()
         cmd = args[0].lower()
-        # self._command = self.COMMANDS.get(command.upper())
+
         # commands that raise handled exceptions when outside of a class,
         # and function otherwise
         if cmd == 'back':
