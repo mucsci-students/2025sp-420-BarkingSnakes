@@ -163,7 +163,7 @@ class NoActiveClassException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(6)*args)
+        super().__init__(get_error_name(6), *args)
 
 class DuplicateAttributeException(UMLException):
     """
