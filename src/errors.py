@@ -1,12 +1,32 @@
 # Filename: attribute.py
 # Authors: John Hershey, Evan Magill
-# Date 2025-02-11
+# Date 2025-02-16
 # Description: class listing errors
+
+## imports
 import keyword
-#predeclaration of class
+
+## predeclarations
 class UMLException(Exception):()
 
-#object methods
+## static class objects
+uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
+             "back", "add", "delete", "rename", "umlclass", "save", "", " "]
+#adds python keywords to list of invalid works
+invalid_names = uml_names + keyword.kwlist
+error_list = {
+    "NoSuchErrorError":0,
+    "NullObjectError":1,
+    "InvalidNameError":2,
+    "DuplicateClassError":3,
+    "NoSuchObjectError":4,
+    "NoActiveProjectError":5,
+    "NoActiveClassError":6,
+    "DuplicateAttributeError":7,
+    "InvalidFileError":8,
+    "ExistingRelationshipError":9
+}
+## class definitions
 class UMLException(Exception):
     """
     Exception wrapper class for the UML
@@ -58,23 +78,6 @@ class UMLException(Exception):
                 errorNum: number of exception
         """
         return self.error_num
-#class objects to prevent from being used
-uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
-             "back", "add", "delete", "rename", "umlclass", "", " "]
-#adds python keywords to list of invalid works
-invalid_names = uml_names + keyword.kwlist
-error_list = {
-    "NoSuchErrorError":0,
-    "NullObjectError":1,
-    "InvalidNameError":2,
-    "DuplicateClassError":3,
-    "NoSuchObjectError":4,
-    "NoActiveProjectError":5,
-    "NoActiveClassError":6,
-    "DuplicateAttributeError":7,
-    "InvalidFileError":8,
-    "ExistingRelationshipError":9
-}
 
 #class methods
 def valid_name(name:str) -> int:
@@ -106,6 +109,7 @@ def get_error_name(val:int) -> str:
     error_name = list(error_list.keys())[val]
     return error_name
 
+## test
 class NullObjectException(UMLException):
     """
     Wrapper of UMLException class for null object error
@@ -185,3 +189,13 @@ class InvalidFileException(UMLException):
     """
     def __init__(self, *args):
         super().__init__(get_error_name(8),*args)
+        
+class DuplicateRelationshipException(UMLException):
+    """
+    Wrapper of UMLException class for duplicate relationship error
+        Args:
+            None: Error automatically passes its name onto
+            UMLException so no args are needed
+    """
+    def __init__(self, *args):
+        super().__init__(get_error_name(9),*args)
