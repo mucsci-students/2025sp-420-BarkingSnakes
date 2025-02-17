@@ -656,6 +656,8 @@ class UmlApplication:
                     \n in current folder, or specify subfolder with <filepath/filename.json>")
             except errors.UMLException as uml_e:
                 self.inform_invalid_input(uml_e)
+            except EOFError:
+                self.is_running = False
             except Exception as e:
                 self.inform_invalid_input(e)
                 logging.info(f" unknown error occured: {e.args}")
