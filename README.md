@@ -15,19 +15,19 @@
 ## Linux Installation Instructions
 1. Install python3 a version >= 3.9 if not present https://www.geeksforgeeks.org/how-to-install-python-on-linux/
 2. Install pip use `apt install python3-pip`
-3. Install a python virtual environment use `virtualenv venv venv`
-4. To Activate the virtual environment use `./venv/bin/activate`
+3. Install a python virtual environment use `python3 -m venv venv`
+4. To Activate the virtual environment use `source venv/bin/activate`
 5. Install required packages using `pip install -r requirements.txt`
 6. To deactivate virtual environment type `deactivate`
 
 ## Running the program
-   Windows: `python3 src\uml.py`
+   Windows: `python src\uml.py`
    Linux: `python3 src/uml.py`
 
 ## Running tests
 - Use for specific test 
-   Windows: `pytest <tests\test_testname>` 
-   Linux: `pytest <tests/test_testname>`
+   Windows: `pytest tests\<test_testname>` 
+   Linux: `pytest tests/<test_testname>`
 - Use to run all tests `pytest`
 - Current available test names 
   test_attributeObj.py
