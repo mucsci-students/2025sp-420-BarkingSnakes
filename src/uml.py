@@ -18,6 +18,7 @@ from umlrelationship import UmlRelationship, RelationshipType
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
 
 def is_json_file(filepath:str):
+    """Validate if the filepath is .json"""
     return re.search('\\.json', filepath, flags=re.IGNORECASE) is not None
 
 class UmlProject:
@@ -36,12 +37,14 @@ class UmlProject:
         return wrapper
 
     def load(self, filepath:str) -> int:
-        """
+        """Load the project at the provided filepath.
+
         Params: 
-            
+            filepath: string
         Returns:
-            
+            int: 0 if success
         Exceptions:
+            InvalidFileException
         """
         #method returns 0 when true, which is equivalent to false
         #if not 0 errors should be called in validate
@@ -57,12 +60,14 @@ class UmlProject:
         return 0
     
     def _parse_uml_data(self, data:dict) -> int:
-        """
+        """Parses the .json file and populates the classes and relationships.
+
         Params: 
-            
+            data: dict from the loaded .json data.  Should contain the keys 'classes' and 'relationships'.    
         Returns:
-            
+            int: 0 if success
         Exceptions:
+            None
         """
         uml_classes:list[dict] = data.get("classes")
 
@@ -76,20 +81,24 @@ class UmlProject:
         self.relationships = set([self._parse_uml_relationship(r) for r in uml_relationships])
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
-        """
+        """Converts the provided dict to a UmlClass.
+
         Params: 
-            
+            data: dict representation of the UmlClass.
         Returns:
-            
+            UmlClass: an instance of a UmlClass.
         Exceptions:
+            None
         """
         def _parse_uml_attributes(data:dict) -> Attribute:
-            """
+            """Converts the provided dict to an Attribute.
+
             Params: 
-
+                data: dict representation of the Attribute.
             Returns:
-
+                Attribute: an instance of an Attribute.
             Exceptions:
+                None
             """
             if data:
                 attribute = Attribute(data.get("name"))
@@ -106,17 +115,27 @@ class UmlProject:
             {attribute.name:attribute for attribute in uml_attributes}
         )
 
-    def _parse_uml_relationship(self, data:dict):
+    def _parse_uml_relationship(self, data:dict) -> UmlRelationship:
+        """Converts the provided dict to a UmlRelationship.
+
+        Params: 
+            data: dict representation of the UmlRelationship.
+        Returns:
+            UmlRelationship: an instance of an UmlRelationship.
+        Exceptions:
+            None
+        """
         return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
     def save(self) -> int:
-        """
-        
-            Params: 
-            
-            Returns:
-            
-            Exceptions:
+        """Saves the currently opened project using the same filepath it was loaded from.
+
+        Params: 
+            None
+        Returns:
+            int: 0 if successful.
+        Exceptions:
+            NoActiveProjectException
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
@@ -128,6 +147,7 @@ class UmlProject:
 
     @property
     def _save_object(self) -> dict:
+        """Converts the project into a dict in order to save to .json file."""
         return {
             'classes': [{
                 'class_name': c.class_name,
@@ -140,13 +160,14 @@ class UmlProject:
         }
 
     def _validate_filepath(self, filepath:str) -> int:
-        """
-        validates the filepath
-            Params: 
-            
-            Returns:
-            
-            Exceptions:
+        """Validates the filepath can be used.
+
+        Params: 
+            filepath: string for the filepath to validate.
+        Returns:
+            int: 0 if success
+        Exceptions:
+            InvalidFileException
         """
         if not os.path.exists(filepath):
             raise errors.InvalidFileException()
@@ -160,19 +181,27 @@ class UmlProject:
         return 0
     
     def contains_umlclass(self, uml_class_name:str) -> bool:
-        """Check if the UmlClass is in the project."""
+        """Check if the UmlClass is in the project.
+        
+        Params: 
+            uml_class_name: A string of the class name to look for.
+        Returns:
+            bool
+        Exceptions:
+            None
+        """
         return uml_class_name in self.classes.keys()
     
     @_has_changed
     def add_umlclass(self, uml_class:UmlClass):
-        """Adds an UmlClass to the project.  
-        Params:  
-            uml_class: The UmlClass instance to add.  
-        Returns:  
-            0: if the class was successfully added.  
-            -1: if UmlClass was not added.  
-        Exceptions:  
-            UMLException if the class couldn't be added.
+        """Adds an UmlClass to the project.
+
+        Params:
+            uml_class: The UmlClass instance to add.
+        Returns:
+            0: if successful
+        Exceptions:
+            DuplicateClassException
         """
         if uml_class.class_name in self.classes:
             raise errors.DuplicateClassException()
@@ -180,21 +209,29 @@ class UmlProject:
     
     @_has_changed
     def get_umlclass(self, name:str) -> UmlClass:
-        """"""
+        """Gets the UmlClass instance for the provided class name.
+
+        Params:
+            name: A string of the class name to provide.
+        Returns:
+            UmlClass: The instance of the UmlClass or None.
+        Exceptions:
+            None
+        """
         return self.classes.get(name)
 
     @_has_changed
     def rename_umlclass(self,oldName:str, newName:str) -> int:
-        """
-        Renames a UmlClass with the first name to the second
-            Params: 
-                oldName: current name of the class
-                newName: new name for the class
-            Returns:
-                0: if the class was successfully renamed
-               -1: if UmlClass was not renamed
-            Exceptions:
-                UMLException if the new name is invalid or duplicate
+        """Renames a UmlClass with the first name to the second.
+
+        Params:
+            oldName: current name of the class
+            newName: new name for the class
+        Returns:
+            0: if successful
+        Exceptions:
+            NoSuchObjectException
+            DuplicateClassException
         """
         if oldName not in self.classes.keys():
             raise errors.NoSuchObjectException()
@@ -208,7 +245,15 @@ class UmlProject:
     
     @_has_changed
     def delete_umlclass(self, name:str) -> int:
-        """"""
+        """Deletes a UmlClass with the provided name.
+
+        Params:
+            name: current name of the class
+        Returns:
+            0: if successful
+        Exceptions:
+            NoSuchObjectException
+        """
         uml_class = self.classes.pop(name, None)
 
         if uml_class:
@@ -220,23 +265,42 @@ class UmlProject:
 
     @_has_changed
     def add_attribute(self, classname:str, attr_name:str)  -> int:
+        """Adds an attribute to the UmlClass with classname.
+
+        Params:
+            classname: current name of the class
+            attr_name: name of the attribute to add
+        Returns:
+            0: if successful
+        Exceptions:
+            None
+        """
         if self.classes.get(classname):
             self.classes.get(classname).add_attribute(Attribute(attr_name))
 
     def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
-        """"""
+        """Get the relationship between source and destination.
+
+        Params:
+            source: name of the source class
+            destination: name of the destination class
+        Returns:
+            0: if successful
+        Exceptions:
+            NoSuchObjectException
+        """
         if source is None or destination is None:
-            raise errors.UMLException("NullObjectError")
+            raise errors.NoSuchObjectException()
         
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
-            raise errors.UMLException("NoSuchObjectError")
+            raise errors.NoSuchObjectException()
         
         search_target = UmlRelationship(relationship_type, self.get_umlclass(source), self.get_umlclass(destination))
         for relation in self.relationships:
             if search_target == relation:
                 return relation
 
-        raise errors.UMLException("NoSuchObjectError")
+        raise errors.NoSuchObjectException()
 
     @_has_changed
     def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
@@ -309,6 +373,11 @@ class UmlApplication:
         self.active_class:UmlClass = None
 
     def _requires_active_project(func):
+        """Decorator to validate a project has been loaded.
+        
+        Exceptions:
+            NoActiveProjectException
+        """
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.project is None:
@@ -317,6 +386,11 @@ class UmlApplication:
         return wrapper
 
     def _requires_active_class(func):
+        """Decorator to validate a class context exists.
+        
+        Exceptions:
+            NoActiveClassException
+        """
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.active_class is None:
@@ -325,6 +399,7 @@ class UmlApplication:
         return wrapper
 
     def _handle_unsaved_changes(func):
+        """Decorator to prompt for unsaved changes."""
         @functools.wraps(func)
         def wrapper(self:UmlApplication, *args, **kwargs):
             if self.project and self.project.has_unsaved_changes:
@@ -342,6 +417,7 @@ class UmlApplication:
 
     @property
     def prompt(self) -> str:
+        """The CLI prompt to display each loop."""
         if self.active_class:
             return f"{self.DEFAULT_PROMPT}[{self.active_class.class_name}]> "
         return f"{self.DEFAULT_PROMPT}> "
@@ -356,17 +432,38 @@ class UmlApplication:
     
     @_handle_unsaved_changes
     def load_project(self, filepath:str) -> None:
-        """"""
+        """Load the project at the provided filepath.
+
+        Params:
+            filepath: string
+        Returns:
+            None
+        Exceptions:
+            InvalidFileException
+        """
         self.project = UmlProject()
         self._retval = self.project.load(filepath)
 
     @_requires_active_project
     def save_project(self) -> None:
+        """Saves the currently opened project using the same filepath it was loaded from.
+
+        Exceptions:
+            NoActiveProjectException
+        """
         self.project.save()
 
     @_handle_unsaved_changes
     def new_project(self, filepath:str) -> None:
-        """"""
+        """Creates a new project to the provided filepath using the uml project template.
+        
+        Params:
+            filepath: string
+        Returns:
+            None
+        Exceptions:
+            InvalidFileException
+        """
         if not is_json_file(filepath):
             """"""
             print("Failed: file should be a .json extension.")
@@ -392,9 +489,11 @@ class UmlApplication:
         print(f"Invalid command: {command}.  Use command 'help' for a list of valid commands.")
 
     def inform_invalid_input(self, user_in:errors.UMLException) -> None:
+        """Informs of any other caught UMLExceptions."""
         print(f"Operation failed:UML Error:{user_in}")
     
     def get_filepath_from_user(self) -> None:
+        """Get the filepath from the user if they neglected it during load or new."""
         self._current_filepath = input("Filepath: ")
     
     def get_user_input(self, text:str = "") -> str:
@@ -412,6 +511,7 @@ class UmlApplication:
         return user_input
 
     def get_user_command(self) -> None:
+        """Parses user input and sets the next command to execute."""
         command = self.get_user_input()
         args = command.split()
         cmd = args[0].lower()
@@ -486,7 +586,7 @@ class UmlApplication:
 
     @_handle_unsaved_changes
     def command_quit(self):
-        """"""
+        """Quits the program.  Prompts the user if there are unsaved changes."""
         # Check if file is unsaved and prompt user to save or discard
         # Above comment is handled by the decorator @_handle_unsaved_changes
 
@@ -494,13 +594,7 @@ class UmlApplication:
         self.is_running = False
 
     def command_back(self) -> None:
-        """
-        Brings terminal out of class xontext
-            Params:   
-                none
-            Returns:
-                none
-        """
+        """Brings terminal out of class context"""
         if self.active_class:
             self.active_class = None
 
@@ -509,10 +603,9 @@ class UmlApplication:
         """
         Displays list of classes when out of class context,
         and displays class contents when in a class
-            Params:   
-                none
-            Returns:
-                none
+
+        Exceptions:
+            NoActiveProjectException
         """
         if not self.active_class:
             self._render_umlproject()
@@ -521,13 +614,12 @@ class UmlApplication:
 
     @_requires_active_project
     def command_class(self, name:str) -> None:
-        """
-        enters the terminal into the class context\
-        with the specified class name
-            Params:   
-                name: the name of the class to enter the context of
-            Returns:
-                None: if the terminal is already in that class context
+        """enters the terminal into the class context with the specified class name
+
+        Params:   
+            name: the name of the class to enter the context of
+        Exceptions:
+            NoActiveProjectException
         """
         if self.active_class and self.active_class.class_name == name:
             return
@@ -540,18 +632,21 @@ class UmlApplication:
     
     @_requires_active_class
     def command_add_umlclass(self) -> None:
-        """
-        adds the class the context is in to the project
-            Params:   
-                None:
-            Returns:
-                None:
+        """adds the class the context is in to the project
+        
+        Exceptions:
+            NoActiveClassException
         """
         self.project.add_umlclass(self.active_class)
 
     @_requires_active_class
     def command_delete_umlclass(self):
-        """"""        
+        """Removes the UmlClass in the current context from the project.
+        Prompts and informs the user to delete relationships.
+        
+        Exceptions:
+            NoActiveClassException
+        """        
         # Confirm with user
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         user_response = self.get_user_input(prompt)
@@ -566,15 +661,25 @@ class UmlApplication:
 
     @_requires_active_class
     def command_rename_umlclass(self, name:str):
+        """Renames the UmlClass in the current context.
+        
+        Params:
+            name: the new name for the class.
+        Exceptions:
+            NoActiveClassException
+        """
         self.project.rename_umlclass(self.active_class.class_name, name)
         self.active_class = self.project.get_umlclass(name)
 
     @_requires_active_class
     def command_attribute(self, args:list[str]):
-        # if self.active_class is None:
-        #     print("No active class selection. Use command: class <class name> to select a class.")
-        #     return
-
+        """Parses additional args for attribute commands.
+        
+        Params:
+            args: string list of additional args
+        Exceptions:
+            NoActiveClassException
+        """
         if len(args) < 3:
             return lambda: self.inform_invalid_command(" ".join(args))
 
@@ -591,19 +696,45 @@ class UmlApplication:
 
     @_requires_active_class
     def command_add_attribute(self, name:str) -> None:
-        """"""
+        """Adds an attribute to the UmlClass in current context.
+        
+        Exceptions:
+            NoActiveClassException
+        """
         self.active_class.add_attribute(Attribute(name))
 
     @_requires_active_class
     def command_delete_attribute(self, name:str) -> None:
+        """Deletes an attribute from the UmlClass in the current context.
+        
+        Exceptions:
+            NoActiveClassException
+        """
         self.active_class.remove_attribute(name)
 
     @_requires_active_class
     def command_rename_attribute(self, oldname:str, newname:str) -> None:
+        """Renames an attribute from the UmlClass in the current context.
+        
+        Params:
+            oldname: the current name of the attribute to rename
+            newname: the name to change the attribute to
+        Exceptions:
+            NoActiveClassException
+            InvalidNameError
+            DuplicateNameError
+        """
         self.active_class.rename_attribute(oldname, newname)
 
     @_requires_active_project
     def command_relation(self, args:list[str]):
+        """Parses additional args for relation commands.
+        
+        Params:
+            args: string list of additional args
+        Exceptions:
+            NoActiveProjectException
+        """
         if len(args) < 2:
             return lambda: self.inform_invalid_command(" ".join(args))
         
@@ -619,14 +750,33 @@ class UmlApplication:
 
     @_requires_active_project
     def command_add_relation(self, source:str, destination:str) -> None:
+        """Adds a relationship.
+        
+        Params:
+            source: a class name owning the source
+            destination: a class name owning the destination
+        Exceptions:
+            NoActiveProjectException
+            NoSuchObjectError
+        """
         self.project.add_relationship(source, destination)
 
     @_requires_active_project
     def command_delete_relation(self, source:str, destination:str) -> None:
+        """Delete a relationship.
+        
+        Params:
+            source: a class name owning the source
+            destination: a class name owning the destination
+        Exceptions:
+            NoActiveProjectException
+            NoSuchObjectError
+        """
         self.project.delete_relationship(source, destination)
 
     @_requires_active_project
     def command_list_relation(self):
+        """Display all relationships."""
         print("\n".join(map(str, self.project.relationships)))
 
     def run(self):
@@ -666,6 +816,7 @@ class UmlApplication:
         return 0
     
     def _render_umlclass(self, uml_class:UmlClass):
+        """Display a UmlClass."""
         def calc_spaces(s:str, l:int) -> str:
             size_delta = abs(len(s) - l)
 
@@ -698,6 +849,7 @@ class UmlApplication:
         print(output)
 
     def _render_umlproject(self) -> None:
+        """Display a UmlProject."""
         if any(self.project.classes):
             print(f"Displaying {len(self.project.classes)} classes.")
             for c in self.project.classes.values():
