@@ -1,6 +1,6 @@
 # Filename: umlrelationship.py
 # Authors: Evan Magill, Steven Barnes
-# Date: 2025-02-11
+# Date: 2025-02-16
 # Description: Class encapsulating umlrelationships
 import logging
 import errors
@@ -18,6 +18,10 @@ class UmlRelationship:
     destination_class:UmlClass
 
     def __eq__(self, other):
+        """
+        Checks equality between UmlRelationships.
+        UmlRelationships of the DEFAULT RelationshipType are considered symmetric, so equality still holds if source and destination are switched.
+        """
         if self.relationship_type != other.relationship_type:
             return False
         if self.source_class == other.source_class and self.destination_class == other.destination_class:
@@ -29,6 +33,9 @@ class UmlRelationship:
         return False
     
     def __hash__(self):
+        """
+        Produces a hashed value such that UmlRelationships considered equal by __eq__ will produce the same hash value.
+        """
         # id() is unique to one currently existing object. Appropriate to capture reference to specific UmlClass regardless of that class's properties.
         if self.relationship_type == RelationshipType.DEFAULT:
             # A DEFAULT type relationship is symmetric. Produces same hash regardless of source, destination ordering.

@@ -1,6 +1,6 @@
 # Filename: umlclass.py
 # Authors: Kyle Kalbach, Steven Barnes, Evan Magill
-# Date: 02-07-2025
+# Date: 2025-02-16
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass
