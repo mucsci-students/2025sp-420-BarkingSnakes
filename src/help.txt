@@ -1,0 +1,54 @@
++-----------------------------------------------------------------------------+
+| Barking Snakes UML - No Bull!                                               |
++-----------------------------------------------------------------------------+
+#BS-uml Commands:
+help
+    Display this help menu
+load <filename>
+    Load the file at <filename>
+    If a project file is open, will prompt to save.
+new <filename>
+    Create a new project file at <filename>
+    If a project file is open, will prompt to save.
+save
+    Save the file that was loaded with the load command
+quit
+    Quits the program. Prompts to save any unsaved changes.
+back
+    When inside a class context, returns to the project context.
+list
+    In the project context, displays all classes and their attributes in boxes.
+relation add <source class name> <dest class name>
+    Adds a relation between two existing classes. Symmetric given the current
+    level of abstraction in sprint 1. Either a relationship exists between 2
+    classes or it doesn't. Easily extensible for directed relationships.
+relation delete <source class name> <dest class name>
+    Removes an existing relation.
+relation list
+    Lists all relations in the current project.
+class <classname>
+    Enters the context for the class with the specified <classname>
+
+    class subcommands:
+        add
+            Adds the class to the project if it doesn't already exists
+        delete
+            Removes the class from the project and all of its relationships.
+            Issues a Y/N prompt to confirm the action.
+        rename <new name>
+            Renames the class to the provided <new name>
+        attribute add <attribute name>
+            Adds the attribute with name <attribute name> to the class.
+        attribute delete <attribute name>
+            Deletes the attribute with name <attribute name> from the class.
+        attribute rename <old attribute name> <new attribute name>
+            Renames the attribute on the class with <old attribute name>
+            to <new attribute name>
+        list
+            In the class context, displays the current class and its attributes
+            in a box.
+
+-classname will be invalid if any of these keywords, or python 
+    language keywords, and no action will be taken
+-input will also be invalid if classname specified does not
+    exist for delete, rename, or relation actions
