@@ -327,7 +327,7 @@ class UmlProject:
         addend = UmlRelationship(relationship_type, source_class, destination_class)
 
         if addend in self.relationships:
-            raise errors.UMLException("ExistingRelationshipError")
+            raise errors.DuplicateRelationshipException()
         
         self.relationships.add(addend)
         
@@ -804,6 +804,8 @@ class UmlApplication:
                 print("Invalid file: Use command: new <filename.json> to make a new file, \
                     \n or command: load <filename.json> to load a file that exists \
                     \n in current folder, or specify subfolder with <filepath/filename.json>")
+            except errors.DuplicateRelationshipException:
+                print("Failed: This relationship already exists in this project.")
             except errors.UMLException as uml_e:
                 self.inform_invalid_input(uml_e)
             except EOFError:
