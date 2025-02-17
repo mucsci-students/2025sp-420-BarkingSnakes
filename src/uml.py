@@ -777,7 +777,11 @@ class UmlApplication:
     @_requires_active_project
     def command_list_relation(self):
         """Display all relationships."""
-        print("\n".join(map(str, self.project.relationships)))
+        if len(self.project.relationships) == 0:
+            print("No relationships to display")
+        else:
+            print("Displaying", len(self.project.relationships), "relationships.")
+            print("\n".join(map(str, self.project.relationships)))
 
     def run(self):
         """
