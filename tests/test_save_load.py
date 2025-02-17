@@ -1,6 +1,6 @@
 # Filename: test_save_load.py
-# Authors: Steven Barnes
-# Date: 2025-02-08
+# Authors: Steven Barnes, John Hershey
+# Date: 2025-02-16
 # Description: Unit tests for the save and load module
 
 import os
@@ -32,12 +32,12 @@ def test_save_no_existing_file():
     assert var
 
 def test_make_new_file():
-    """test that a no active project error is given when saving with no file"""
+    """test a new file is made"""
     var = None
     proj = UmlProject()
     
 def test_load_existing_file():
-    """test that a no active project error is given when saving with no file"""
+    """test a file can """
     var = None
     proj = UmlProject()
 
