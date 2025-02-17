@@ -24,7 +24,7 @@ error_list = {
     "NoActiveClassError":6,
     "DuplicateAttributeError":7,
     "InvalidFileError":8,
-    "ExistingRelationshipError":9
+    "DuplicateRelationshipError":9
 }
 ## class definitions
 class UMLException(Exception):
