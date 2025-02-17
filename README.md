@@ -29,7 +29,7 @@
    Windows: `pytest tests\<test_testname>` 
    Linux: `pytest tests/<test_testname>`
 - Use to run all tests `pytest`
-- Current available test names 
+- Current available test names  
   `test_attributeObj.py`  
   `test_classObj.py`  
   `test_save_load.py`  
