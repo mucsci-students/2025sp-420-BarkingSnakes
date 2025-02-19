@@ -1,0 +1,19 @@
+{
+    "classes": [
+        {
+            "class_name": "class1",
+            "attributes": [
+                {
+                    "name": "att1"
+                },
+                {
+                    "name": "att2"
+                },
+                {
+                    "name": "thisisanattribute"
+                }
+            ]
+        }
+    ],
+    "relationships": []
+}
