@@ -7,7 +7,8 @@ import os
 import pytest
 
 from src import errors
-from src.uml import UmlProject, UmlApplication
+from src.uml import UmlProject
+from src.umlcontroller import UmlApplication
 
 def test_load_no_existing_file():
     """tests that an invalid file error is given when loading a fake file"""

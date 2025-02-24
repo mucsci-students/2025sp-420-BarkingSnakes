@@ -12,7 +12,7 @@ class UmlClass:
     class_name:str
     class_attributes:dict[str, Attribute]
 
-    def add_attribute(self,attribute:Attribute) -> int:
+    def add_attribute(self,name:str) -> int:
         """
         Adds an attribute to the UmlClass
             Returns:
@@ -21,11 +21,11 @@ class UmlClass:
                 DuplicateNameError: if name exists
                 InvalidNameError: if name invalid
         """ 
-        if attribute.name in self.class_attributes.keys():
+        if name in self.class_attributes.keys():
             #return error code or handle existing key
             raise errors.DuplicateAttributeException()
-        errors.valid_name(attribute.name)
-        self.class_attributes[attribute.name] = attribute
+        errors.valid_name(name)
+        self.class_attributes[name] = Attribute(name)
         return 0
 
     def remove_attribute(self,name:str) -> int:
@@ -61,9 +61,8 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateAttributeException()
         
-        current_attr = self.class_attributes.pop(oldname)
-        current_attr.rename_attr(newname)
-        self.add_attribute(current_attr)
+        self.class_attributes.pop(oldname)
+        self.add_attribute(newname)
         return 0
 
     def rename_umlclass(self,name:str) -> int:

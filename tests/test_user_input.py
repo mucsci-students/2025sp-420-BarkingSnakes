@@ -5,7 +5,7 @@
 
 import pytest
 
-from src.uml import UmlApplication
+from src.umlcontroller import UmlApplication
 import src.errors as errors
 
 app = UmlApplication()

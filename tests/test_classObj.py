@@ -44,10 +44,10 @@ def test_rename_class_invalid():
 def test_add_attribute_valid():
     """"""
     test_class = UmlClass("Car",{})
-    test_attribute = Attribute("MaxSpeed")
+    test_attribute_name = "MaxSpeed"
 
     try:
-        test_class.add_attribute(test_attribute)
+        test_class.add_attribute(test_attribute_name)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert "MaxSpeed" in test_class.class_attributes
@@ -56,10 +56,10 @@ def test_add_attribute_valid():
 def test_add_attribute_invalid():
     """"""
     test_class = UmlClass("Car",{})
-    test_attribute = Attribute("exit")
+    test_attribute_name = "exit"
 
     try:
-        test_class.add_attribute(test_attribute)
+        test_class.add_attribute(test_attribute_name)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert len(test_class.class_attributes) == 0
@@ -67,6 +67,7 @@ def test_add_attribute_invalid():
 # Remove an existing Attribute
 def test_remove_attribute_valid():
     """"""
+    #change later to avoid direct assignment of attributes
     test_attribute = Attribute("MaxSpeed")
     test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
 
