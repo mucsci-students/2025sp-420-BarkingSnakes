@@ -22,7 +22,7 @@ error_list = {
     "NoSuchObjectError":4,
     "NoActiveProjectError":5,
     "NoActiveClassError":6,
-    "DuplicateAttributeError":7,
+    "DuplicateFieldError":7,
     "InvalidFileError":8,
     "DuplicateRelationshipError":9
 }
@@ -170,9 +170,9 @@ class NoActiveClassException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(6), *args)
 
-class DuplicateAttributeException(UMLException):
+class DuplicateFieldException(UMLException):
     """
-    Wrapper of UMLException class for duplicate attribute error
+    Wrapper of UMLException class for duplicate field error
         Args:
             None: Error automatically passes its name onto
             UMLException so no args are needed

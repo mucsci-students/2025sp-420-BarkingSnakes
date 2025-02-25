@@ -7,7 +7,7 @@ import functools
 import logging
 
 from uml import UmlProject
-from umlclass import UmlClass, Attribute
+from umlclass import UmlClass, UmlField
 import errors
 
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
@@ -191,8 +191,8 @@ class UmlApplication:
                 args += self.get_user_input("Enter new class name ").split()
             self._command = lambda: self.command_rename_umlclass(args[1])
 
-        elif cmd == 'attribute':
-            self._command = self.command_attribute(args)
+        elif cmd == 'field':
+            self._command = self.command_field(args)
 
         #commands that function differently based on whether in or out of a class
         elif cmd == 'class':
@@ -330,8 +330,8 @@ class UmlApplication:
         self.active_class = self.project.get_umlclass(name)
 
     @_requires_active_class
-    def command_attribute(self, args:list[str]):
-        """Parses additional args for attribute commands.
+    def command_field(self, args:list[str]):
+        """Parses additional args for field commands.
         
         Params:
             args: string list of additional args
@@ -344,45 +344,45 @@ class UmlApplication:
         cmd = args[1].lower()
         
         if cmd == 'add':
-            return lambda: self.command_add_attribute(args[2])
+            return lambda: self.command_add_field(args[2])
         elif cmd == 'delete':
-            return lambda: self.command_delete_attribute(args[2])
+            return lambda: self.command_delete_field(args[2])
         elif cmd == 'rename':
-            return lambda: self.command_rename_attribute(args[2], args[3])
+            return lambda: self.command_rename_field(args[2], args[3])
 
         return lambda: self.inform_invalid_command(" ".join(args))
 
     @_requires_active_class
-    def command_add_attribute(self, name:str) -> None:
-        """Adds an attribute to the UmlClass in current context.
+    def command_add_field(self, name:str) -> None:
+        """Adds an field to the UmlClass in current context.
         
         Exceptions:
             NoActiveClassException
         """
-        self.active_class.add_attribute(name)
+        self.active_class.add_field(name)
 
     @_requires_active_class
-    def command_delete_attribute(self, name:str) -> None:
-        """Deletes an attribute from the UmlClass in the current context.
+    def command_delete_field(self, name:str) -> None:
+        """Deletes an field from the UmlClass in the current context.
         
         Exceptions:
             NoActiveClassException
         """
-        self.active_class.remove_attribute(name)
+        self.active_class.remove_field(name)
 
     @_requires_active_class
-    def command_rename_attribute(self, oldname:str, newname:str) -> None:
-        """Renames an attribute from the UmlClass in the current context.
+    def command_rename_field(self, oldname:str, newname:str) -> None:
+        """Renames an field from the UmlClass in the current context.
         
         Params:
-            oldname: the current name of the attribute to rename
-            newname: the name to change the attribute to
+            oldname: the current name of the field to rename
+            newname: the name to change the field to
         Exceptions:
             NoActiveClassException
             InvalidNameError
             DuplicateNameError
         """
-        self.active_class.rename_attribute(oldname, newname)
+        self.active_class.rename_field(oldname, newname)
 
     @_requires_active_project
     def command_relation(self, args:list[str]):
@@ -460,8 +460,8 @@ class UmlApplication:
                 print("No active class selection. Use command: class <class name> to select a class.")
             except errors.DuplicateClassException:
                 print("Failed: An class with that name already exists in this project.")
-            except errors.DuplicateAttributeException:
-                print("Failed: An attribute with that name already exists on this class.")
+            except errors.DuplicateFieldException:
+                print("Failed: An field with that name already exists on this class.")
             except errors.InvalidFileException:
                 print("Invalid file: Use command: new <filename.json> to make a new file, \
                     \n or command: load <filename.json> to load a file that exists \
@@ -497,7 +497,7 @@ class UmlApplication:
         body = []
 
         longest_word_length = len(header)
-        for k, v in uml_class.class_attributes.items():
+        for k, v in uml_class.class_fields.items():
             body.append(k)
             if len(k) > longest_word_length:
                 longest_word_length = len(k)

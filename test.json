@@ -1,0 +1,13 @@
+{
+    "classes": [
+        {
+            "class_name": "car",
+            "fields": [
+                {
+                    "name": "engine"
+                }
+            ]
+        }
+    ],
+    "relationships": []
+}
