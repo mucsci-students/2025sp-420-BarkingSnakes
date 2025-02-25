@@ -50,7 +50,8 @@ def test_make_new_file():
     """test a new file is made"""
     var = None
     try:
-        UmlApplication().new_project("test.json")
+        app = UmlApplication()
+        app.new_project("test.json")
         with open("test.json", "r") as f:
             # make sure file exists
             assert f.read()

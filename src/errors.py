@@ -48,7 +48,7 @@ class UMLException(Exception):
         return self.error_num == other.error_num
     
     def __init__(self, *args):
-        """initializes the error name and error number"""
+        """initializes the error name and error number of the specific error"""
         #initalize superclass as well
         super().__init__(*args)
         #set name to specifed error

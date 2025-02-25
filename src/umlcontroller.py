@@ -61,7 +61,8 @@ class UmlApplication:
                 user_response = self.get_user_input(prompt)
 
                 if user_response.lower() == 'y':
-                    self.save_project()
+                    if not self.project._save_path:
+                        self.save_project()
                 elif user_response.lower() != 'n':
                     print("Invalid input.")
                     return wrapper(self, *args, **kwargs)
@@ -100,16 +101,27 @@ class UmlApplication:
 
     @_requires_active_project
     def save_project(self) -> None:
-        """Saves the currently opened project using the same filepath it was loaded from.
-
-        Exceptions:
-            NoActiveProjectException
+        """Saves the currently opened project 
+        using the same filepath it was loaded from.
         """
-        # currently, instead of passing the filename, the command
-        # section adds the filename to the project first before calling this
         self.project.save()
 
-    #change project for later tasks
+    @_requires_active_project
+    def save_project(self, filename:str) -> None:
+        """Saves the currently opened project using the given filepath.
+
+        Exceptions:
+            InvalidFileException
+        """
+        
+        # validate filename as json and set it
+        if self.project.is_json_file(filename):
+            self.project._save_path = filename
+        #may not be needed
+        else:
+            raise errors.InvalidFileException()
+        self.save_project()
+    
     @_handle_unsaved_changes
     def new_project(self) -> None:
         """Creates a new project using the uml project template.
@@ -137,6 +149,7 @@ class UmlApplication:
         """
         if not UmlProject.is_json_file(self, filepath):
             raise errors.InvalidFileException()
+        
         self.new_project()
         
     
@@ -221,14 +234,15 @@ class UmlApplication:
             self._command = self.command_quit
 
         elif cmd == 'save':
-            # if no filename specified and no current save path, then ask
-            if len(args) == 1 and not self.project._save_path:
-                filename = self.get_user_input("Enter file name")
-                #validate filename as json and set it
-                self.project.is_json_file(filename)
-                self.project._save_path = filename
-            
-            self._command = self.save_project()
+            # if no filename specified and current save path exists,
+            # then call without filepath
+            if len(args) == 1 and self.project._save_path:
+                self._command = self.save_project()
+            else:
+                #if no save filepath but only one arg then request filepath
+                if len(args) == 1:
+                    args += self.get_user_input("enter file name")
+                self._command = self.save_project(args[1])
             
         elif cmd == 'new':
             # if only new is specified, then 

@@ -41,7 +41,6 @@ class UmlProject:
         Returns:
             None
         """
-        
         template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
         #open needs moved to save section in model
         with open(template_path, "r") as t:
@@ -71,14 +70,37 @@ class UmlProject:
 
         return 0
     
-    def is_json_file(self, filepath:str):
-        """Validates if the filepath is .json
-        
+    def save(self) -> int:
+        """Saves the currently opened project, 
+        using the same filepath it was loaded from.
+
+        Params: 
+            None
+        Returns:
+            int: 0 if successful.
         Exceptions:
-            InvalidFileException: if file is not a json file
+            NoActiveProjectException
+        """
+        if not self._save_path:
+            raise errors.NoActiveProjectException()
+        with open(self._save_path, "w") as f:
+            json.dump(self._save_object, f, indent=4)
+
+        self.has_unsaved_changes = False
+        return 0
+    
+    def is_json_file(self, filepath:str) -> bool:
+        """Validates if the filepath is .json
+
+        Params: 
+            filename: name to check is a .json file
+        Returns:
+            True if file was json format
+        Exceptions:
+            InvalidFileException
         """
         #raise error if filename wasn't json.
-        if re.search('\\.json', filepath, flags=re.IGNORECASE):
+        if not re.search('\\.json', filepath, flags=re.IGNORECASE):
             raise errors.InvalidFileException()
         return True
     
@@ -148,25 +170,6 @@ class UmlProject:
         """
         return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
-    def save(self) -> int:
-        """Saves the currently opened project, 
-        using the same filepath it was loaded from.
-
-        Params: 
-            None
-        Returns:
-            int: 0 if successful.
-        Exceptions:
-            NoActiveProjectException
-        """
-        if not self._save_path:
-            raise errors.NoActiveProjectException()
-        with open(self._save_path, "w") as f:
-            json.dump(self._save_object, f, indent=4)
-
-        self.has_unsaved_changes = False
-        return 0
-
     @property
     def _save_object(self) -> dict:
         """Converts the project into a dict in order to save to .json file."""
@@ -201,6 +204,16 @@ class UmlProject:
             raise errors.InvalidFileException()
 
         return 0
+    
+    def _filepath_exists(self, filepath:str) -> bool:
+        """checks if the file exists. WARNING: error raising is left to caller
+
+        Params: 
+            filepath: string for the filepath to check existence of.
+        Returns:
+            True: if file exists
+        """
+        return os.path.exists(filepath)
     
     def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project.
