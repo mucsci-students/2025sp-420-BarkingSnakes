@@ -1,1 +1,1 @@
-from src.attribute import Attribute
+from src.umlfield import UmlField

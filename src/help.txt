@@ -17,7 +17,7 @@ quit
 back
     When inside a class context, returns to the project context.
 list
-    In the project context, displays all classes and their attributes in boxes.
+    In the project context, displays all classes and their fields in boxes.
 relation add <source class name> <dest class name>
     Adds a relation between two existing classes. Symmetric given the current
     level of abstraction in sprint 1. Either a relationship exists between 2
@@ -37,15 +37,15 @@ class <classname>
             Issues a Y/N prompt to confirm the action.
         rename <new name>
             Renames the class to the provided <new name>
-        attribute add <attribute name>
-            Adds the attribute with name <attribute name> to the class.
-        attribute delete <attribute name>
-            Deletes the attribute with name <attribute name> from the class.
-        attribute rename <old attribute name> <new attribute name>
-            Renames the attribute on the class with <old attribute name>
-            to <new attribute name>
+        field add <field name>
+            Adds the field with name <field name> to the class.
+        field delete <field name>
+            Deletes the field with name <field name> from the class.
+        field rename <old field name> <new field name>
+            Renames the field on the class with <old field name>
+            to <new field name>
         list
-            In the class context, displays the current class and its attributes
+            In the class context, displays the current class and its fields
             in a box.
 
 -classname will be invalid if any of these keywords, or python 

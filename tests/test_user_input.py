@@ -55,37 +55,37 @@ def test_command_rename_umlclass_raises_exception_with_no_class_context():
     finally:
         assert retval
 
-def test_command_attribute_raises_exception_with_no_class_context():
+def test_command_field_raises_exception_with_no_class_context():
     retval = False
     try:
-        app.command_attribute()
+        app.command_field()
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:
         assert retval
 
-def test_command_add_attribute_raises_exception_with_no_class_context():
+def test_command_add_field_raises_exception_with_no_class_context():
     retval = False
     try:
-        app.command_add_attribute()
+        app.command_add_field()
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:
         assert retval
 
-def test_command_rename_attribute_raises_exception_with_no_class_context():
+def test_command_rename_field_raises_exception_with_no_class_context():
     retval = False
     try:
-        app.command_rename_attribute()
+        app.command_rename_field()
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:
         assert retval
 
-def test_command_delete_attribute_raises_exception_with_no_class_context():
+def test_command_delete_field_raises_exception_with_no_class_context():
     retval = False
     try:
-        app.command_delete_attribute()
+        app.command_delete_field()
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:
