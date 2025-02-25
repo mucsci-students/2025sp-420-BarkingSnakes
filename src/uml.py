@@ -15,6 +15,9 @@ import errors
 from umlclass import UmlClass, UmlField
 from umlrelationship import UmlRelationship, RelationshipType
 
+#project directory path
+__DIR__ = os.path.dirname(os.path.abspath(__file__))
+
 class UmlProject:
     """"""
     def __init__(self):
@@ -30,6 +33,21 @@ class UmlProject:
             return func(self, *args, **kwargs)
         return wrapper
 
+    def new(self) -> None:
+        """Create a new project from template.
+
+        Params: 
+            None
+        Returns:
+            None
+        """
+        
+        template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
+        #open needs moved to save section in model
+        with open(template_path, "r") as t:
+            data = json.load(t)
+            self._parse_uml_data(data)
+    
     def load(self, filepath:str) -> int:
         """Load the project at the provided filepath.
 
@@ -54,8 +72,15 @@ class UmlProject:
         return 0
     
     def is_json_file(self, filepath:str):
-        """Validate if the filepath is .json"""
-        return re.search('\\.json', filepath, flags=re.IGNORECASE) is not None
+        """Validates if the filepath is .json
+        
+        Exceptions:
+            InvalidFileException: if file is not a json file
+        """
+        #raise error if filename wasn't json.
+        if re.search('\\.json', filepath, flags=re.IGNORECASE):
+            raise errors.InvalidFileException()
+        return True
     
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
@@ -124,7 +149,8 @@ class UmlProject:
         return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
     def save(self) -> int:
-        """Saves the currently opened project using the same filepath it was loaded from.
+        """Saves the currently opened project, 
+        using the same filepath it was loaded from.
 
         Params: 
             None
@@ -356,6 +382,6 @@ class UmlProject:
 
 class UmlModel():
     """
-        Model aspect of the MVC
+        Model aspect of the MVC, may not be needed
     """
     

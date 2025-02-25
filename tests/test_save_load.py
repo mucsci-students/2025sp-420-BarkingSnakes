@@ -1,6 +1,6 @@
 # Filename: test_save_load.py
 # Authors: Steven Barnes, John Hershey
-# Date: 2025-02-16
+# Date: 2025-02-25
 # Description: Unit tests for the save and load module
 
 import os
@@ -23,7 +23,7 @@ def test_load_no_existing_file():
     assert var
     
 def test_load_invalid_file():
-    """tests that an invalid file error is given when loading a fake file"""
+    """tests that an invalid file error is given when loading a non-json file"""
     #temp variable for proving exeption
     var=None
     try:
@@ -35,15 +35,16 @@ def test_load_invalid_file():
     assert var
 
 def test_save_no_existing_file():
-    """test that a no active project error is given when saving with no file"""
+    """test that no error is given when saving to a 
+        filename that does not yet exist"""
     var = None
     proj = UmlProject()
     try:
-        proj.save()
+        proj.save("temp.json")
     except Exception as e:
         var = 1
-        assert e == errors.NoActiveProjectException()
-    assert var
+        assert e == None
+    assert not var
 
 def test_make_new_file():
     """test a new file is made"""

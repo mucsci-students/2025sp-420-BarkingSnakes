@@ -9,13 +9,12 @@ import logging
 from uml import UmlProject
 from umlclass import UmlClass, UmlField
 import errors
-
-__DIR__ = os.path.dirname(os.path.abspath(__file__))
+import uml
 class UmlApplication:()
 
 class UmlApplication:
-    """"""
-    HELP_PATH = os.path.join(__DIR__, 'help.txt')
+    """Application controller for the UML"""
+    HELP_PATH = os.path.join(uml.__DIR__, 'help.txt')
     DEFAULT_PROMPT = "BS-uml"
 
     def __init__(self):
@@ -106,34 +105,41 @@ class UmlApplication:
         Exceptions:
             NoActiveProjectException
         """
+        # currently, instead of passing the filename, the command
+        # section adds the filename to the project first before calling this
         self.project.save()
 
     #change project for later tasks
     @_handle_unsaved_changes
-    def new_project(self, filepath:str) -> None:
-        """Creates a new project to the provided filepath using the uml project template.
+    def new_project(self) -> None:
+        """Creates a new project using the uml project template.
         
         Params:
-            filepath: string
+            None
+        Returns:
+            None
+        """
+        #declare new project, and call "new" method
+        self.project = UmlProject()
+        self.project.new()
+
+    @_handle_unsaved_changes
+    def new_project(self, filepath:str) -> None:
+        """Creates a new project using the uml project template,
+            and stores a filename.
+        
+        Params:
+            filepath: string to be stored for address to save to
         Returns:
             None
         Exceptions:
             InvalidFileException
         """
-        #change in later task, remove
         if not UmlProject.is_json_file(self, filepath):
-            """"""
-            print("Failed: file should be a .json extension.")
-            return
+            raise errors.InvalidFileException()
+        self.new_project()
         
-        template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
-        #open needs moved to save section in model
-        with open(template_path, "r") as t:
-            with open(filepath, "w") as f:
-                f.write(t.read())
-
-        self.load_project(filepath)
-
+    
     def inform_invalid_command(self, command:str) -> None:
         """
         enters the terminal into the class context\
@@ -215,13 +221,24 @@ class UmlApplication:
             self._command = self.command_quit
 
         elif cmd == 'save':
-            self._command = self.save_project
+            # if no filename specified and no current save path, then ask
+            if len(args) == 1 and not self.project._save_path:
+                filename = self.get_user_input("Enter file name")
+                #validate filename as json and set it
+                self.project.is_json_file(filename)
+                self.project._save_path = filename
+            
+            self._command = self.save_project()
             
         elif cmd == 'new':
-            #ask for rest of input
+            # if only new is specified, then 
+            # assume file will be provided at save
             if len(args) == 1:
-                args += self.get_user_input("Enter new project file name ").split()
-            self._command = lambda: self.new_project(args[1])
+                self._command = lambda: self.new_project()
+            # if filename is provided, then take it, but
+            # don't use to create file at this time
+            else:   
+                self._command = lambda: self.new_project(args[1])
             
         elif cmd == 'load':
             #ask for rest of input
@@ -449,6 +466,7 @@ class UmlApplication:
             Returns:
                 0 if program exited successfully
         """
+        self.new_project()
         while self.is_running:
             try:
                 if self._command is None:

@@ -12,7 +12,7 @@ class UMLException(Exception):()
 ## static class objects
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
              "back", "add", "delete", "rename", "umlclass", "save", "", " "]
-#adds python keywords to list of invalid works
+#adds python keywords to list of invalid words
 invalid_names = uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
