@@ -1,13 +1,13 @@
-# Filename: attribute.py
-# Authors: John Hershey, Evan Magill
-# Date 2025-02-16
+# Filename: errors.py
+# Authors: John Hershey, Evan Magill, Steven Barnes
+# Date 2025-02-25
 # Description: class listing errors
 
 ## imports
+from __future__ import annotations
+
 import keyword
 
-## predeclarations
-class UMLException(Exception):()
 
 ## static class objects
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
@@ -24,7 +24,10 @@ error_list = {
     "NoActiveClassError":6,
     "DuplicateAttributeError":7,
     "InvalidFileError":8,
-    "DuplicateRelationshipError":9
+    "DuplicateRelationshipError":9,
+    "DuplicateMethodOverloadError":80,
+    "MethodNameNotExistsError":81,
+    "MethodOverloadNotExistsError":82
 }
 ## class definitions
 class UMLException(Exception):
@@ -199,3 +202,15 @@ class DuplicateRelationshipException(UMLException):
     """
     def __init__(self, *args):
         super().__init__(get_error_name(9),*args)
+
+class DuplicateMethodOverloadException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(80), *args)
+
+class MethodNameNotExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(81), *args)
+
+class MethodOverloadNotExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(82), *args)
