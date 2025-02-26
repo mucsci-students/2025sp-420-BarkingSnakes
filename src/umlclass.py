@@ -3,7 +3,7 @@
 # Date: 2025-02-25
 # Description: umlclass methods
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from umlfield import UmlField
 from umlmethod import UmlMethod
 import errors
@@ -11,12 +11,12 @@ import errors
 @dataclass
 class UmlClass:
     class_name:str
-    class_fields:dict[str, UmlField]
+    class_fields:dict[str, UmlField] = field(default_factory= lambda: {})
 
     """ Method name is top level key and arity is lowest level key.
      e.g {'add': {0: <UmlMethod>, 2: <UmlMethod>}}
     """
-    class_methods:dict[str, dict[int, UmlMethod]]
+    class_methods:dict[str, dict[int, UmlMethod]] = field(default_factory= lambda: {})
 
     def add_field(self,name:str) -> int:
         """
@@ -120,7 +120,7 @@ class UmlClass:
         if self.class_methods.get(name) is None:
             self.class_methods[name] = {}
 
-        self.class_methods.get(name).update(uml_method.arity, uml_method)
+        self.class_methods.get(name)[uml_method.arity] = uml_method
 
         return 0 
 
@@ -168,6 +168,7 @@ class UmlClass:
             0 if the method was successfully renamed
 
         Exceptions:
+            MethodNameNotExistsException:
             MethodOverloadNotExistsException:
         """
         if not self.class_methods.get(name):
