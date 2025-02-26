@@ -25,9 +25,9 @@ error_list = {
     "DuplicateFieldError":7,
     "InvalidFileError":8,
     "DuplicateRelationshipError":9,
-    "DuplicateMethodOverloadError":80,
-    "MethodNameNotExistsError":81,
-    "MethodOverloadNotExistsError":82
+    "DuplicateMethodOverloadError":10,
+    "MethodNameNotExistsError":11,
+    "MethodOverloadNotExistsError":12
 }
 ## class definitions
 class UMLException(Exception):
@@ -205,12 +205,12 @@ class DuplicateRelationshipException(UMLException):
 
 class DuplicateMethodOverloadException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(80), *args)
+        super().__init__(get_error_name(10), *args)
 
 class MethodNameNotExistsException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(81), *args)
+        super().__init__(get_error_name(11), *args)
 
 class MethodOverloadNotExistsException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(82), *args)
+        super().__init__(get_error_name(12), *args)
