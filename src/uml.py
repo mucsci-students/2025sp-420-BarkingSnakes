@@ -85,6 +85,7 @@ class UmlProject:
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
+        #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
 
