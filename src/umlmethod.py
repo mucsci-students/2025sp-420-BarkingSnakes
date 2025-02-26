@@ -8,16 +8,20 @@
 # Date: 2025-02-25
 # Description: Encapsulation of a method on a UML Class.
 
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+import errors
+
 class UmlParameter:
     """"""
 
+@dataclass
 class UmlMethod:
     """"""
-
-    def __init__(self, name:str, params:dict[str, UmlParameter]):
-        """"""
-        self.name = name
-        self.params:dict[str, UmlParameter] = params
+    name:str
+    params:dict[str, UmlParameter] = field(default_factory= lambda: {})
     
     @property
     def arity(self) -> int:
@@ -35,6 +39,8 @@ class UmlMethod:
         Exceptions:
 
         """
+        errors.valid_name(parameter)
+        self.params[parameter] = UmlParameter()
     
     def add_parameters(self, parameters:list[str]):
         """Adds an UmlParameter the UmlMethod.
@@ -87,3 +93,6 @@ class UmlMethod:
             
         """
         self.params.clear()
+    
+    def __eq__(self, other:UmlMethod):
+        return self.name == other.name and self.arity == other.arity
