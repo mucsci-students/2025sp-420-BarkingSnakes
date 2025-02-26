@@ -46,7 +46,7 @@ def test_make_no_new_file():
             
     except Exception as e:
         var = 1
-        assert e == FileNotFoundError()
+        assert e.__class__ == FileNotFoundError
     #make sure an exception was raised
     assert var
 

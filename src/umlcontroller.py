@@ -19,7 +19,11 @@ class UmlApplication:
 
     def __init__(self):
         """"""
+        #currently hidden in setup program,
+        #MVC may require this to be deprecated
+        # is used in handling saving
         self._current_filepath = None
+        
         self.project:UmlProject = None
         self._command = None
         self._retval = 0
@@ -62,7 +66,10 @@ class UmlApplication:
 
                 if user_response.lower() == 'y':
                     if not self.project._save_path:
-                        self.save_project()
+                        #likely need changed for view with mvc
+                        self.get_filepath_from_user()
+                        self.project._save_path = self._current_filepath
+                    self.save_project(None)
                 elif user_response.lower() != 'n':
                     self.inform_invalid_command(user_response)
                     return wrapper(self, *args, **kwargs)
@@ -82,7 +89,7 @@ class UmlApplication:
         """Validates requirements for the program are met before attempting to start."""
         if self.project is None:
             #changed to do new instead
-            self.new_project()
+            self.new_project(None)
             #self.get_filepath_from_user()
             #self.project = UmlProject()
             #self.project.load(self._current_filepath)
@@ -102,21 +109,11 @@ class UmlApplication:
         self._retval = self.project.load(filepath)
 
     @_requires_active_project
-    def save_project(self) -> None:
-        """Saves the currently opened project using the currently saved path.\n
-        If file already exists, asks the user if they want to override it
-        """
-        if self.project._filepath_exists(self.project._save_path):
-            prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                WARNING: this will erase the old file's contents"
-            if not self.prompt_user(prompt):
-                return
-        self.project.save()
-
-    @_requires_active_project
     def save_project(self, filename:str) -> None:
         """
-        Saves the currently opened project using the given filepath.
+        Saves the currently opened project using the given filepath.\n
+        If file already exists, asks the user if they want to override it.\n
+        If filename is None, then use existing filename in project
         
         Params:
             filename: name of the file to save to
@@ -127,25 +124,19 @@ class UmlApplication:
         """
         
         # validate filename is json and set it
-        if self.project.is_json_file(filename):
-            self.project._save_path = filename
-        else:
-            raise errors.InvalidFileException()
-        self.save_project()
+        if filename:
+            if self.project.is_json_file(filename):
+                self.project._save_path = filename
+            else:
+                raise errors.InvalidFileException()
+        # may not want to set it here if save is rejected by user
+        if self.project._filepath_exists(self.project._save_path):
+            prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                WARNING: this will erase the old file's contents"
+            if not self.prompt_user(prompt):
+                return
+        self.project.save()
     
-    @_handle_unsaved_changes
-    def new_project(self) -> None:
-        """Creates a new project using the uml project template.
-        
-        Params:
-            None
-        Returns:
-            None
-        """
-        #declare new project, and call "new" method
-        self.project = UmlProject()
-        self.project.new()
-
     @_handle_unsaved_changes
     def new_project(self, filepath:str) -> None:
         """
@@ -159,10 +150,15 @@ class UmlApplication:
         Exceptions:
             InvalidFileException
         """
-        if not UmlProject.is_json_file(self, filepath):
-            raise errors.InvalidFileException()
-        self._current_filepath = filepath
-        self.new_project()
+        if filepath:
+            if not UmlProject.is_json_file(self, filepath):
+                raise errors.InvalidFileException()
+            
+        #declare new project, and call "new" method
+        self.project = UmlProject()
+        self.project._save_path = filepath
+        self.project.new()
+        
     
     def prompt_user(self, prompt) -> bool:
         """
@@ -266,7 +262,7 @@ class UmlApplication:
             # if no filename specified and current save path exists,
             # then call without filepath
             if len(args) == 1 and self.project._save_path:
-                self._command = self.save_project()
+                self._command = self.save_project(None)
             else:
                 #if no save filepath but only one arg then request filepath
                 if len(args) == 1:
@@ -274,14 +270,13 @@ class UmlApplication:
                 self._command = self.save_project(args[1])
             
         elif cmd == 'new':
-            # if only new is specified, then 
-            # assume file will be provided at save
+            # if only new is specified, then assume file will be provided at save
             if len(args) == 1:
-                self._command = lambda: self.new_project()
+                #if input filename is not, then it is not set
+                args += None
             # if filename is provided, then take it, but
             # don't use to create file at this time
-            else:   
-                self._command = lambda: self.new_project(args[1])
+            self._command = lambda: self.new_project(args[1])
             
         elif cmd == 'load':
             #ask for rest of input
@@ -507,7 +502,7 @@ class UmlApplication:
             Returns:
                 0 if program exited successfully
         """
-        self.new_project()
+        self.new_project(None)
         while self.is_running:
             try:
                 if self._command is None:
