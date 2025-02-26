@@ -12,7 +12,7 @@ class UMLException(Exception):()
 ## static class objects
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
              "back", "add", "delete", "rename", "umlclass", "save", "", " "]
-#adds python keywords to list of invalid works
+#adds python keywords to list of invalid words
 invalid_names = uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
@@ -48,7 +48,7 @@ class UMLException(Exception):
         return self.error_num == other.error_num
     
     def __init__(self, *args):
-        """initializes the error name and error number"""
+        """initializes the error name and error number of the specific error"""
         #initalize superclass as well
         super().__init__(*args)
         #set name to specifed error

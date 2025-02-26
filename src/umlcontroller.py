@@ -9,18 +9,21 @@ import logging
 from uml import UmlProject
 from umlclass import UmlClass, UmlField
 import errors
-
-__DIR__ = os.path.dirname(os.path.abspath(__file__))
+import uml
 class UmlApplication:()
 
 class UmlApplication:
-    """"""
-    HELP_PATH = os.path.join(__DIR__, 'help.txt')
+    """Application controller for the UML"""
+    HELP_PATH = os.path.join(uml.__DIR__, 'help.txt')
     DEFAULT_PROMPT = "BS-uml"
 
     def __init__(self):
         """"""
+        #currently hidden in setup program,
+        #MVC may require this to be deprecated
+        # is used in handling saving
         self._current_filepath = None
+        
         self.project:UmlProject = None
         self._command = None
         self._retval = 0
@@ -62,9 +65,13 @@ class UmlApplication:
                 user_response = self.get_user_input(prompt)
 
                 if user_response.lower() == 'y':
-                    self.save_project()
+                    if not self.project._save_path:
+                        #likely need changed for view with mvc
+                        self.get_filepath_from_user()
+                        self.project._save_path = self._current_filepath
+                    self.save_project(None)
                 elif user_response.lower() != 'n':
-                    print("Invalid input.")
+                    self.inform_invalid_command(user_response)
                     return wrapper(self, *args, **kwargs)
             
             return func(self, *args, **kwargs)
@@ -81,9 +88,11 @@ class UmlApplication:
     def setup_program(self):
         """Validates requirements for the program are met before attempting to start."""
         if self.project is None:
-            self.get_filepath_from_user()
-            self.project = UmlProject()
-            self.project.load(self._current_filepath)
+            #changed to do new instead
+            self.new_project(None)
+            #self.get_filepath_from_user()
+            #self.project = UmlProject()
+            #self.project.load(self._current_filepath)
     
     @_handle_unsaved_changes
     def load_project(self, filepath:str) -> None:
@@ -100,46 +109,81 @@ class UmlApplication:
         self._retval = self.project.load(filepath)
 
     @_requires_active_project
-    def save_project(self) -> None:
-        """Saves the currently opened project using the same filepath it was loaded from.
-
-        Exceptions:
-            NoActiveProjectException
+    def save_project(self, filename:str) -> None:
         """
-        self.project.save()
-
-    #change project for later tasks
-    @_handle_unsaved_changes
-    def new_project(self, filepath:str) -> None:
-        """Creates a new project to the provided filepath using the uml project template.
+        Saves the currently opened project using the given filepath.\n
+        If file already exists, asks the user if they want to override it.\n
+        If filename is None, then use existing filename in project
         
         Params:
-            filepath: string
+            filename: name of the file to save to
+        Returns:
+            None
+        Exceptions:
+            InvalidFileException if filename was not a json file
+        """
+        
+        # validate filename is json and set it
+        if filename:
+            if self.project.is_json_file(filename):
+                self.project._save_path = filename
+            else:
+                raise errors.InvalidFileException()
+        # may not want to set it here if save is rejected by user
+        if self.project._filepath_exists(self.project._save_path):
+            prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                WARNING: this will erase the old file's contents"
+            if not self.prompt_user(prompt):
+                return
+        self.project.save()
+    
+    @_handle_unsaved_changes
+    def new_project(self, filepath:str) -> None:
+        """
+        Creates a new project using the uml project template,
+        and stores a filename.
+        
+        Params:
+            filepath: string to be stored for address to save to
         Returns:
             None
         Exceptions:
             InvalidFileException
         """
-        #change in later task, remove
-        if not UmlProject.is_json_file(self, filepath):
-            """"""
-            print("Failed: file should be a .json extension.")
-            return
+        if filepath:
+            if not UmlProject.is_json_file(self, filepath):
+                raise errors.InvalidFileException()
+            
+        #declare new project, and call "new" method
+        self.project = UmlProject()
+        self.project._save_path = filepath
+        self.project.new()
         
-        template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
-        #open needs moved to save section in model
-        with open(template_path, "r") as t:
-            with open(filepath, "w") as f:
-                f.write(t.read())
-
-        self.load_project(filepath)
-
+    
+    def prompt_user(self, prompt) -> bool:
+        """
+        Prompt the user if they want to take such an action\n
+        will recursively call if response was not Y/N
+            Params:   
+                prompt: question to ask user about their action
+            Returns:
+                True: if user responded "Y"
+                False: if user responded "N" or invalid
+        """
+        user_response = self.get_user_input(prompt)
+        if user_response.lower() != 'y':
+            if user_response.lower() != 'n':
+                self.inform_invalid_command(user_response)
+                #is a recursive loop until user inputs Y or N
+                return self.prompt_user(prompt)
+            return False
+        return True
+    
     def inform_invalid_command(self, command:str) -> None:
         """
-        enters the terminal into the class context\
-        with the specified class name
+        Informs the user that their command was invalid
             Params:   
-                command: 
+                command: the command that was invalid
             Returns:
                 None
         """
@@ -215,12 +259,23 @@ class UmlApplication:
             self._command = self.command_quit
 
         elif cmd == 'save':
-            self._command = self.save_project
+            # if no filename specified and current save path exists,
+            # then call without filepath
+            if len(args) == 1 and self.project._save_path:
+                self._command = self.save_project(None)
+            else:
+                #if no save filepath but only one arg then request filepath
+                if len(args) == 1:
+                    args += self.get_user_input("enter file name")
+                self._command = self.save_project(args[1])
             
         elif cmd == 'new':
-            #ask for rest of input
+            # if only new is specified, then assume file will be provided at save
             if len(args) == 1:
-                args += self.get_user_input("Enter new project file name ").split()
+                #if input filename is not, then it is not set
+                args += None
+            # if filename is provided, then take it, but
+            # don't use to create file at this time
             self._command = lambda: self.new_project(args[1])
             
         elif cmd == 'load':
@@ -307,12 +362,10 @@ class UmlApplication:
         """        
         # Confirm with user
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
-        user_response = self.get_user_input(prompt)
-        if user_response.lower() == "n":
+        # response is now a bool, equivalent to True=Y,False=N
+        # if the user replied N, cancel action
+        if not self.prompt_user(prompt):
             return
-        if user_response.lower() != "y":
-            print("Invalid input.")
-            return self.command_delete_umlclass()
         # Remove from project
         self.project.delete_umlclass(self.active_class.class_name)
         self.active_class = self.project.get_umlclass(self.active_class.class_name)
@@ -449,6 +502,7 @@ class UmlApplication:
             Returns:
                 0 if program exited successfully
         """
+        self.new_project(None)
         while self.is_running:
             try:
                 if self._command is None:
