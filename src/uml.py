@@ -40,6 +40,8 @@ class UmlProject:
             None
         Returns:
             None
+        Exceptions:
+            None
         """
         template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
         #open needs moved to save section in model
@@ -90,19 +92,20 @@ class UmlProject:
         return 0
     
     def is_json_file(self, filepath:str) -> bool:
-        """Validates if the filepath is .json
-
+        """Validates if the filepath is .json\n
+        error handling is left to callee
+        
         Params: 
             filename: name to check is a .json file
         Returns:
-            True if file was json format
+            True: if file was json format
+            False: if file was not json format
         Exceptions:
-            InvalidFileException
+            None
         """
-        #raise error if filename wasn't json.
-        if not re.search('\\.json', filepath, flags=re.IGNORECASE):
-            raise errors.InvalidFileException()
-        return True
+        # "not not" serves to resolve to true if file was a .json
+        return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
+        
     
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
@@ -207,7 +210,6 @@ class UmlProject:
     
     def _filepath_exists(self, filepath:str) -> bool:
         """checks if the file exists. WARNING: error raising is left to caller
-
         Params: 
             filepath: string for the filepath to check existence of.
         Returns:
