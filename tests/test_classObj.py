@@ -131,3 +131,34 @@ def test_rename_attribute_existing():
         assert e.get_num() == errors.error_list["DuplicateAttributeError"]
     assert "MaxSpeed" in test_class.class_attributes
 
+# test adding method
+#   - valid name case
+#   - invalid name case
+# test adding method overload
+#   - valid name case
+#   - invalid name case
+#   - invalid arity case
+# test renaming method
+#   - produces overload
+#     - invalid case
+#     - valid case
+#   - removes overload
+#     - invalid case
+#     - valid case
+#   - transfers overload
+#     - invalid case
+#     - valid case
+#   - valid name case
+#   - invalid name case
+# test removing method
+#   - invalid name case
+#   - valid case
+#     - one overload complete removes method from top tier dict
+#   - invalid arity case
+# test removing method overload
+#   - valid arity case
+#   - invalid arity case
+# test removing all methods
+# test removing all method overloads
+#   - valid name case
+#   - invalid name case
