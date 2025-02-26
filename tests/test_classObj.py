@@ -6,7 +6,7 @@ import os
 import sys
 import logging
 from src.umlclass import UmlClass
-from src.attribute import Attribute
+from src.umlfield import UmlField
 from src import errors
 # from src import errors
 
@@ -40,96 +40,96 @@ def test_rename_class_invalid():
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_class.class_name == "OriginalName"    
     
-# Add a valid Attribute
-def test_add_attribute_valid():
+# Add a valid Field
+def test_add_field_valid():
     """"""
     test_class = UmlClass("Car",{})
-    test_attribute_name = "MaxSpeed"
+    test_field_name = "MaxSpeed"
 
     try:
-        test_class.add_attribute(test_attribute_name)
+        test_class.add_field(test_field_name)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert "MaxSpeed" in test_class.class_attributes
+    assert "MaxSpeed" in test_class.class_fields
 
-# Add an invalid Attribute
-def test_add_attribute_invalid():
+# Add an invalid Field
+def test_add_field_invalid():
     """"""
     test_class = UmlClass("Car",{})
-    test_attribute_name = "exit"
+    test_field_name = "exit"
 
     try:
-        test_class.add_attribute(test_attribute_name)
+        test_class.add_field(test_field_name)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert len(test_class.class_attributes) == 0
+    assert len(test_class.class_fields) == 0
 
-# Remove an existing Attribute
-def test_remove_attribute_valid():
+# Remove an existing Field
+def test_remove_field_valid():
     """"""
-    #change later to avoid direct assignment of attributes
-    test_attribute = Attribute("MaxSpeed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    #change later to avoid direct assignment of fields
+    test_field = UmlField("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field})
 
-    assert len(test_class.class_attributes) == 1
+    assert len(test_class.class_fields) == 1
     
     try:
-        test_class.remove_attribute(test_attribute.name)
+        test_class.remove_field(test_field.name)
         
     except Exception as e:
        assert e.get_num() == errors.error_list["NoSuchObjectError"]
-    assert len(test_class.class_attributes) == 0
+    assert len(test_class.class_fields) == 0
 
-# Remove a nonexisting Attribute
-def test_remove_attribute_not_found():
+# Remove a nonexisting Field
+def test_remove_field_not_found():
     """"""
-    test_attribute = Attribute("MaxSpeed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    test_field = UmlField("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field})
 
-    assert len(test_class.class_attributes) == 1
+    assert len(test_class.class_fields) == 1
     
     try:
-        test_class.remove_attribute("MinSpeed")
+        test_class.remove_field("MinSpeed")
         
     except Exception as e:
        assert e.get_num() == errors.error_list["NoSuchObjectError"]
-    assert len(test_class.class_attributes) == 1
+    assert len(test_class.class_fields) == 1
 
-# Rename an attribute
-def test_rename_attribute_valid():
+# Rename an field
+def test_rename_field_valid():
     """"""
-    test_attribute = Attribute("MaxSpeed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    test_field = UmlField("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field})
     
     try:
-        test_class.rename_attribute("MaxSpeed","MinSpeed")
+        test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         pass
-    assert "MinSpeed" in test_class.class_attributes
+    assert "MinSpeed" in test_class.class_fields
 
-# Rename an attribute to an invalid name
-def test_rename_attribute_invalid():
+# Rename an field to an invalid name
+def test_rename_field_invalid():
     """"""
-    test_attribute = Attribute("MaxSpeed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    test_field = UmlField("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field})
     
     try:
-        test_class.rename_attribute("MaxSpeed","relation")
+        test_class.rename_field("MaxSpeed","relation")
     except Exception as e:
         assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert "MaxSpeed" in test_class.class_attributes
+    assert "MaxSpeed" in test_class.class_fields
 
-# Rename an attribute to an existing attribute
-def test_rename_attribute_existing():
+# Rename a field to an existing field
+def test_rename_field_existing():
     """"""
-    test_attribute = Attribute("MaxSpeed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_attribute})
+    test_field = UmlField("MaxSpeed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field})
 
     try:
-        test_class.rename_attribute("MaxSpeed","MaxSpeed")
+        test_class.rename_field("MaxSpeed","MaxSpeed")
     except Exception as e:
-        assert e.get_num() == errors.error_list["DuplicateAttributeError"]
-    assert "MaxSpeed" in test_class.class_attributes
+        assert e.get_num() == errors.error_list["DuplicateFieldError"]
+    assert "MaxSpeed" in test_class.class_fields
 
 # test adding method
 #   - valid name case

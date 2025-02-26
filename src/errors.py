@@ -12,7 +12,7 @@ import keyword
 ## static class objects
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
              "back", "add", "delete", "rename", "umlclass", "save", "", " "]
-#adds python keywords to list of invalid works
+#adds python keywords to list of invalid words
 invalid_names = uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
@@ -22,7 +22,7 @@ error_list = {
     "NoSuchObjectError":4,
     "NoActiveProjectError":5,
     "NoActiveClassError":6,
-    "DuplicateAttributeError":7,
+    "DuplicateFieldError":7,
     "InvalidFileError":8,
     "DuplicateRelationshipError":9,
     "DuplicateMethodOverloadError":80,
@@ -51,7 +51,7 @@ class UMLException(Exception):
         return self.error_num == other.error_num
     
     def __init__(self, *args):
-        """initializes the error name and error number"""
+        """initializes the error name and error number of the specific error"""
         #initalize superclass as well
         super().__init__(*args)
         #set name to specifed error
@@ -173,9 +173,9 @@ class NoActiveClassException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(6), *args)
 
-class DuplicateAttributeException(UMLException):
+class DuplicateFieldException(UMLException):
     """
-    Wrapper of UMLException class for duplicate attribute error
+    Wrapper of UMLException class for duplicate field error
         Args:
             None: Error automatically passes its name onto
             UMLException so no args are needed

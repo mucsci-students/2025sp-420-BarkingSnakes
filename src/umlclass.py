@@ -4,71 +4,71 @@
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass
-from attribute import Attribute
+from umlfield import UmlField
 from umlmethod import UmlMethod
 import errors
 
 @dataclass
 class UmlClass:
     class_name:str
-    class_attributes:dict[str, Attribute]
+    class_fields:dict[str, UmlField]
 
     """ Method name is top level key and arity is lowest level key.
      e.g {'add': {0: <UmlMethod>, 2: <UmlMethod>}}
     """
     class_methods:dict[str, dict[int, UmlMethod]]
 
-    def add_attribute(self,name:str) -> int:
+    def add_field(self,name:str) -> int:
         """
-        Adds an attribute to the UmlClass
+        Adds an field to the UmlClass
             Returns:
-                0: if attribute added to the class
+                0: if field added to the class
             Exceptions:
-                DuplicateNameError: if name exists
+                DuplicateFieldError: if name exists
                 InvalidNameError: if name invalid
         """ 
-        if name in self.class_attributes.keys():
+        if name in self.class_fields.keys():
             #return error code or handle existing key
-            raise errors.DuplicateAttributeException()
+            raise errors.DuplicateFieldException()
         errors.valid_name(name)
-        self.class_attributes[name] = Attribute(name)
+        self.class_fields[name] = UmlField(name)
         return 0
 
-    def remove_attribute(self,name:str) -> int:
-        """Removes an Attribute from the UmlClass
+    def remove_field(self,name:str) -> int:
+        """Removes an field from the UmlClass
         Params:
-            name: name of the attribute to remove
+            name: name of the field to remove
         Returns:
-            0: if the attribute was successfully removed
+            0: if the field was successfully removed
             a number corresponding to an error in the errors class
-            if an attribute was not removed form the class
+            if an field was not removed from the class
         """
-        if name not in self.class_attributes.keys():
-            #return error code for nonexistent attribute 
+        if name not in self.class_fields.keys():
+            #return error code for nonexistent field
             raise errors.NoSuchObjectException()
-        self.class_attributes.pop(name)
+        self.class_fields.pop(name)
         return 0
     
-    def rename_attribute(self,oldname:str,newname:str) -> int:
-        """Renames the specified attribute
+    def rename_field(self,oldname:str,newname:str) -> int:
+        """Renames the specified field
         Params: 
-            oldname: existing attribute to rename
+            oldname: existing field to rename
             newname: name to replace oldname
         Returns:
-            0: if the attribute was successfully renamed
+            0: if the field was successfully renamed
         Exceptions:
             UMLException:InvalidNameError if the new name is invalid
-            UMLException:NoSuchObjectError if the attribute does not exist
-            UMLException:DuplicateNameError if newname exist in class_attributes
+            UMLException:NoSuchObjectError if the field does not exist
+            UMLException:DuplicateFieldError if newname exist in class_fields
         """
         errors.valid_name(newname)
 
-        if newname in self.class_attributes.keys():
+        if newname in self.class_fields.keys():
             #return error code or handle existing key
-            raise errors.DuplicateAttributeException()
+            raise errors.DuplicateFieldException()
         
-        self.class_attributes.pop(oldname)
-        self.add_attribute(newname)
+        self.class_fields.pop(oldname)
+        self.add_field(newname)
         return 0
 
     def rename_umlclass(self,name:str) -> int:

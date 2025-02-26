@@ -12,8 +12,11 @@ import re
 import logging
 
 import errors
-from umlclass import UmlClass, Attribute
+from umlclass import UmlClass, UmlField
 from umlrelationship import UmlRelationship, RelationshipType
+
+#project directory path
+__DIR__ = os.path.dirname(os.path.abspath(__file__))
 
 class UmlProject:
     """"""
@@ -30,6 +33,22 @@ class UmlProject:
             return func(self, *args, **kwargs)
         return wrapper
 
+    def new(self) -> None:
+        """Create a new project from template.
+
+        Params: 
+            None
+        Returns:
+            None
+        Exceptions:
+            None
+        """
+        template_path = os.path.join(__DIR__, 'templates', 'uml_project_template.json')
+        #open needs moved to save section in model
+        with open(template_path, "r") as t:
+            data = json.load(t)
+            self._parse_uml_data(data)
+    
     def load(self, filepath:str) -> int:
         """Load the project at the provided filepath.
 
@@ -53,9 +72,41 @@ class UmlProject:
 
         return 0
     
-    def is_json_file(self, filepath:str):
-        """Validate if the filepath is .json"""
-        return re.search('\\.json', filepath, flags=re.IGNORECASE) is not None
+    def save(self) -> int:
+        """Saves the currently opened project, 
+        using the same filepath it was loaded from.
+
+        Params: 
+            None
+        Returns:
+            int: 0 if successful.
+        Exceptions:
+            NoActiveProjectException
+        """
+        if not self._save_path:
+            raise errors.NoActiveProjectException()
+        #will override, handled by caller(umlapplication)
+        with open(self._save_path, "w") as f:
+            json.dump(self._save_object, f, indent=4)
+
+        self.has_unsaved_changes = False
+        return 0
+    
+    def is_json_file(self, filepath:str) -> bool:
+        """Validates if the filepath is .json\n
+        error handling is left to callee
+        
+        Params: 
+            filename: name to check is a .json file
+        Returns:
+            True: if file was json format
+            False: if file was not json format
+        Exceptions:
+            None
+        """
+        # "not not" serves to resolve to true if file was a .json
+        return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
+        
     
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
@@ -88,29 +139,27 @@ class UmlProject:
         Exceptions:
             None
         """
-        def _parse_uml_attributes(data:dict) -> Attribute:
-            """Converts the provided dict to an Attribute.
-
+        def _parse_uml_fields(data:dict) -> UmlField:
+            """Converts the provided dict to a Field.
             Params: 
-                data: dict representation of the Attribute.
+                data: dict representation of the Field.
             Returns:
-                Attribute: an instance of an Attribute.
+                Field: an instance of an Field.
             Exceptions:
                 None
             """
             if data:
-                attribute = Attribute(data.get("name"))
-                # attribute.name = data.get("attr_name")
-                return attribute
+                field = UmlField(data.get("name"))
+                return field
 
             return None
         
-        uml_attributes:list[Attribute] = []
-        if data.get("attributes"):
-            uml_attributes.extend(list(map(_parse_uml_attributes, data.get("attributes"))))
+        uml_fields:list[UmlField] = []
+        if data.get("fields"):
+            uml_fields.extend(list(map(_parse_uml_fields, data.get("fields"))))
         return UmlClass(
             data.get("class_name"),
-            {attribute.name:attribute for attribute in uml_attributes}
+            {field.name:field for field in uml_fields}
         )
 
     def _parse_uml_relationship(self, data:dict) -> UmlRelationship:
@@ -125,31 +174,13 @@ class UmlProject:
         """
         return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
-    def save(self) -> int:
-        """Saves the currently opened project using the same filepath it was loaded from.
-
-        Params: 
-            None
-        Returns:
-            int: 0 if successful.
-        Exceptions:
-            NoActiveProjectException
-        """
-        if not self._save_path:
-            raise errors.NoActiveProjectException()
-        with open(self._save_path, "w") as f:
-            json.dump(self._save_object, f, indent=4)
-
-        self.has_unsaved_changes = False
-        return 0
-
     @property
     def _save_object(self) -> dict:
         """Converts the project into a dict in order to save to .json file."""
         return {
             'classes': [{
                 'class_name': c.class_name,
-                'attributes': [a.to_dict() for a in c.class_attributes.values()]
+                'fields': [f.to_dict() for f in c.class_fields.values()]
             } for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
@@ -177,6 +208,15 @@ class UmlProject:
             raise errors.InvalidFileException()
 
         return 0
+    
+    def _filepath_exists(self, filepath:str) -> bool:
+        """checks if the file exists. WARNING: error raising is left to caller
+        Params: 
+            filepath: string for the filepath to check existence of.
+        Returns:
+            True: if file exists
+        """
+        return os.path.exists(filepath)
     
     def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project.
@@ -262,19 +302,19 @@ class UmlProject:
         raise errors.NoSuchObjectException()
 
     @_has_changed
-    def add_attribute(self, classname:str, attr_name:str)  -> int:
-        """Adds an attribute to the UmlClass with classname.
+    def add_field(self, classname:str, field_name:str)  -> int:
+        """Adds an field to the UmlClass with classname.
 
         Params:
             classname: current name of the class
-            attr_name: name of the attribute to add
+            field_name: name of the field to add
         Returns:
             0: if successful
         Exceptions:
             None
         """
         if self.classes.get(classname):
-            self.classes.get(classname).add_attribute(Attribute(attr_name))
+            self.classes.get(classname).add_field(UmlField(field_name))
 
     def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
         """Get the relationship between source and destination.
@@ -358,6 +398,6 @@ class UmlProject:
 
 class UmlModel():
     """
-        Model aspect of the MVC
+        Model aspect of the MVC, may not be needed
     """
     
