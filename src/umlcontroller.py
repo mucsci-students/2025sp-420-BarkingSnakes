@@ -103,6 +103,8 @@ class UmlApplication:
         Exceptions:
             InvalidFileException
         """
+        #validate beforehand to keep current project open
+        self.project._validate_filepath(filepath)
         self.project = UmlProject()
         self._retval = self.project.load(filepath)
         # save file path to keep from prompting when user saves,

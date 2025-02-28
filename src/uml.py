@@ -63,9 +63,9 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        
+        #use when saving later
         self._save_path = filepath
-
+        
         with open(filepath, "r") as f:
             data =  json.load(f)
             self._parse_uml_data(data)
