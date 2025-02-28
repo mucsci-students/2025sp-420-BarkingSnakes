@@ -88,7 +88,6 @@ class UmlProject:
         #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
-
         self.has_unsaved_changes = False
         return 0
     

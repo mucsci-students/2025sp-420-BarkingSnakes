@@ -19,9 +19,7 @@ class UmlApplication:
 
     def __init__(self):
         """"""
-        #currently hidden in setup program,
-        #MVC may require this to be deprecated
-        # is used in handling saving
+        # used to avoid prompting to override file if user already saved there
         self._current_filepath = None
         
         self.project:UmlProject = None
@@ -107,6 +105,9 @@ class UmlApplication:
         """
         self.project = UmlProject()
         self._retval = self.project.load(filepath)
+        # save file path to keep from prompting when user saves,
+        # since overriding should not be concern if same as loaded file
+        self._current_filepath = filepath
 
     @_requires_active_project
     def save_project(self, filename:str) -> None:
@@ -130,11 +131,15 @@ class UmlApplication:
             else:
                 raise errors.InvalidFileException()
         # may not want to set it here if save is rejected by user
-        if self.project._filepath_exists(self.project._save_path):
+        if self._current_filepath == self.project._save_path:
+            pass
+        elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                WARNING: this will erase the old file's contents"
+                \nWARNING: this will erase the old file's contents"
             if not self.prompt_user(prompt):
                 return
+        #set current filepath to ignore save prompts on later saves of file
+        self._current_filepath = self.project._save_path
         self.project.save()
     
     @_handle_unsaved_changes
@@ -213,7 +218,9 @@ class UmlApplication:
         return user_input
 
     def get_user_command(self) -> None:
-        """Parses user input and sets the next command to execute."""
+        """Parses user input and sets the next command to execute.
+        \nlambdas are used to return a method instead of calling one,
+        \nso as to to call the method later directly in the run loop"""
         command = self.get_user_input()
         args = command.split()
         cmd = args[0].lower()
@@ -262,18 +269,18 @@ class UmlApplication:
             # if no filename specified and current save path exists,
             # then call without filepath
             if len(args) == 1 and self.project._save_path:
-                self._command = self.save_project(None)
+                args.append(None)
             else:
                 #if no save filepath but only one arg then request filepath
                 if len(args) == 1:
-                    args += self.get_user_input("enter file name")
-                self._command = self.save_project(args[1])
+                    args.append(self.get_user_input("enter file name: "))
+            self._command = lambda: self.save_project(args[1])
             
         elif cmd == 'new':
             # if only new is specified, then assume file will be provided at save
             if len(args) == 1:
                 #if input filename is not, then it is not set
-                args += None
+                args.append(None)
             # if filename is provided, then take it, but
             # don't use to create file at this time
             self._command = lambda: self.new_project(args[1])
@@ -281,7 +288,7 @@ class UmlApplication:
         elif cmd == 'load':
             #ask for rest of input
             if len(args) == 1:
-                args += self.get_user_input("Enter project file name ").split()
+                args.append(self.get_user_input("Enter project file name: "))
             self._command = lambda: self.load_project(args[1])
         
         # now catches all cases
@@ -509,7 +516,8 @@ class UmlApplication:
                     self.get_user_command()
                 self._command()
             except errors.NoActiveProjectException:
-                print("No project has been loaded. Use command: load <filepath> or new <filepath> to get started.")
+                print("No project has been loaded. Use command: \
+                    load <filepath> or new <filepath> to get started.")
             except errors.NoActiveClassException:
                 print("No active class selection. Use command: class <class name> to select a class.")
             except errors.DuplicateClassException:
@@ -517,7 +525,7 @@ class UmlApplication:
             except errors.DuplicateFieldException:
                 print("Failed: An field with that name already exists on this class.")
             except errors.InvalidFileException:
-                print("Invalid file: Use command: new <filename.json> to make a new file, \
+                print("Invalid file: Use command: save <filename.json> to save a new file, \
                     \n or command: load <filename.json> to load a file that exists \
                     \n in current folder, or specify subfolder with <filepath/filename.json>")
             except errors.DuplicateRelationshipException:
