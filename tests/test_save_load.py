@@ -57,8 +57,7 @@ def test_save_no_existing_file():
     proj = UmlProject()
     try:
         proj._save_path = "test.json"
-        #save, unlike load, does not take a filename
-        # this may be changed later
+        #save does not need a filename if path is already set
         proj.save()
         assert os.path.exists("test.json")
     except Exception as e:
@@ -81,7 +80,7 @@ def test_save_existing_file():
         app = UmlApplication()
         app.load_project("test.json")
         #adds the umlclass with name temp
-        app.command_class("temp")
+        app.active_class = "temp"
         app.command_add_umlclass()
         app.project.save()
         #loads the file again and checks if the change was saved

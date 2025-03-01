@@ -19,16 +19,16 @@ class UmlApplication:
 
     def __init__(self):
         """"""
-        #currently hidden in setup program,
-        #MVC may require this to be deprecated
-        # is used in handling saving
+        # used to avoid prompting to override file if user already saved there
         self._current_filepath = None
-        
         self.project:UmlProject = None
         self._command = None
         self._retval = 0
         self.is_running = True
-        self.active_class:UmlClass = None
+        # is now a str, rather than a class
+        self.active_class:str = None
+        #create new project on intitialization
+        self.new_project(None)
 
     def _requires_active_project(func):
         """Decorator to validate a project has been loaded.
@@ -81,7 +81,7 @@ class UmlApplication:
     def prompt(self) -> str:
         """The CLI prompt to display each loop."""
         if self.active_class:
-            return f"{self.DEFAULT_PROMPT}[{self.active_class.class_name}]> "
+            return f"{self.DEFAULT_PROMPT}[{self.active_class}]> "
         return f"{self.DEFAULT_PROMPT}> "
         
 
@@ -105,8 +105,14 @@ class UmlApplication:
         Exceptions:
             InvalidFileException
         """
+        #validate beforehand to keep current project open
+        self.project._validate_filepath(filepath)
+        #create new project, this may need moved to model
         self.project = UmlProject()
         self._retval = self.project.load(filepath)
+        # save file path to keep from prompting when user saves,
+        # since overriding should not be concern if same as loaded file
+        self._current_filepath = filepath
 
     @_requires_active_project
     def save_project(self, filename:str) -> None:
@@ -130,11 +136,15 @@ class UmlApplication:
             else:
                 raise errors.InvalidFileException()
         # may not want to set it here if save is rejected by user
-        if self.project._filepath_exists(self.project._save_path):
+        if self._current_filepath == self.project._save_path:
+            pass
+        elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                WARNING: this will erase the old file's contents"
+                \nWARNING: this will erase the old file's contents"
             if not self.prompt_user(prompt):
                 return
+        #set current filepath to ignore save prompts on later saves of file
+        self._current_filepath = self.project._save_path
         self.project.save()
     
     @_handle_unsaved_changes
@@ -213,7 +223,9 @@ class UmlApplication:
         return user_input
 
     def get_user_command(self) -> None:
-        """Parses user input and sets the next command to execute."""
+        """Parses user input and sets the next command to execute.
+        \nlambdas are used to return a method instead of calling one,
+        \nso as to to call the method later directly in the run loop"""
         command = self.get_user_input()
         args = command.split()
         cmd = args[0].lower()
@@ -262,18 +274,18 @@ class UmlApplication:
             # if no filename specified and current save path exists,
             # then call without filepath
             if len(args) == 1 and self.project._save_path:
-                self._command = self.save_project(None)
+                args.append(None)
             else:
                 #if no save filepath but only one arg then request filepath
                 if len(args) == 1:
-                    args += self.get_user_input("enter file name")
-                self._command = self.save_project(args[1])
+                    args.append(self.get_user_input("enter file name: "))
+            self._command = lambda: self.save_project(args[1])
             
         elif cmd == 'new':
             # if only new is specified, then assume file will be provided at save
             if len(args) == 1:
                 #if input filename is not, then it is not set
-                args += None
+                args.append(None)
             # if filename is provided, then take it, but
             # don't use to create file at this time
             self._command = lambda: self.new_project(args[1])
@@ -281,7 +293,7 @@ class UmlApplication:
         elif cmd == 'load':
             #ask for rest of input
             if len(args) == 1:
-                args += self.get_user_input("Enter project file name ").split()
+                args.append(self.get_user_input("Enter project file name: "))
             self._command = lambda: self.load_project(args[1])
         
         # now catches all cases
@@ -323,7 +335,9 @@ class UmlApplication:
         if not self.active_class:
             self._render_umlproject()
         else:
-            self._render_umlclass(self.active_class)
+            #find the class to render
+            rend_class = self.project.get_umlclass(self.active_class)
+            self._render_umlclass(rend_class)
 
     @_requires_active_project
     def command_class(self, name:str) -> None:
@@ -334,14 +348,21 @@ class UmlApplication:
         Exceptions:
             NoActiveProjectException
         """
-        if self.active_class and self.active_class.class_name == name:
+        if self.active_class and self.active_class == name:
             return
-        
-        self.active_class = self.project.get_umlclass(name)
-
-        if not self.active_class:
-            errors.valid_name(name)
-            self.active_class = UmlClass(name, {})
+        #store temp to keep from making a new class if user didn't want to
+        temp_class = self.project.get_umlclass(name)
+        if not temp_class:
+            #ask user if they want to create a new class, if it doesn't already exist
+            prompt = "that class does not yet exist. Do you want to create it? Y/N."
+            if self.prompt_user(prompt):
+                #check name is valid
+                errors.valid_name(name)
+                self.active_class = name
+                #add class to project
+                self.command_add_umlclass()
+        else:
+            self.active_class = temp_class.class_name
     
     @_requires_active_class
     def command_add_umlclass(self) -> None:
@@ -367,8 +388,8 @@ class UmlApplication:
         if not self.prompt_user(prompt):
             return
         # Remove from project
-        self.project.delete_umlclass(self.active_class.class_name)
-        self.active_class = self.project.get_umlclass(self.active_class.class_name)
+        self.project.delete_umlclass(self.active_class)
+        self.active_class = None
 
     @_requires_active_class
     def command_rename_umlclass(self, name:str):
@@ -379,8 +400,8 @@ class UmlApplication:
         Exceptions:
             NoActiveClassException
         """
-        self.project.rename_umlclass(self.active_class.class_name, name)
-        self.active_class = self.project.get_umlclass(name)
+        self.project.rename_umlclass(self.active_class, name)
+        self.active_class = name
 
     @_requires_active_class
     def command_field(self, args:list[str]):
@@ -412,7 +433,9 @@ class UmlApplication:
         Exceptions:
             NoActiveClassException
         """
-        self.active_class.add_field(name)
+        #active class is currently a string so get the reference from project
+        self.project.get_umlclass(self.active_class).add_field(name)
+        #self.active_class.add_field(name)
 
     @_requires_active_class
     def command_delete_field(self, name:str) -> None:
@@ -421,7 +444,9 @@ class UmlApplication:
         Exceptions:
             NoActiveClassException
         """
-        self.active_class.remove_field(name)
+        self.project.get_umlclass(self.active_class).remove_field(name)
+        # currently active class is a str, so get reference from project
+        #self.active_class.remove_field(name)
 
     @_requires_active_class
     def command_rename_field(self, oldname:str, newname:str) -> None:
@@ -435,7 +460,9 @@ class UmlApplication:
             InvalidNameError
             DuplicateNameError
         """
-        self.active_class.rename_field(oldname, newname)
+        self.project.get_umlclass(self.active_class).rename_field(oldname, newname)
+        # active class now str, so get from project
+        #self.active_class.rename_field(oldname, newname)
 
     @_requires_active_project
     def command_relation(self, args:list[str]):
@@ -502,14 +529,15 @@ class UmlApplication:
             Returns:
                 0 if program exited successfully
         """
-        self.new_project(None)
+        #self.new_project(None)
         while self.is_running:
             try:
                 if self._command is None:
                     self.get_user_command()
                 self._command()
             except errors.NoActiveProjectException:
-                print("No project has been loaded. Use command: load <filepath> or new <filepath> to get started.")
+                print("No project has been loaded. Use command: \
+                    load <filepath> or new <filepath> to get started.")
             except errors.NoActiveClassException:
                 print("No active class selection. Use command: class <class name> to select a class.")
             except errors.DuplicateClassException:
@@ -517,7 +545,8 @@ class UmlApplication:
             except errors.DuplicateFieldException:
                 print("Failed: An field with that name already exists on this class.")
             except errors.InvalidFileException:
-                print("Invalid file: Use command: new <filename.json> to make a new file, \
+                print("Invalid file: Use command: save <filename.json> to save to a file, \
+                    \n command: save to save to current loaded/saved file, \
                     \n or command: load <filename.json> to load a file that exists \
                     \n in current folder, or specify subfolder with <filepath/filename.json>")
             except errors.DuplicateRelationshipException:

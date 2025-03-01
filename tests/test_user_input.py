@@ -17,16 +17,19 @@ def test_command_list_raises_exception_with_no_project_loaded():
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveProjectError']
     finally:
-        assert retval
+        #project is usually always active now
+        assert not retval
 
-def test_command_class_raises_exception_with_no_project_loaded():
+def test_command_class_raises_no_exception_with_no_project_loaded():
     retval = False
     try:
-        app.command_class()
+        app.project.add_umlclass("temp")
+        app.command_class("temp")
+        app.command_back()
     except Exception as e:
-        retval = e.get_num() == errors.error_list['NoActiveProjectError']
+        retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:
-        assert retval
+        assert not retval
 
 def test_command_add_umlclass_raises_exception_with_no_class_context():
     retval = False
@@ -49,7 +52,7 @@ def test_command_delete_umlclass_raises_exception_with_no_class_context():
 def test_command_rename_umlclass_raises_exception_with_no_class_context():
     retval = False
     try:
-        app.command_rename_umlclass()
+        app.command_rename_umlclass("")
     except Exception as e:
         retval = e.get_num() == errors.error_list['NoActiveClassError']
     finally:

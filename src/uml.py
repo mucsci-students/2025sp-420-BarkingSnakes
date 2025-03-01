@@ -63,9 +63,9 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        
+        #use when saving later
         self._save_path = filepath
-
+        
         with open(filepath, "r") as f:
             data =  json.load(f)
             self._parse_uml_data(data)
@@ -88,7 +88,6 @@ class UmlProject:
         #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
-
         self.has_unsaved_changes = False
         return 0
     
@@ -231,7 +230,7 @@ class UmlProject:
         return uml_class_name in self.classes.keys()
     
     @_has_changed
-    def add_umlclass(self, uml_class:UmlClass):
+    def add_umlclass(self, name:str):
         """Adds an UmlClass to the project.
 
         Params:
@@ -241,9 +240,9 @@ class UmlProject:
         Exceptions:
             DuplicateClassException
         """
-        if uml_class.class_name in self.classes:
+        if name in self.classes:
             raise errors.DuplicateClassException()
-        self.classes[uml_class.class_name] = uml_class
+        self.classes[name] = UmlClass(name, {}, {})
     
     @_has_changed
     def get_umlclass(self, name:str) -> UmlClass:
@@ -276,9 +275,12 @@ class UmlProject:
         elif newName in self.classes.keys():
             raise errors.DuplicateClassException()
         # rename the class using its own rename method
-        uml_class = self.classes.pop(oldName)
-        uml_class.rename_umlclass(newName)
-        self.add_umlclass(uml_class)
+        #uml_class = self.classes.pop(oldName)
+        #uml_class.rename_umlclass(newName)
+        #self.add_umlclass(uml_class)
+        
+        # rename using the class itself not the copy
+        self.classes[oldName].rename_umlclass(newName)
         return 0
     
     @_has_changed
