@@ -21,12 +21,14 @@ class UmlApplication:
         """"""
         # used to avoid prompting to override file if user already saved there
         self._current_filepath = None
-        
         self.project:UmlProject = None
         self._command = None
         self._retval = 0
         self.is_running = True
+        # is now a str, rather than a class
         self.active_class:str = None
+        #create new project on intitialization
+        self.new_project(None)
 
     def _requires_active_project(func):
         """Decorator to validate a project has been loaded.
@@ -359,10 +361,8 @@ class UmlApplication:
                 self.active_class = name
                 #add class to project
                 self.command_add_umlclass()
-            else:
-                # don't enter or switch context if user didn't want to
-                return
-        self.active_class = temp_class.class_name
+        else:
+            self.active_class = temp_class.class_name
     
     @_requires_active_class
     def command_add_umlclass(self) -> None:
@@ -529,7 +529,7 @@ class UmlApplication:
             Returns:
                 0 if program exited successfully
         """
-        self.new_project(None)
+        #self.new_project(None)
         while self.is_running:
             try:
                 if self._command is None:
