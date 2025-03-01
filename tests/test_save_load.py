@@ -81,7 +81,7 @@ def test_save_existing_file():
         app = UmlApplication()
         app.load_project("test.json")
         #adds the umlclass with name temp
-        app.command_class("temp")
+        app.active_class = "temp"
         app.command_add_umlclass()
         app.project.save()
         #loads the file again and checks if the change was saved
