@@ -3,7 +3,6 @@
 # Date: 2025-02-24
 # Description: Field class and methods
 
-import logging
 from dataclasses import dataclass
 import errors
 
