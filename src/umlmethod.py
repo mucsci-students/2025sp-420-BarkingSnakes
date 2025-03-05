@@ -14,14 +14,16 @@ from dataclasses import dataclass, field
 
 import errors
 
+@dataclass
 class UmlParameter:
     """"""
+    name:str
 
 @dataclass
 class UmlMethod:
     """"""
     name:str
-    params:dict[str, UmlParameter] = field(default_factory= lambda: {})
+    params:dict[str, UmlParameter] = field(default_factory= lambda: dict())
     
     @property
     def arity(self) -> int:
