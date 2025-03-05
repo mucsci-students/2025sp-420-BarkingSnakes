@@ -150,8 +150,9 @@ class NoSuchObjectException(UMLException):
             None: Error automatically passes its name onto
             UMLException so no args are needed
     """
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         super().__init__(get_error_name(4),*args)
+        self.object_type = kwargs.get("object_type")
 
 class NoActiveProjectException(UMLException):
     """
