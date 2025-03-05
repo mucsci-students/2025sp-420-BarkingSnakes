@@ -45,7 +45,7 @@ class UmlClass:
         """
         if name not in self.class_fields.keys():
             #return error code for nonexistent field
-            raise errors.NoSuchObjectException()
+            raise errors.NoSuchObjectException(object_type="field")
         self.class_fields.pop(name)
         return 0
     
@@ -61,6 +61,10 @@ class UmlClass:
             UMLException:NoSuchObjectError if the field does not exist
             UMLException:DuplicateFieldError if newname exist in class_fields
         """
+        if oldname not in self.class_fields.keys():
+            #return error code for nonexistent field
+            raise errors.NoSuchObjectException(object_type="field")
+
         errors.valid_name(newname)
 
         if newname in self.class_fields.keys():
