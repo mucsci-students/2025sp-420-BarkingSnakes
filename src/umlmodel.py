@@ -120,7 +120,7 @@ class UmlProject:
         """
         uml_classes:list[dict] = data.get("classes")
 
-        if uml_classes is None:
+        if uml_classes is None or not any(uml_classes):
             return -1
         
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
@@ -209,10 +209,7 @@ class UmlProject:
     def _save_object(self) -> dict:
         """Converts the project into a dict in order to save to .json file."""
         return {
-            'classes': [{
-                'class_name': c.class_name,
-                'fields': [f.to_dict() for f in c.class_fields.values()]
-            } for c in self.classes.values()],
+            'classes': [c.to_dict() for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
                 'destination': r.destination_class.class_name
