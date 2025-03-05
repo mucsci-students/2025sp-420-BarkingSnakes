@@ -216,5 +216,15 @@ class UmlClass:
         
         self.class_methods.pop(name)
         return 0
+    
+    def to_dict(self) -> dict:
+        methods = []
+        for method in self.class_methods.values():
+            methods.extend(method.values())
+        return {
+            'name': self.class_name,
+            'fields': [f.to_dict() for f in self.class_fields.values()],
+            'methods': [m.to_dict() for m in methods]
+        }
         
         
