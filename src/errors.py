@@ -7,9 +7,11 @@
 from __future__ import annotations
 
 import keyword
-
+import re
 
 ## static class objects
+REGEX_DEFAULT_PATTERN = "^[A-Za-z][A-Za-z0-9_]*$"
+
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
              "back", "add", "delete", "rename", "umlclass", "save", " method",
             "parameter" , "", " "]
@@ -87,7 +89,7 @@ class UMLException(Exception):
         return self.error_num
 
 #class methods
-def valid_name(name:str) -> int:
+def valid_name(name:str, regex:str = REGEX_DEFAULT_PATTERN) -> int:
     """
     Checks if a class name is valid
         Params: 
@@ -97,8 +99,9 @@ def valid_name(name:str) -> int:
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in invalid_names:
-        raise UMLException("InvalidNameError")
+    if name.lower() in invalid_names or re.search(regex, name) is None:
+        raise InvalidNameException()
+    
     return 0
 
 def get_error_name(val:int) -> str:

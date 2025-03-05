@@ -32,9 +32,11 @@ class UmlProject:
         self.has_unsaved_changes = False
 
     def _regex_pattern(count:int = 1, pattern:str = REGEX_DEFAULT):
+        print(count, pattern)
         def regex_decorator(func):
             @functools.wraps(func)
             def wrapper(self:UmlProject, *args, **kwargs):
+                print(count, args)
                 for i in range(count):
                     if re.search(pattern, args[i]) is None:
                         raise errors.InvalidNameException()
@@ -291,7 +293,7 @@ class UmlProject:
         """
         return uml_class_name in self.classes.keys()
     
-    @_regex_pattern()
+    # @_regex_pattern()
     @_has_changed
     def add_umlclass(self, name:str):
         """Adds an UmlClass to the project.
@@ -305,6 +307,9 @@ class UmlProject:
         """
         if name in self.classes:
             raise errors.DuplicateClassException()
+        
+        errors.valid_name(name)
+
         self.classes[name] = UmlClass(name, {}, {})
     
     # @_has_changed
@@ -320,7 +325,7 @@ class UmlProject:
         """
         return self.classes.get(name)
 
-    @_regex_pattern(2)
+    # @_regex_pattern(2)
     @_has_changed
     def rename_umlclass(self,oldName:str, newName:str) -> int:
         """Renames a UmlClass with the first name to the second.
@@ -367,7 +372,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
-    @_regex_pattern(2)
+    # @_regex_pattern(count=2)
     @_has_changed
     def add_field(self, classname:str, field_name:str)  -> int:
         """Adds an field to the UmlClass with classname.
@@ -407,7 +412,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
-    @_regex_pattern(2)
+    # @_regex_pattern(2)
     @_has_changed
     def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
         """Creates a relationship of a specified type between the specified classes.
