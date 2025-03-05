@@ -90,10 +90,9 @@ class UmlController:
         self.model._validate_filepath(filepath)
         # create new project, this may need moved to model
         self.model = UmlProject()
-        self._retval = self.model.load(filepath)
+        self.model.load(filepath)
         # save file path to keep from prompting when user saves,
         # since overriding should not be concern if same as loaded file
-        self._current_filepath = filepath
 
     @_requires_active_project
     def save_project(self, filename:str) -> None:
@@ -109,23 +108,19 @@ class UmlController:
         Exceptions:
             InvalidFileException if filename was not a json file
         """
-        
         # validate filename is json and set it
         if filename:
-            if self.model.is_json_file(filename):
-                self.model._save_path = filename
-            else:
+            if not self.model.is_json_file(filename):
                 raise errors.InvalidFileException()
-        # may not want to set it here if save is rejected by user
-        if self._current_filepath == self.model._save_path:
-            pass
-        elif self.model._filepath_exists(self.model._save_path):
-            prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                \nWARNING: this will erase the old file's contents"
-            if not self.prompt_user(prompt):
-                return
+            
+            if self.model._save_path != filename and self.model._filepath_exists(filename):
+                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                    \nWARNING: this will erase the old file's contents"
+                if not self.view.prompt_user(prompt):
+                    return
+                
+            self.model._save_path = filename
         #set current filepath to ignore save prompts on later saves of file
-        self._current_filepath = self.model._save_path
         self.model.save()
     
     @_handle_unsaved_changes
@@ -142,7 +137,7 @@ class UmlController:
             InvalidFileException
         """
         if filepath:
-            if not self.model.is_json_file(self, filepath):
+            if not self.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
             
         #declare new project, and call "new" method
@@ -160,7 +155,7 @@ class UmlController:
         elif cmd == 'class' and len(args) >= 2 and args[1].lower() == 'add':
             if len(args) == 2:
                 args.extend(self.view.get_user_input("Enter new class name ").split())
-            self.command_add_umlclass(args)
+            self.command_add_umlclass(args[2])
 
         elif cmd == 'delete':
             self.command_delete_umlclass()
