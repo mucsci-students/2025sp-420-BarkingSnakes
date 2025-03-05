@@ -465,6 +465,8 @@ class UmlController:
                 self.view.handle_exceptions("Failed: This relationship already exists in this project.")
             except errors.NoSuchObjectException as nso_e:
                 self.view.handle_exceptions(f"Failed: That {nso_e.object_type} does not exist.")
+            except errors.InvalidNameException:
+                self.view.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
             except errors.UMLException as uml_e:
                 self.view.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
             except EOFError:
