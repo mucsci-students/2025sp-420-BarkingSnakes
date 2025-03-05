@@ -29,7 +29,7 @@ class UmlParameter:
         self.name = name
         return 0
 
-        def to_dict(self) -> dict:
-            return {
-                'name': self.name
-            }
+    def to_dict(self) -> dict:
+        return {
+            'name': self.name
+        }
