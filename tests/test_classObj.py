@@ -10,6 +10,7 @@ from src.umlclass import UmlClass
 from src.umlfield import UmlField
 from src.umlmethod import UmlMethod
 from src import errors
+
 # from src import errors
 
 # use below to add directory to system path

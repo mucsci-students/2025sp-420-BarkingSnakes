@@ -11,7 +11,8 @@ import keyword
 
 ## static class objects
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
-             "back", "add", "delete", "rename", "umlclass", "save", "", " "]
+             "back", "add", "delete", "rename", "umlclass", "save", " method",
+            "parameter" , "", " "]
 #adds python keywords to list of invalid words
 invalid_names = uml_names + keyword.kwlist
 error_list = {
@@ -27,7 +28,9 @@ error_list = {
     "DuplicateRelationshipError":9,
     "DuplicateMethodOverloadError":10,
     "MethodNameNotExistsError":11,
-    "MethodOverloadNotExistsError":12
+    "MethodOverloadNotExistsError":12,
+    "DuplicateParameterError":13,
+    "NoSuchParameterError":14
 }
 ## class definitions
 class UMLException(Exception):
@@ -215,3 +218,10 @@ class MethodNameNotExistsException(UMLException):
 class MethodOverloadNotExistsException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(12), *args)
+
+class DuplicateParameterException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(13), *args)
+class NoSuchParameterException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(14), *args)
