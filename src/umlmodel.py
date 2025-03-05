@@ -10,6 +10,8 @@ import os
 import json
 import re
 import logging
+import jsonschema
+import jsonschema.exceptions
 
 import errors
 from umlclass import UmlClass, UmlField
@@ -18,6 +20,8 @@ from umlrelationship import UmlRelationship, RelationshipType
 
 #project directory path
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
+SCHEMA_PATH = os.path.join(__DIR__, "templates", "umlschema.json")
+REGEX_DEFAULT = "^[A-Za-z][A-Za-z0-9_]*$"
 
 class UmlProject:
     """"""
@@ -27,12 +31,24 @@ class UmlProject:
         self._save_path = None
         self.has_unsaved_changes = False
 
+    def _regex_pattern(count:int = 1, pattern:str = REGEX_DEFAULT):
+        def regex_decorator(func):
+            @functools.wraps(func)
+            def wrapper(self:UmlProject, *args, **kwargs):
+                for i in range(count):
+                    if re.search(pattern, args[i]) is None:
+                        raise errors.InvalidNameException()
+                return func(self, *args, **kwargs)
+            return wrapper
+        return regex_decorator
+    
     def _has_changed(func):
         @functools.wraps(func)
         def wrapper(self:UmlProject, *args, **kwargs):
             self.has_unsaved_changes = True
             return func(self, *args, **kwargs)
         return wrapper
+
 
     def new(self) -> None:
         """Create a new project from template.
@@ -48,6 +64,7 @@ class UmlProject:
         #open needs moved to save section in model
         with open(template_path, "r") as t:
             data = json.load(t)
+            self.validate_json_shema(data)
             self._parse_uml_data(data)
     
     def load(self, filepath:str) -> int:
@@ -69,6 +86,7 @@ class UmlProject:
         
         with open(filepath, "r") as f:
             data =  json.load(f)
+            self.validate_json_shema(data)
             self._parse_uml_data(data)
 
         return 0
@@ -86,12 +104,27 @@ class UmlProject:
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
+        
+        self.validate_json_shema(self._save_object)
         #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
         self.has_unsaved_changes = False
         return 0
     
+    def validate_json_shema(self, data:dict) -> bool:
+        with open(SCHEMA_PATH, "r") as f:
+            schema = json.load(f)
+        
+        try:
+            jsonschema.validate(instance=data, schema=schema)
+        except jsonschema.exceptions.ValidationError:
+            raise errors.InvalidJsonSchemaException()
+        except jsonschema.exceptions.SchemaError:
+            raise errors.InvalidJsonSchemaException()
+
+        return True
+
     def is_json_file(self, filepath:str) -> bool:
         """Validates if the filepath is .json\n
         error handling is left to callee
@@ -258,6 +291,7 @@ class UmlProject:
         """
         return uml_class_name in self.classes.keys()
     
+    @_regex_pattern()
     @_has_changed
     def add_umlclass(self, name:str):
         """Adds an UmlClass to the project.
@@ -273,7 +307,7 @@ class UmlProject:
             raise errors.DuplicateClassException()
         self.classes[name] = UmlClass(name, {}, {})
     
-    @_has_changed
+    # @_has_changed
     def get_umlclass(self, name:str) -> UmlClass:
         """Gets the UmlClass instance for the provided class name.
 
@@ -286,6 +320,7 @@ class UmlProject:
         """
         return self.classes.get(name)
 
+    @_regex_pattern(2)
     @_has_changed
     def rename_umlclass(self,oldName:str, newName:str) -> int:
         """Renames a UmlClass with the first name to the second.
@@ -332,6 +367,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    @_regex_pattern(2)
     @_has_changed
     def add_field(self, classname:str, field_name:str)  -> int:
         """Adds an field to the UmlClass with classname.
@@ -371,6 +407,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    @_regex_pattern(2)
     @_has_changed
     def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
         """Creates a relationship of a specified type between the specified classes.
