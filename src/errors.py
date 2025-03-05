@@ -30,7 +30,8 @@ error_list = {
     "MethodNameNotExistsError":11,
     "MethodOverloadNotExistsError":12,
     "DuplicateParameterError":13,
-    "NoSuchParameterError":14
+    "NoSuchParameterError":14,
+    "InvalidJsonSchemaError":15
 }
 ## class definitions
 class UMLException(Exception):
@@ -222,6 +223,11 @@ class MethodOverloadNotExistsException(UMLException):
 class DuplicateParameterException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(13), *args)
+
 class NoSuchParameterException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(14), *args)
+
+class InvalidJsonSchemaException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(15), *args)
