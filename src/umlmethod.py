@@ -21,7 +21,7 @@ import errors
 class UmlMethod:
     """"""
     name:str
-    params:dict[str, UmlParameter] = field(default_factory= lambda: {})
+    params:dict[str, UmlParameter] = field(default_factory= lambda: dict())
     
     @property
     def arity(self) -> int:
@@ -112,6 +112,12 @@ class UmlMethod:
             
         """
         self.params.clear()
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'params': [p.to_dict() for p in self.params.values()]
+        }
     
     def __eq__(self, other:UmlMethod):
         return self.name == other.name and self.arity == other.arity
