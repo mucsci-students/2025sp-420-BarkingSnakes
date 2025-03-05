@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>BS-UML</title>
+    </head>
+    <body style="background-color: #0e1113;">
+        <div id="content">
+            <div id="mySidenav" class="sidenav">
+                <button id="ClassList" onclick="getClassList()">ClassList</button>
+                <button id="RelationList" onclick="openTab(event, 'RelationTable')">RelationList</button>
+            </div> 
+        </div>
+        
+        <div>
+        
+        </div>
+
+        </div>
+        <div id="ClassTable">
+            <table id="Data">
+                <!-- <tr>
+                    <td>Car</td>
+                </tr>
+                <tr>
+                    <td>RaceCar</td>
+                </tr>
+                <tr>
+                    <td>SpaceShip</td>
+                </tr>
+                <tr>
+                    <td>School</td>
+                </tr> -->
+            </table>
+        </div>
+
+        <div id="RelationTable">
+            <!-- <a href="#">
+                <span class="glyphicon glyphicon-plus-sign"></span>
+                this is for + as a link
+            </a> -->
+        </div>
+
+        <style>
+            #mySidenav button {
+            position: absolute; /* Position them relative to the browser window */
+            left: -75px; /* Position them outside of the screen */
+            transition: 0.3s; /* Add transition on hover */
+            padding: 15px; /* 15px padding */
+            width: 125px; /* Set a specific width */
+            text-decoration: none; /* Remove underline */
+            font-size: 18px; /* Increase font size */
+            color: white; /* White text color */
+            border-radius: 0 5px 5px 0; /* Rounded corners on the top right and bottom right side */
+            }
+
+            #mySidenav button:hover {
+            left: 0; /* On mouse-over, make the elements appear as they should */
+            }
+
+            /* The about link: 20px from the top with a green background */
+            #ClassList {
+            top: 20px;
+            background-color: #04AA6D;
+            }
+
+            #RelationList {
+            top: 80px;
+            background-color: #04AA6D;
+            }
+
+            #ClassTable {
+            top: 20px;
+            padding: 15px;
+            margin-left: 10%;
+            margin-right: 80%;
+            background-color: #04AA6D;
+            color: white;
+            }
+
+        </style>
+
+        <script>
+            function openTab(event, tab) {
+                classTab = document.getElementById("ClassList");
+                relationTab = document.getElementById("RelationList");
+                classTab.className.replace("active", "inactive");// set both tabs to be inactive.
+                relationTab.className.replace("active", "inactive");
+                activeTab = document.getElementById(tab);
+                activeTab.className.replace("inactive", "active");// make specified tab active.
+            }
+            function getClassList() {
+                fetch('/classlist')
+                .then(response => response.json())
+                .then(data => {
+                    table = document.getElementById("Data");
+                    table.innerHTML = "";
+                    data.forEach(element => {
+                        table.insertRow(0).insertCell(0).innerHTML = element;
+                    });
+                });
+            }
+        </script>
+    </body>
+</html>
