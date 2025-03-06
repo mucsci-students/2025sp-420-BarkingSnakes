@@ -302,30 +302,36 @@
          * Fetches and displays the details of a class.
          * @param {string} className - The name of the class.
          */
-        function displayClassDetails(className) {
-            fetch(`/classdetails?name=${className}`)
-                .then(response => response.json())
-                .then(data => {
-                    let detailsDiv = document.getElementById("ClassDetails");
-                    detailsDiv.innerHTML = `
-                        <button class="close" onclick="closeClassDetails()">&times;</button>
+         function displayClassDetails(className) {
+        fetch(`/classdetails?name=${className}`)
+            .then(response => response.json())
+            .then(data => {
+                let detailsDiv = document.getElementById("ClassDetails");
+                detailsDiv.innerHTML = `
+                    <button class="close" onclick="closeClassDetails()">&times;</button>
+                    <div style="text-align: center;">
                         <h2>${className}</h2>
                         <hr>
                         <h4>Fields</h4>
-                        <ul>
-                            ${data.fields.map(field => `<li>${field}</li>`).join('')}
-                        </ul>
+                    </div>
+                    <ul style="text-align: left;">
+                        ${data.fields.map(field => `<li>${field}</li>`).join('')}
+                    </ul>
+                    <div style="text-align: center;">
                         <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
                         <hr>
                         <h4>Methods</h4>
-                        <ul>
-                            ${data.methods.map(method => `<li>${method}</li>`).join('')}
-                        </ul>
+                    </div>
+                    <ul style="text-align: left;">
+                        ${data.methods.map(method => `<li>${method}</li>`).join('')}
+                    </ul>
+                    <div style="text-align: center;">
                         <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
-                    `;
-                    detailsDiv.style.display = "block"; 
-                });
-        }
+                    </div>
+                `;
+                detailsDiv.style.display = "block"; 
+            });
+    }
 
         // Get the modal
         var modal = document.getElementById("myModal");
