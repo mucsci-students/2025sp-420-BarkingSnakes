@@ -141,8 +141,7 @@ class UmlProject:
         """
         # "not not" serves to resolve to true if file was a .json
         return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
-        
-    
+         
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
 
@@ -344,12 +343,13 @@ class UmlProject:
         elif newName in self.classes.keys():
             raise errors.DuplicateClassException()
         # rename the class using its own rename method
-        #uml_class = self.classes.pop(oldName)
-        #uml_class.rename_umlclass(newName)
-        #self.add_umlclass(uml_class)
+        uml_class = self.classes.pop(oldName)
+        uml_class.rename_umlclass(newName)
+        # self.add_umlclass(uml_class)
         
         # rename using the class itself not the copy
-        self.classes[oldName].rename_umlclass(newName)
+        self.classes[newName] = uml_class
+
         return 0
     
     @_has_changed
@@ -386,7 +386,64 @@ class UmlProject:
             None
         """
         if self.classes.get(classname):
-            self.classes.get(classname).add_field(UmlField(field_name))
+            self.classes.get(classname).add_field(field_name)
+            # self.classes.get(classname).add_field(UmlField(field_name))
+
+    @_has_changed
+    def rename_field(self, classname:str, oldname:str, newname:str) -> int:
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.rename_field(oldname, newname)
+
+    @_has_changed
+    def delete_field(self, classname:str, fieldname:str) -> int:
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.remove_field(fieldname)
+
+    def get_umlmethod(self, classname:str, methodname:str, arity:int) -> UmlMethod:
+        uml_class = self.get_umlclass(classname)
+
+        if uml_class and uml_class.class_methods.get(methodname) is None:
+            raise errors.MethodNameNotExistsException()
+        
+        uml_method = uml_class.class_methods.get(methodname).get(arity)
+
+        if uml_method is None:
+            raise errors.MethodOverloadNotExistsException()
+        
+        return uml_method
+        
+
+    @_has_changed
+    def add_method(self, classname:str, methodname:str, params:list[str]):
+        if self.classes.get(classname):
+            self.classes.get(classname).add_method(methodname, params)
+
+    @_has_changed
+    def rename_method(self, classname:str, oldname:str, newname:str, arity:int):
+        if self.classes.get(classname):
+            self.classes.get(classname).rename_method(oldname, arity, newname)
+
+    @_has_changed
+    def delete_method(self, classname:str, methodname:str, arity:int):
+        if self.classes.get(classname):
+            self.classes.get(classname).remove_method(methodname, arity)
+
+    @_has_changed
+    def add_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.add_parameter(methodname, arity, parameter)
+
+    @_has_changed
+    def rename_parameter(self, classname:str, methodname:str, arity:int, oldname:str, newname:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.rename_parameter(methodname, arity, oldname, newname)
+
+    @_has_changed
+    def delete_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.remove_parameter(methodname, arity, parameter)
 
     def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
         """Get the relationship between source and destination.
