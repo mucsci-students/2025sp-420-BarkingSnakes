@@ -122,7 +122,8 @@ class UmlCommands:
         Usage:str = HelpParameter.usage + "\n".join([c.usage for c in Commands[:-1]])
 
 class UmlController:
-
+    HELP_PATH = os.path.join(umlmodel.__DIR__, 'help.txt')
+    
     def __init__(self, view:UmlView):
         self.view = view
 
@@ -347,6 +348,15 @@ class UmlController:
             if len(args) == 1:
                 args.append(self.view.get_user_input("Enter project file name: "))
             self.load_project(args[1])
+        else:
+            self.view.handle_exceptions(error_text)
+
+    def command_show_help(self):
+        """Command: help  
+        Displays help menu.
+        """
+        with open(self.HELP_PATH, "r") as f:
+            print(f.read())
 
     def command_back(self) -> None:
         """Brings terminal out of class context"""
