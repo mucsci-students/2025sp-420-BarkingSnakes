@@ -1,6 +1,33 @@
+from dataclasses import dataclass
+from flask import g
 
+from view import View
+from renderable import Renderable
+from gui.renderables import UmlClassListRenderable
 
-from views.umlview import UmlView
-
-class UmlGuiView(UmlView):
+@dataclass
+class UmlGuiView(View):
     """"""
+    command:str = ""
+    renderable:Renderable = None
+
+    def render(self, renderable:Renderable):
+        self.renderable = renderable
+
+    def get_user_command(self) -> list[str]:
+        """"""
+        print("[View]Waiting for a command from flask.")
+        while self.command == "":
+            True
+        print("Got command: ", self.command)
+        return self.command.split()
+        
+
+    def set_command(self, command:str):
+        """"""
+        self.command = command
+
+    def get_renderable(self) -> Renderable:
+        """"""
+        return self.renderable
+

@@ -12,6 +12,7 @@ import umlmodel
 from umlmodel import UmlProject
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
+from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 # from views.umlview import UmlView
 from views.umlview import *
 import errors
@@ -997,6 +998,22 @@ class UmlApplication:
         else:
             print("Displaying", len(self.project.relationships), "relationships.")
             print("\n".join(map(str, self.project.relationships)))
+
+    def run_gui(self):
+        """"""
+        if self.is_running:
+            return
+        self.isrunning = True
+        while self.self.is_running:
+            print("[Controller]Start asking for commands")
+            command = self.view.get_user_command()
+            print(command)
+            if command == ["class", "list"]:
+                self.view.render(UmlClassListRenderable(self.model.classes))
+            elif command[0] == "class":
+                self.view.render(UmlClassRenderable(self.model.classes[0]))
+            self.view.set_command("")
+        print("[Controller]Quitting.")
 
     def run(self):
         """

@@ -1,13 +1,14 @@
-
+import threading
 from dataclasses import dataclass
 from enum import Enum, auto
 import argparse
+
 
 from umlcontroller import UmlController
 from views.umlview import UmlView
 from views.umlview_cli import UmlCliView
 from views.umlview_gui import UmlGuiView
-
+from gui.gui import app
 
 class GUI_TYPE(Enum):
     CLI = auto()
@@ -18,14 +19,18 @@ def main(gui_type:GUI_TYPE):
     view:UmlView = None
     if gui_type == GUI_TYPE.CLI:
         view = UmlCliView()
+        controller = UmlController(view)
+        view.init()
+        controller.run()
     elif gui_type == GUI_TYPE.GUI:
         view = UmlGuiView()
-    
-    controller = UmlController(view)
-    view.init()
-
-
-    controller.run()
+        controller = UmlController(view)
+        controller_thread = threading.Thread(target=controller.run)
+        controller_thread.start()
+        app.set_controller(controller)
+        app.run(debug=True)
+        
+        
 
 
 if __name__ == "__main__":
@@ -37,7 +42,7 @@ if __name__ == "__main__":
     gui_type:GUI_TYPE = ns.cli or GUI_TYPE.GUI
 
     # PROD
-    # main(gui_type)
+    main(GUI_TYPE.GUI)
 
     # Dev testing only
-    main(GUI_TYPE.CLI)
+    # main(GUI_TYPE.CLI)
