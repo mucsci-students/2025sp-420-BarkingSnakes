@@ -7,6 +7,7 @@
 
 <body style="background-color: #0e1113;">
     <div id="toolbar">
+        <button onclick="showNewModal()">New</button>
         <button onclick="showSaveModal()">Save</button>
         <button onclick="document.getElementById('fileInput').click()">Load</button>
         <input type="file" id="fileInput" style="display: none;" onchange="loadProject(event)" />
@@ -91,8 +92,10 @@
         #mySidenav {
             position: fixed;
             left: 0;
-            top: 60px; /* Adjusted to be below the toolbar */
-            height: calc(100% - 60px); /* Adjusted to be below the toolbar */
+            top: 60px;
+            /* Adjusted to be below the toolbar */
+            height: calc(100% - 60px);
+            /* Adjusted to be below the toolbar */
             width: 125px;
             background-color: #111;
             padding-top: 20px;
@@ -136,18 +139,18 @@
         }
 
         #ClassDetails {
-            position: absolute;
-            top: 50%;
+            position: fixed;
+            /* Changed from absolute to fixed */
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
             padding: 15px;
             background-color: #333;
             color: white;
             border-radius: 10px;
-            width: 50%;
+            width: 20%;
             text-align: center;
-            display: none; /* Hide initially */
-            position: relative;
+            display: none;
         }
 
         .class-button {
@@ -165,21 +168,21 @@
         }
 
         .add-button {
-        background-color: #04AA6D;
-        color: white;
-        border: 2px solid #028a5e;
-        padding: 10px;
-        text-align: center;
-        width: 100%;
-        cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: background-color 0.3s, box-shadow 0.3s;
-    }
+            background-color: #04AA6D;
+            color: white;
+            border: 2px solid #028a5e;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
 
-    .add-button:hover {
-        background-color: #028a5e;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    }
+        .add-button:hover {
+            background-color: #028a5e;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
 
         /* Modal styles */
         .modal {
@@ -266,7 +269,7 @@
                         let button = document.createElement("button");
                         button.innerHTML = element;
                         button.className = "class-button";
-                        button.onclick = function() {
+                        button.onclick = function () {
                             displayClassDetails(element);
                         };
                         cell.appendChild(button);
@@ -308,22 +311,28 @@
                 .then(data => {
                     let detailsDiv = document.getElementById("ClassDetails");
                     detailsDiv.innerHTML = `
-                        <button class="close" onclick="closeClassDetails()">&times;</button>
-                        <h2>${className}</h2>
-                        <hr>
-                        <h4>Fields</h4>
-                        <ul>
-                            ${data.fields.map(field => `<li>${field}</li>`).join('')}
-                        </ul>
-                        <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
-                        <hr>
-                        <h4>Methods</h4>
-                        <ul>
-                            ${data.methods.map(method => `<li>${method}</li>`).join('')}
-                        </ul>
-                        <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
-                    `;
-                    detailsDiv.style.display = "block"; 
+            <button class="close" onclick="closeClassDetails()">&times;</button>
+            <div style="text-align: center;">
+                <h2 style="margin-left: 30px;">${className}</h2> <!-- Centered class name -->
+                <hr>
+                <h4>Fields</h4>
+            </div>
+            <div id="fieldsList" style="text-align: left;">
+                ${data.fields.map(field => `<div>- ${field}</div>`).join('')}
+            </div>
+            <div style="text-align: center;">
+                <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
+                <hr>
+                <h4>Methods</h4>
+            </div>
+            <div id="methodsList" style="text-align: left;">
+                ${data.methods.map(method => `<div>+ ${method}</div>`).join('')}
+            </div>
+            <div style="text-align: center;">
+                <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
+            </div>
+            `;
+                    detailsDiv.style.display = "block";
                 });
         }
 
@@ -445,11 +454,10 @@
             // Add logic to handle the new field name
             console.log("New field name:", fieldName);
             // Add the new field to the list above the "Add Field" button
-            let detailsDiv = document.getElementById("ClassDetails");
-            let ul = detailsDiv.querySelector("ul");
-            let li = document.createElement("li");
-            li.innerHTML = fieldName;
-            ul.appendChild(li);
+            let fieldsList = document.getElementById("fieldsList");
+            let div = document.createElement("div");
+            div.innerHTML = `- ${fieldName}`;
+            fieldsList.appendChild(div);
             modal.style.display = "none";
         }
 
@@ -462,11 +470,10 @@
             // Add logic to handle the new method name
             console.log("New method name:", methodName);
             // Add the new method to the list above the "Add Method" button
-            let detailsDiv = document.getElementById("ClassDetails");
-            let ul = detailsDiv.querySelectorAll("ul")[1];
-            let li = document.createElement("li");
-            li.innerHTML = methodName;
-            ul.appendChild(li);
+            let methodsList = document.getElementById("methodsList");
+            let div = document.createElement("div");
+            div.innerHTML = `+ ${methodName}`;
+            methodsList.appendChild(div);
             modal.style.display = "none";
         }
 
@@ -490,7 +497,7 @@
             let file = event.target.files[0];
             if (file) {
                 let reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     let content = e.target.result;
                     // Add logic to handle the loaded project content
                     console.log("Loaded project content:", content);
