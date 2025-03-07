@@ -1,6 +1,6 @@
 # Filename: umlrelationship.py
-# Authors: Evan Magill, Steven Barnes
-# Date: 2025-02-16
+# Authors: Evan Magill, Steven Barnes, Juliana Vinluan
+# Date: 2025-03-07
 # Description: Class encapsulating umlrelationships
 import logging
 import errors
@@ -10,6 +10,10 @@ from umlclass import UmlClass
 
 class RelationshipType(Enum):
     DEFAULT = 0
+    AGGREGATION = 1
+    COMPOSITION = 2
+    INHERITANCE = 3
+    REALIZATION = 4
 
 @dataclass
 class UmlRelationship:
@@ -46,4 +50,16 @@ class UmlRelationship:
         return hash(hash(self.relationship_type) + 3 * id(self.source_class) + 5 * id(self.destination_class))
     
     def __str__(self):
+        arrow = " -----------> "
+        
+        match self.relationship_type:
+            case RelationshipType.AGGREGATION:
+                arrow = " ---------< > "
+            case RelationshipType.COMPOSITION:
+                arrow = " ---------<#> "
+            case RelationshipType.INHERITANCE:
+                arrow = " ----------|> "
+            case RelationshipType.REALIZATION:
+                arrow = " -- -- -- -|> "
+
         return self.source_class.class_name + " -> " + self.destination_class.class_name
