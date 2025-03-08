@@ -86,8 +86,7 @@ def set_active_class():
 @app.get("/loadfile")
 def loadFile():
     """"""
-    filepath = request.args.get('filepath')
-    print(filepath)
-    app.controller.model.load(filepath)
-    return 200
+    file = request.args.get("filename")
+    app.controller.load_project(file)
+    return Response(status=200)
     

@@ -130,7 +130,7 @@ class UmlController:
 
         self.model:UmlProject = UmlProject()
         self.active_class:str = None
-        self.model.load("test_json.json")
+        # self.model.load("test_json.json")
         self.is_running = False
     
     def _handle_unsaved_changes(func):

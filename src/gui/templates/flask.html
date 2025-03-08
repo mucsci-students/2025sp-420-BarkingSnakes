@@ -9,8 +9,7 @@
     <div id="toolbar">
         <button onclick="showNewModal()">New</button>
         <button onclick="showSaveModal()">Save</button>
-        <button onclick="document.getElementById('fileInput').click()">Load</button>
-        <input type="file" value="getFilepath()" id="fileInput" style="display: none;" onchange="loadProject(event)"/>
+        <button onclick="showLoadModal()">Load</button>
     </div>
 
     <div id="content">
@@ -54,6 +53,16 @@
             <p>Enter File Name:</p>
             <input type="text" id="fileNameInput" />
             <button onclick="saveProject()">Save</button>
+        </div>
+    </div>
+
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoadModal()">&times;</span>
+            <p>Enter File Name:</p>
+            <input type="text" id="loadFileNameInput" />
+            <button onclick="loadProject()">Load</button>
+            <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
 
@@ -222,6 +231,13 @@
             text-decoration: none;
             cursor: pointer;
         }
+
+        #loadError {
+            color: red;
+            display: none;
+            margin-top: 10px;
+        }
+
     </style>
 
     <script>
@@ -488,27 +504,41 @@
             closeSaveModal();
         }
 
-        /**
-         * Loads the project from a file.
-         * Reads the content of the selected file and loads the project.
-         * @param {Event} event - The file input change event.
-         */
-        function loadProject(event) {
-            let file = event.target.files[0];
+        function loadProject() {
+            let fileName = document.getElementById("loadFileNameInput").value;
+            let loadError = document.getElementById("loadError");
 
-            fetch(`/loadfile?filepath=${file.webkitRelativePath}`)
-                .then(response => response.json())
-                .then(data => {
+            if (!fileName.endsWith(".json")) {
+                loadError.style.display = "block";
+                return;
+            }
+
+            fetch(`/loadfile?filename=${fileName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("File not found");
+                    }
+                    // return response.json();
                 })
-            // if (file) {
-            //     let reader = new FileReader();
-            //     reader.onload = function (e) {
-            //         let content = e.target.result;
-            //         // Add logic to handle the loaded project content
-            //         console.log("Loaded project content:", content);
-            //     };
-            //     reader.readAsText(file);
+                .then(data => {
+                    // Handle the loaded project content
+                    closeLoadModal();
+                })
+                .catch(error => {
+                    // loadError.style.display = "block";
+                    console.error("Error loading project:", error);
+                });
         }
+
+        function showLoadModal() {
+            document.getElementById("loadModal").style.display = "block";
+        }
+
+        function closeLoadModal() {
+            document.getElementById("loadModal").style.display = "none";
+            document.getElementById("loadError").style.display = "none";
+        }
+
     </script>
 </body>
 
