@@ -10,7 +10,7 @@
         <button onclick="showNewModal()">New</button>
         <button onclick="showSaveModal()">Save</button>
         <button onclick="document.getElementById('fileInput').click()">Load</button>
-        <input type="file" id="fileInput" style="display: none;" onchange="loadProject(event)" />
+        <input type="file" value="getFilepath()" id="fileInput" style="display: none;" onchange="loadProject(event)"/>
     </div>
 
     <div id="content">
@@ -263,7 +263,7 @@
                 .then(data => {
                     table = document.getElementById("Data");
                     table.innerHTML = "";
-                    data.forEach(element => {
+                    Object.keys(data).forEach(element => {
                         let row = table.insertRow();
                         let cell = row.insertCell(0);
                         let button = document.createElement("button");
@@ -318,7 +318,7 @@
                 <h4>Fields</h4>
             </div>
             <div id="fieldsList" style="text-align: left;">
-                ${data.fields.map(field => `<div>- ${field}</div>`).join('')}
+                ${Object.values(data.class_fields).map(field => `<div>- ${field.name}</div>`).join('')}
             </div>
             <div style="text-align: center;">
                 <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
@@ -326,7 +326,7 @@
                 <h4>Methods</h4>
             </div>
             <div id="methodsList" style="text-align: left;">
-                ${data.methods.map(method => `<div>+ ${method}</div>`).join('')}
+                ${Object.values(data.class_methods).map(method => `<div>+ ${method.name}</div>`).join('')}
             </div>
             <div style="text-align: center;">
                 <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
@@ -495,15 +495,19 @@
          */
         function loadProject(event) {
             let file = event.target.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function (e) {
-                    let content = e.target.result;
-                    // Add logic to handle the loaded project content
-                    console.log("Loaded project content:", content);
-                };
-                reader.readAsText(file);
-            }
+
+            fetch(`/loadfile?filepath=${file.webkitRelativePath}`)
+                .then(response => response.json())
+                .then(data => {
+                })
+            // if (file) {
+            //     let reader = new FileReader();
+            //     reader.onload = function (e) {
+            //         let content = e.target.result;
+            //         // Add logic to handle the loaded project content
+            //         console.log("Loaded project content:", content);
+            //     };
+            //     reader.readAsText(file);
         }
     </script>
 </body>

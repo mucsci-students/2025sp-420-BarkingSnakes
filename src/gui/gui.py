@@ -2,6 +2,7 @@ from flask import Flask, request, Response, render_template, jsonify
 
 from umlcontroller import UmlController
 from view import View
+import os
 
 class UmlFlaskApp(Flask):
     """"""
@@ -43,18 +44,26 @@ def command():
     app.view.set_command("class add Car")
     return Response(status=200)
 
-@app.get("/classList")
+@app.get("/classlist")
 def class_list():
-    app.view.set_command("class list")
-    while app.view.get_renderable() is None:
-        True
-    renderable = app.view.get_renderable()
-    data = {
-        'html': renderable.render(),
-        'data': renderable.classes
-    }
-    app.view.render(None)
-    return jsonify(data), 200
+    # app.view.set_command("class list")
+    # while app.view.get_renderable() is None:
+    #     True
+    # renderable = app.view.get_renderable()
+    # data = {
+    #     'html': renderable.render(),
+    #     'data': renderable.classes
+    # }
+    # app.view.render(None)
+    # return jsonify(data), 200
+    return jsonify(app.controller.model.classes)
+
+@app.route("/classdetails")
+def classdetails():
+    class_name = request.args.get('name')
+    class_info = app.controller.model.classes
+    details = class_info.get(class_name, {"fields": [], "methods": []})
+    return jsonify(details)
 
 @app.post("/setActiveClass")
 def set_active_class():
@@ -73,3 +82,12 @@ def set_active_class():
     except Exception as e:
         print("Failed: route setActiveClass")
         print(e)
+
+@app.get("/loadfile")
+def loadFile():
+    """"""
+    filepath = request.args.get('filepath')
+    print(filepath)
+    app.controller.model.load(filepath)
+    return 200
+    

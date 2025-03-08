@@ -1,0 +1,27 @@
+{
+    "classes": [
+        {
+            "name": "car",
+            "fields": [
+                {
+                    "name": "mpg"
+                },
+                {
+                    "name": "topspeed"
+                }
+            ],
+            "methods": []
+        },
+        {
+            "name": "truck",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "bus",
+            "fields": [],
+            "methods": []
+        }
+    ],
+    "relationships": []
+}
