@@ -7,9 +7,11 @@
 from __future__ import annotations
 
 import keyword
-
+import re
 
 ## static class objects
+REGEX_DEFAULT_PATTERN = "^[A-Za-z][A-Za-z0-9_]*$"
+
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
              "back", "add", "delete", "rename", "umlclass", "save", " method",
             "parameter" , "", " "]
@@ -30,7 +32,9 @@ error_list = {
     "MethodNameNotExistsError":11,
     "MethodOverloadNotExistsError":12,
     "DuplicateParameterError":13,
-    "NoSuchParameterError":14
+    "NoSuchParameterError":14,
+    "InvalidJsonSchemaError":15,
+    "NoActiveMethodError":16
 }
 ## class definitions
 class UMLException(Exception):
@@ -86,7 +90,7 @@ class UMLException(Exception):
         return self.error_num
 
 #class methods
-def valid_name(name:str) -> int:
+def valid_name(name:str, regex:str = REGEX_DEFAULT_PATTERN) -> int:
     """
     Checks if a class name is valid
         Params: 
@@ -96,8 +100,9 @@ def valid_name(name:str) -> int:
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in invalid_names:
-        raise UMLException("InvalidNameError")
+    if name.lower() in invalid_names or re.search(regex, name) is None:
+        raise InvalidNameException()
+    
     return 0
 
 def get_error_name(val:int) -> str:
@@ -222,6 +227,15 @@ class MethodOverloadNotExistsException(UMLException):
 class DuplicateParameterException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(13), *args)
+
 class NoSuchParameterException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(14), *args)
+
+class InvalidJsonSchemaException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(15), *args)
+
+class NoActiveMethodException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(16), *args)

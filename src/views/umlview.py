@@ -57,7 +57,15 @@ class UmlView(Protocol):
     def set_active_class(self, name:str):
         """"""
 
-    def set_active_method(self, name:str):
+    @property
+    def active_class(self) -> str:
+        """"""
+
+    def set_active_method(self, name:str, arity:int):
+        """"""
+
+    @property
+    def active_method(self) -> tuple[str, int]:
         """"""
 
     def render_umlproject(self, project:UmlProjectData):
