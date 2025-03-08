@@ -246,8 +246,9 @@ class UmlProject:
             'classes': [c.to_dict() for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
+                #TODO
                 'destination': r.destination_class.class_name
-            } for r in self.relationships]
+            } for r in []]#self.relationships]
         }
 
     def _validate_filepath(self, filepath:str) -> int:
