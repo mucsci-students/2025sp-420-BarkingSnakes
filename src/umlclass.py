@@ -217,6 +217,39 @@ class UmlClass:
         self.class_methods.pop(name)
         return 0
     
+    def add_parameter(self, methodname:str, arity:int, parameter:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        if self._overload_exists(methodname, arity + 1):
+            raise errors.DuplicateMethodOverloadException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.add_parameter(parameter)
+
+        self.class_methods.get(methodname).pop(arity)
+        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+        
+    def rename_parameter(self, methodname:str, arity:int, oldname:str, newname:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.rename_parameter(oldname, newname)
+
+    def remove_parameter(self, methodname:str, arity:int, parameter:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        if self._overload_exists(methodname, arity - 1):
+            raise errors.DuplicateMethodOverloadException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.remove_parameter(parameter)
+
+        self.class_methods.get(methodname).pop(arity)
+        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+
     def to_dict(self) -> dict:
         methods = []
         for method in self.class_methods.values():
