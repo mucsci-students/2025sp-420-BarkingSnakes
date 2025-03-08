@@ -138,7 +138,7 @@ class UmlController:
         def wrapper(self:UmlController, *args, **kwargs):
             if self.model and self.model.has_unsaved_changes:
                 # TODO - Finish logic, shouldn't check for y or no here, only true/false returned from prompt_user()
-                prompt = "The current project has unsaved changes. Would you like to save before continuing?"
+                prompt = "The current project has unsaved changes. Would you like to save before continuing?Y/N. "
 
                 if self.view.prompt_user(prompt):
                     # if not self.model._save_path:
@@ -228,7 +228,7 @@ class UmlController:
             
             if self.model._save_path != filename and self.model._filepath_exists(filename):
                 prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                    \nWARNING: this will erase the old file's contents"
+                    \nWARNING: this will erase the old file's contents. "
                 if not self.view.prompt_user(prompt):
                     return
                 
@@ -259,6 +259,9 @@ class UmlController:
         self.model.new()
 
     def execute_command(self, args:list):
+        #if no arguments then don't try to do anything
+        if len(args) == 0:
+            return
         error_text = f"Invalid command: {' '.join(args)}.  Use command 'help' for a list of valid commands."
         cmd = args[0].lower()
 
@@ -380,7 +383,7 @@ class UmlController:
         temp_class = self.model.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N."
+            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
             if self.view.prompt_user(prompt):
                 self.command_add_umlclass(name)
         else:
@@ -848,7 +851,7 @@ class UmlApplication:
             pass
         elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                \nWARNING: this will erase the old file's contents"
+                \nWARNING: this will erase the old file's contents. "
             if not self.prompt_user(prompt):
                 return
         #set current filepath to ignore save prompts on later saves of file
@@ -1067,7 +1070,7 @@ class UmlApplication:
         temp_class = self.project.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N."
+            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
             if self.prompt_user(prompt):
                 #check name is valid
                 errors.valid_name(name)
