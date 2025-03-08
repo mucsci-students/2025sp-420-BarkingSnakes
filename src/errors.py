@@ -34,7 +34,8 @@ error_list = {
     "DuplicateParameterError":13,
     "NoSuchParameterError":14,
     "InvalidJsonSchemaError":15,
-    "NoActiveMethodError":16
+    "NoActiveMethodError":16,
+    "InvalidRelationshipTypeError":17
 }
 ## class definitions
 class UMLException(Exception):
@@ -239,3 +240,7 @@ class InvalidJsonSchemaException(UMLException):
 class NoActiveMethodException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(16), *args)
+
+class InvalidRelationshipTypeException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(17), *args)
