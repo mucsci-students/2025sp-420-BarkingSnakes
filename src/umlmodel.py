@@ -66,7 +66,7 @@ class UmlProject:
         #open needs moved to save section in model
         with open(template_path, "r") as t:
             data = json.load(t)
-            self.validate_json_shema(data)
+            self.validate_json_schema(data)
             self._parse_uml_data(data)
     
     def load(self, filepath:str) -> int:
@@ -83,13 +83,13 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        #use when saving later
-        self._save_path = filepath
         
         with open(filepath, "r") as f:
             data =  json.load(f)
-            self.validate_json_shema(data)
+            self.validate_json_schema(data)
             self._parse_uml_data(data)
+        #use when saving later
+        self._save_path = filepath
 
         return 0
     
@@ -107,14 +107,14 @@ class UmlProject:
         if not self._save_path:
             raise errors.NoActiveProjectException()
         
-        self.validate_json_shema(self._save_object)
+        self.validate_json_schema(self._save_object)
         #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
         self.has_unsaved_changes = False
         return 0
     
-    def validate_json_shema(self, data:dict) -> bool:
+    def validate_json_schema(self, data:dict) -> bool:
         with open(SCHEMA_PATH, "r") as f:
             schema = json.load(f)
         
