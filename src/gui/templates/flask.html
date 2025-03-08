@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>BS-UML</title>
+</head>
+
+<body style="background-color: #0e1113;">
+    <div id="toolbar">
+        <button onclick="showNewModal()">New</button>
+        <button onclick="showSaveModal()">Save</button>
+        <button onclick="document.getElementById('fileInput').click()">Load</button>
+        <input type="file" id="fileInput" style="display: none;" onchange="loadProject(event)" />
+    </div>
+
+    <div id="content">
+        <div id="mySidenav" class="sidenav">
+            <button id="ClassList" onclick="toggleClassList()">ClassList</button>
+            <button id="RelationList" onclick="toggleRelationList()">RelationList</button>
+        </div>
+    </div>
+
+    <div id="ClassTable" style="display: none;">
+        <table id="Data">
+            <!-- Class data will be inserted here -->
+        </table>
+    </div>
+
+    <div id="RelationTable" style="display: none;">
+        <table id="RelationData">
+            <!-- Relation data will be inserted here -->
+        </table>
+    </div>
+
+    <div id="ClassDetails" style="display: none;">
+        <button class="close" onclick="closeClassDetails()">&times;</button>
+        <!-- Class details will be displayed here -->
+    </div>
+
+    <!-- The Modal for adding classes and relationships -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="modalPrompt">Enter Class Name:</p>
+            <input type="text" id="classNameInput" />
+            <button id="modalSubmitButton" onclick="addClass()">Submit</button>
+        </div>
+    </div>
+
+    <!-- The Modal for saving the project -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSaveModal()">&times;</span>
+            <p>Enter File Name:</p>
+            <input type="text" id="fileNameInput" />
+            <button onclick="saveProject()">Save</button>
+        </div>
+    </div>
+
+    <style>
+        body {
+            background-color: #0e1113;
+            padding-top: 60px;
+        }
+
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        #toolbar button {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #toolbar button:hover {
+            background-color: #028a5e;
+        }
+
+        #mySidenav {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            /* Adjusted to be below the toolbar */
+            height: calc(100% - 60px);
+            /* Adjusted to be below the toolbar */
+            width: 125px;
+            background-color: #111;
+            padding-top: 20px;
+        }
+
+        #mySidenav button {
+            position: relative;
+            left: -75px;
+            transition: 0.3s;
+            padding: 15px;
+            width: 125px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            border-radius: 0 5px 5px 0;
+        }
+
+        #mySidenav button:hover {
+            left: 0;
+        }
+
+        #ClassList {
+            top: 20px;
+            background-color: #04AA6D;
+        }
+
+        #RelationList {
+            top: 80px;
+            background-color: #04AA6D;
+        }
+
+        #ClassTable,
+        #RelationTable {
+            padding: 15px;
+            margin-left: 10%;
+            margin-right: 80%;
+            background-color: #04AA6D;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #ClassDetails {
+            position: fixed;
+            /* Changed from absolute to fixed */
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px;
+            background-color: #333;
+            color: white;
+            border-radius: 10px;
+            width: 20%;
+            text-align: center;
+            display: none;
+        }
+
+        .class-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .class-button:hover {
+            background-color: #555;
+        }
+
+        .add-button {
+            background-color: #04AA6D;
+            color: white;
+            border: 2px solid #028a5e;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .add-button:hover {
+            background-color: #028a5e;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #333;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: white;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        /**
+         * Toggles the display of the class list.
+         * Fetches class list data from the server and displays it.
+         */
+        function toggleClassList() {
+            let classTable = document.getElementById("ClassTable");
+            if (classTable.style.display === "none" || classTable.style.display === "") {
+                classTable.style.display = "block";
+                getClassList();
+            } else {
+                classTable.style.display = "none";
+            }
+        }
+
+        /**
+         * Toggles the display of the relation list.
+         * Fetches relation list data from the server and displays it.
+         */
+        function toggleRelationList() {
+            let relationTable = document.getElementById("RelationTable");
+            if (relationTable.style.display === "none" || relationTable.style.display === "") {
+                relationTable.style.display = "block";
+                getRelationList();
+            } else {
+                relationTable.style.display = "none";
+            }
+        }
+
+        /**
+         * Fetches and displays the class list.
+         * Sends a request to the server to get the list of classes.
+         */
+        function getClassList() {
+            fetch('/classlist')
+                .then(response => response.json())
+                .then(data => {
+                    table = document.getElementById("Data");
+                    table.innerHTML = "";
+                    data.forEach(element => {
+                        let row = table.insertRow();
+                        let cell = row.insertCell(0);
+                        let button = document.createElement("button");
+                        button.innerHTML = element;
+                        button.className = "class-button";
+                        button.onclick = function () {
+                            displayClassDetails(element);
+                        };
+                        cell.appendChild(button);
+                    });
+                    // Add a row with a plus sign at the bottom
+                    let plusRow = table.insertRow();
+                    let plusCell = plusRow.insertCell(0);
+                    plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
+                });
+        }
+
+        /**
+         * Fetches and displays the relation list.
+         * Sends a request to the server to get the list of relations.
+         */
+        function getRelationList() {
+            fetch('/relationlist')
+                .then(response => response.json())
+                .then(data => {
+                    table = document.getElementById("RelationData");
+                    table.innerHTML = "";
+                    data.forEach(element => {
+                        table.insertRow(0).insertCell(0).innerHTML = element;
+                    });
+                    // Add a row with a plus sign at the bottom
+                    let plusRow = table.insertRow();
+                    let plusCell = plusRow.insertCell(0);
+                    plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
+                });
+        }
+
+        /**
+         * Fetches and displays the details of a class.
+         * @param {string} className - The name of the class.
+         */
+        function displayClassDetails(className) {
+            fetch(`/classdetails?name=${className}`)
+                .then(response => response.json())
+                .then(data => {
+                    let detailsDiv = document.getElementById("ClassDetails");
+                    detailsDiv.innerHTML = `
+            <button class="close" onclick="closeClassDetails()">&times;</button>
+            <div style="text-align: center;">
+                <h2 style="margin-left: 30px;">${className}</h2> <!-- Centered class name -->
+                <hr>
+                <h4>Fields</h4>
+            </div>
+            <div id="fieldsList" style="text-align: left;">
+                ${data.fields.map(field => `<div>- ${field}</div>`).join('')}
+            </div>
+            <div style="text-align: center;">
+                <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
+                <hr>
+                <h4>Methods</h4>
+            </div>
+            <div id="methodsList" style="text-align: left;">
+                ${data.methods.map(method => `<div>+ ${method}</div>`).join('')}
+            </div>
+            <div style="text-align: center;">
+                <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
+            </div>
+            `;
+                    detailsDiv.style.display = "block";
+                });
+        }
+
+        // Get the modal
+        var modal = document.getElementById("myModal");
+        var saveModal = document.getElementById("saveModal");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        /**
+         * Shows the modal for adding a class, relation, field, or method.
+         * @param {string} type - The type of item to add.
+         */
+        function showModal(type) {
+            if (type === 'class') {
+                document.getElementById("modalPrompt").innerText = "Enter Class Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addClass;
+            } else if (type === 'relation') {
+                document.getElementById("modalPrompt").innerText = "Enter Source Class and Target Class:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addRelation;
+            } else if (type === 'field') {
+                document.getElementById("modalPrompt").innerText = "Enter Field Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addField;
+            } else if (type === 'method') {
+                document.getElementById("modalPrompt").innerText = "Enter Method Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addMethod;
+            }
+            modal.style.display = "block";
+        }
+
+        /**
+         * Shows the save modal.
+         */
+        function showSaveModal() {
+            saveModal.style.display = "block";
+        }
+
+        /**
+         * Closes the save modal.
+         */
+        function closeSaveModal() {
+            saveModal.style.display = "none";
+        }
+
+        /**
+         * Closes the class details.
+         */
+        function closeClassDetails() {
+            document.getElementById("ClassDetails").style.display = "none";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+            closeSaveModal();
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+            if (event.target == saveModal) {
+                saveModal.style.display = "none";
+            }
+        }
+
+        /**
+         * Adds a new class.
+         * Adds the new class to the class list and updates the display.
+         */
+        function addClass() {
+            let className = document.getElementById("classNameInput").value;
+            // Add logic to handle the new class name
+            console.log("New class name:", className);
+            // Add the new class to the list above the "Add Class" button
+            let table = document.getElementById("Data");
+            let plusRow = table.rows[table.rows.length - 1];
+            let row = table.insertRow(table.rows.length - 1);
+            let cell = row.insertCell(0);
+            let button = document.createElement("button");
+            button.innerHTML = className;
+            button.className = "class-button";
+            button.onclick = function () {
+                displayClassDetails(className);
+            };
+            cell.appendChild(button);
+            modal.style.display = "none";
+        }
+
+        /**
+         * Adds a new relation.
+         * Adds the new relation to the relation list and updates the display.
+         */
+        function addRelation() {
+            let input = document.getElementById("classNameInput").value;
+            let [sourceClass, targetClass] = input.split(" ");
+            // Add logic to handle the new relationship
+            console.log("New relationship:", sourceClass, "->", targetClass);
+            // Add the new relationship to the list
+            let table = document.getElementById("RelationData");
+            let row = table.insertRow(table.rows.length - 1);
+            let cell = row.insertCell(0);
+            cell.innerHTML = `${sourceClass} -> ${targetClass}`;
+            modal.style.display = "none";
+        }
+
+        /**
+         * Adds a new field.
+         * Adds the new field to the class details and updates the display.
+         */
+        function addField() {
+            let fieldName = document.getElementById("classNameInput").value;
+            // Add logic to handle the new field name
+            console.log("New field name:", fieldName);
+            // Add the new field to the list above the "Add Field" button
+            let fieldsList = document.getElementById("fieldsList");
+            let div = document.createElement("div");
+            div.innerHTML = `- ${fieldName}`;
+            fieldsList.appendChild(div);
+            modal.style.display = "none";
+        }
+
+        /**
+         * Adds a new method.
+         * Adds the new method to the class details and updates the display.
+         */
+        function addMethod() {
+            let methodName = document.getElementById("classNameInput").value;
+            // Add logic to handle the new method name
+            console.log("New method name:", methodName);
+            // Add the new method to the list above the "Add Method" button
+            let methodsList = document.getElementById("methodsList");
+            let div = document.createElement("div");
+            div.innerHTML = `+ ${methodName}`;
+            methodsList.appendChild(div);
+            modal.style.display = "none";
+        }
+
+        /**
+         * Saves the project with the given file name.
+         * Prompts the user to enter a file name and saves the project.
+         */
+        function saveProject() {
+            let fileName = document.getElementById("fileNameInput").value;
+            // Add logic to save the project with the given file name
+            console.log("Save project as:", fileName);
+            closeSaveModal();
+        }
+
+        /**
+         * Loads the project from a file.
+         * Reads the content of the selected file and loads the project.
+         * @param {Event} event - The file input change event.
+         */
+        function loadProject(event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let content = e.target.result;
+                    // Add logic to handle the loaded project content
+                    console.log("Loaded project content:", content);
+                };
+                reader.readAsText(file);
+            }
+        }
+    </script>
+</body>
+
+</html>
