@@ -15,21 +15,21 @@ save
 quit
     Quits the program. Prompts to save any unsaved changes.
 list
-    In the project context, displays all classes and their fields in boxes.
-relation add <source class name> <dest class name>
-    Adds a relation between two existing classes. Symmetric given the current
-    level of abstraction in sprint 1. Either a relationship exists between 2
-    classes or it doesn't. Easily extensible for directed relationships.
-relation delete <source class name> <dest class name>
-    Removes an existing relation.
-relation list
-    Lists all relations in the current project.
+    In the project context, displays all classes and their fields, methods and paramete.
 class <classname>
     Enters the context for the class with the specified <classname> or prompts you 
     to add if it is not an existing class
 class add <classname>
     Adds the class and enters the context for the class. If a name is not provided,
     it prompts for a name
+relation add <source class> <destination class> <relationship type>
+    Adds a relationship of type <relationship type> from <source class> 
+    to <destination class>
+relation delete <source class> <destination class>
+    Deletes a relationship of from <source class> to <destination class> 
+    if it exists
+relation list
+    Lists all relations in the current project.
 
     class context commands:
         back
@@ -71,7 +71,7 @@ class add <classname>
                     Deletes the parameter with name <parameter name> from the class.
         
 
--classname will be invalid if any of these keywords, or python 
+-when naming classes, fields, methods or parameters, they will be invalid if any of these keywords, or python 
     language keywords, and no action will be taken
 -input will also be invalid if classname specified does not
     exist for delete, rename, or relation actions
