@@ -23,9 +23,9 @@
 6. To deactivate virtual environment type `deactivate`
 
 ## Running the program
-   Windows: `python src\uml.py`
+- Windows: `python src\uml.py`
       or to start in CLI: `python src\uml.py --cli`
-   Linux: `python3 src/uml.py`
+- Linux: `python3 src/uml.py`
       or to start in CLI: `python3 src/uml.py --cli`
 
 ## Running tests
