@@ -365,6 +365,8 @@
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
 
+        var fileName;
+
         /**
          * Shows the modal for adding a class, relation, field, or method.
          * @param {string} type - The type of item to add.
@@ -394,6 +396,7 @@
          * Shows the save modal.
          */
         function showSaveModal() {
+            document.getElementById("fileNameInput").value = fileName
             saveModal.style.display = "block";
         }
 
@@ -504,7 +507,7 @@
          * Prompts the user to enter a file name and saves the project.
          */
         function saveProject() {
-            let fileName = document.getElementById("fileNameInput").value;
+            fileName = document.getElementById("fileNameInput").value;
 
             fetch(`/saveproject?filename=${fileName}`, { method: "POST" })
                 .catch(error => {
@@ -516,7 +519,7 @@
         }
 
         function loadProject() {
-            let fileName = document.getElementById("loadFileNameInput").value;
+            fileName = document.getElementById("loadFileNameInput").value;
             let loadError = document.getElementById("loadError");
 
             if (!fileName.endsWith(".json")) {
@@ -534,6 +537,7 @@
                 .then(data => {
                     // Handle the loaded project content
                     closeLoadModal();
+                    document.getElementById("fileNameInput").value = fileName
                 })
                 .catch(error => {
                     // loadError.style.display = "block";
