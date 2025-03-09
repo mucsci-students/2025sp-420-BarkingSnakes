@@ -89,4 +89,11 @@ def loadFile():
     file = request.args.get("filename")
     app.controller.load_project(file)
     return Response(status=200)
+
+@app.post("/saveproject")
+def save():
+    """"""
+    file = request.args.get("filename")
+    app.controller.save_project(file)
+    return Response(status=200)
     
