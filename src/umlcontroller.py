@@ -15,6 +15,7 @@ from umlmodel import UmlProject
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
+from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 # from views.umlview import UmlView
 from views.umlview import *
 import errors
@@ -130,7 +131,7 @@ class UmlController:
 
         self.model:UmlProject = UmlProject()
         self.active_class:str = None
-
+        # self.model.load("test_json.json")
         self.is_running = False
     
     def _handle_unsaved_changes(func):
@@ -650,7 +651,8 @@ class UmlController:
 
     def _get_model_as_data_object(self) -> UmlProjectData:
         classes = list(map(self._get_class_data_object, self.model.classes.values()))
-        return UmlProjectData(classes, None)
+        relationsips = list(map(self._get_relation_data_object, self.model.relationships))
+        return UmlProjectData(classes, relationsips)
 
     def _get_class_data_object(self, umlclass:UmlClass) -> UmlClassData:
         def get_field_data_object(umlfield:UmlField) -> UmlFieldData:
@@ -671,7 +673,8 @@ class UmlController:
         return UmlClassData(umlclass.class_name, fields, methods)
     
     def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
-        return UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+        r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+        return r
 
     def run(self):
         """Runs the application."""
@@ -1240,6 +1243,22 @@ class UmlApplication:
         else:
             print("Displaying", len(self.project.relationships), "relationships.")
             print("\n".join(map(str, self.project.relationships)))
+
+    def run_gui(self):
+        """"""
+        if self.is_running:
+            return
+        self.isrunning = True
+        while self.self.is_running:
+            print("[Controller]Start asking for commands")
+            command = self.view.get_user_command()
+            print(command)
+            if command == ["class", "list"]:
+                self.view.render(UmlClassListRenderable(self.model.classes))
+            elif command[0] == "class":
+                self.view.render(UmlClassRenderable(self.model.classes[0]))
+            self.view.set_command("")
+        print("[Controller]Quitting.")
 
     def run(self):
         """

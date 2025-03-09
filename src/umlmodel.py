@@ -351,8 +351,9 @@ class UmlProject:
         elif newName in self.classes.keys():
             raise errors.DuplicateClassException()
         # rename the class using its own rename method
-        uml_class = self.classes.pop(oldName)
+        uml_class = self.classes.get(oldName)
         uml_class.rename_umlclass(newName)
+        uml_class = self.classes.pop(oldName)
         # self.add_umlclass(uml_class)
         
         # rename using the class itself not the copy

@@ -1,0 +1,24 @@
+<table id="Data">
+    <tbody>
+        {% for c in classes %}
+        <tr>
+            <td>
+                <button class="class-button" onclick="displayClassDetails('{{ c }}')">{{ c }}</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>
+                <!-- <button class="add-button" onclick="showModal('class')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button> -->
+                <button style="display: block;" id="btnAddClass" class="add-button" onclick="toggleVisibility(['btnAddClass', 'cntrAddClass'])"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>
+                <div id="cntrAddClass" style="width: 100%; display:none;">
+                    <label for="newClassName">Class Name:</label>
+                    <input class="input-mode-view" id="newClassName" type="text" onkeydown="addClass2(event, this)" onblur="inputBlur(event, () => toggleVisibility(['btnAddClass', 'cntrAddClass']))">
+                    <!-- <input class="input-mode-view" id="newClassName" type="text" onblur="addUmlClass(event.target.value)"> -->
+                </div>
+            </td>
+        </tr>
+    </tfoot>
+</table>
