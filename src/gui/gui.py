@@ -1,3 +1,4 @@
+import functools
 from flask import Flask, request, Response, render_template, jsonify
 
 from umlcontroller import UmlController
@@ -23,6 +24,17 @@ class UmlFlaskApp(Flask):
 
 # app = Flask(__name__)
 app = UmlFlaskApp(__name__)
+
+
+def handle_umlexception(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except errors.UMLException as uml_e:
+            app.view.handle_umlexception(uml_e)
+            return app.view.response
+    return wrapper
 
 @app.route("/")
 def index():
@@ -85,46 +97,48 @@ def classdetails():
         return app.view.response
 
 @app.post("/addClass")
+@handle_umlexception
 def add_umlclass():
+    data = request.get_json()
+    classname = data.get('classname')
+    if classname:
+        app.controller.execute_command(["class", "add", classname])
+        return Response(status=202)
+    return Response(status=406)
+
+@app.post("/renameClass")
+def rename_umlclass():
     try:
         data = request.get_json()
-        classname = data.get('classname')
-        if classname:
-            app.controller.execute_command(["class", "add", classname])
-            return Response(status=202)
-        return Response(status=406)
+        oldname = data.get('oldname')
+        newname = data.get('newname')
+        app.controller.execute_command(["rename", newname])
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return app.view.response
 
 @app.post("/addField")
+@handle_umlexception
 def add_field():
-    try:
-        data = request.get_json()
-        fieldname = data.get('fieldname')
-        if fieldname:
-            app.controller.execute_command(["field", "add", fieldname])
-            return Response(status=202)
-        return Response(status=406)
-    except errors.UMLException as uml_e:
-        app.view.handle_umlexception(uml_e)
-        return app.view.response
+    data = request.get_json()
+    fieldname = data.get('fieldname')
+    if fieldname:
+        app.controller.execute_command(["field", "add", fieldname])
+        return Response(status=202)
+    return Response(status=406)
 
 @app.post("/renameField")
+@handle_umlexception
 def rename_field():
-    try:
-        data = request.get_json()
-        class_name = data.get('classname')
-        oldname = data.get('oldname')
-        newname = data.get('newname')
+    data = request.get_json()
+    class_name = data.get('classname')
+    oldname = data.get('oldname')
+    newname = data.get('newname')
 
-        app.controller.execute_command(["class", class_name])
-        app.controller.execute_command(["field", "rename", oldname, newname])
+    app.controller.execute_command(["class", class_name])
+    app.controller.execute_command(["field", "rename", oldname, newname])
 
-        return Response(status=200)
-    except errors.UMLException as uml_e:
-        app.view.handle_umlexception(uml_e)
-        return app.view.response
+    return Response(status=200)
 
 @app.post("/setActiveClass")
 def set_active_class():
@@ -145,6 +159,7 @@ def set_active_class():
         print(e)
 
 @app.get("/loadfile")
+@handle_umlexception
 def loadFile():
     """"""
     file = request.args.get("filename")
@@ -152,6 +167,7 @@ def loadFile():
     return Response(status=200)
 
 @app.post("/saveproject")
+@handle_umlexception
 def save():
     """"""
     file = request.args.get("filename")
