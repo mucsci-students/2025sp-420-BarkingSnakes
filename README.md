@@ -5,15 +5,17 @@
 - John Hershey
 - Kyle Kalbach
 - Steven Barnes
+- Juliana Vinluan
+- Spencer Hoover
 
 ## Windows Installation Instructions
-1. Install python3 a version >= 3.9 if not present https://www.geeksforgeeks.org/how-to-install-python-on-windows/
+1. Install python3 a version >= 3.9 if not present https://www.python.org/downloads/windows/
 2. Install a python virtual environment with `python -m venv venv`
 3. Activate the virtual environment with `.\venv\scripts\activate`
 4. Install required packages with `pip install -r requirements.txt`
 
 ## Linux Installation Instructions
-1. Install python3 a version >= 3.9 if not present https://www.geeksforgeeks.org/how-to-install-python-on-linux/
+1. Install python3 a version >= 3.9 if not present https://docs.python.org/3/using/unix.html
 2. Install pip use `apt install python3-pip`
 3. Install a python virtual environment use `python3 -m venv venv`
 4. To Activate the virtual environment use `source venv/bin/activate`
@@ -22,7 +24,9 @@
 
 ## Running the program
    Windows: `python src\uml.py`
+      or to start in CLI: `python src\uml.py --cli`
    Linux: `python3 src/uml.py`
+      or to start in CLI: `python3 src/uml.py --cli`
 
 ## Running tests
 - Use for specific test 
