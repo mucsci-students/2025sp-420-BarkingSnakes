@@ -114,7 +114,7 @@ class UmlCliView(UmlView):
 
     def render_umlrelationship(self, umlrelationship:UmlRelationshipData):
         """"""
-        print(f"<{umlrelationship.type}> {umlrelationship.source} --> {umlrelationship.destination}")
+        print(f"<{umlrelationship.relation_type}> {umlrelationship.source} --> {umlrelationship.destination}")
 
     def quit(self):
         """"""
