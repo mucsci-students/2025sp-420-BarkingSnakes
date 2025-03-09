@@ -412,7 +412,7 @@ class UmlController:
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.prompt_user(prompt):
+        if not self.view.prompt_user(prompt):
             return
         # Remove from project
         self.model.delete_umlclass(self.view.active_class)
