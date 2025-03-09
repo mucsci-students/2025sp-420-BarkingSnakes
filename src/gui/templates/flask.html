@@ -754,6 +754,31 @@
             }
         }
 
+        function addMethodParam(event, target, methodname, arity) {
+            fetch("/addMethodParam", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodname,
+                    paramname: target.value,
+                    arity: arity
+                })
+            })
+            .then(res => {
+                if (res.status >= 400) {
+                    target.value = "";
+                    return res.json();
+                } else {
+                    displayClassDetails("");
+                }
+            })
+            .then(data => snackbar(data.error))
+            .catch(err => console.log(err))
+        }
+
         function newProject(elem) {
             elem = document.getElementById("fileNameInput")
             fetch("/newproject", {
@@ -790,10 +815,27 @@
         function saveProject() {
             fileName = document.getElementById("fileNameInput").value;
 
-            fetch(`/saveproject?filename=${fileName}`, { method: "POST" })
-                .catch(error => {
-                    console.error("Error saving project:", error);
-                });
+            fetch(`/saveproject`, 
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: fileName
+                    })
+                }
+            )
+            .then(res => {
+                if (res >= 400) {
+                    return res.json();
+                }
+            })
+            .then(data => snackbar(data.error))
+            .catch(error => {
+                console.error("Error saving project:", error);
+            });
 
             console.log("Save project as:", fileName);
             closeSaveModal();
