@@ -5,6 +5,7 @@
 
 from dataclasses import dataclass
 from typing import Protocol, NamedTuple
+import errors
 
 
 class UmlFieldData(NamedTuple):
@@ -48,6 +49,9 @@ class UmlView(Protocol):
     def handle_exceptions(self, error_text:str):
         """"""
 
+    def handle_umlexception(self, uml_exception:errors.UMLException):
+        """"""
+
     def set_active_class(self, name:str):
         """"""
 
@@ -60,6 +64,13 @@ class UmlView(Protocol):
 
     @property
     def active_method(self) -> tuple[str, int]:
+        """"""
+
+    @property
+    def get_umlexception(self) -> errors.UMLException:
+        """"""
+
+    def set_umlexception(self, e:errors.UMLException):
         """"""
 
     def render_umlproject(self, project:UmlProjectData):

@@ -1,4 +1,5 @@
 import os
+import webbrowser
 import threading
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -28,15 +29,16 @@ def main(gui_type:GUI_TYPE):
         view = UmlGuiView()
         controller = UmlController(view)
         app.set_controller(controller)
+        # app.set_view(view)
 
-        # controller_thread = threading.Thread(target=controller.run)
         flask_thread = threading.Thread(target=app.run, kwargs={'debug':True, 'use_reloader': False})
         flask_thread.daemon = True
-
-        # controller_thread.start()
         flask_thread.start()
 
+        print(webbrowser.open("http://127.0.0.1:5000"))
         controller.run()
+
+
         
         
         

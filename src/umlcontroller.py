@@ -14,6 +14,7 @@ import umlmodel
 from umlmodel import UmlProject
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
+from umlrelationship import UmlRelationship, RelationshipType
 from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 # from views.umlview import UmlView
 from views.umlview import *
@@ -28,32 +29,32 @@ class UmlCommand(Protocol):
 class UmlCommands:
     class UmlClass:
         class AddClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
         
         class RenameClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
         
         class DeleteClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
         
         class ListClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
         
         class ContextClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
         class HelpClass(UmlCommand):
-            id = ""
-            regex = ""
+            id = r""
+            regex = r""
             usage = ""
 
         Commands:list[UmlCommand] = [AddClass, RenameClass, DeleteClass, ListClass, ContextClass, HelpClass]
@@ -61,33 +62,33 @@ class UmlCommands:
 
     class UmlMethodCommands:
         class AddMethod(UmlCommand):
-            id = "method add"
-            regex = "^method add ([A-Za-z][A-Za-z0-9_]*)(\s[A-Za-z][A-Za-z0-9_]*)*$"
+            id = r"method add"
+            regex = r"^method add ([A-Za-z][A-Za-z0-9_]*)(\s[A-Za-z][A-Za-z0-9_]*)*$"
             usage = "method add <name> [<param list>]"
         
         class RenameMethod(UmlCommand):
-            id = "method rename"
-            regex = "^method rename (([A-Za-z][A-Za-z0-9_]*)\s){2}arity [0-9]+$"
+            id = r"method rename"
+            regex = r"^method rename (([A-Za-z][A-Za-z0-9_]*)\s){2}arity [0-9]+$"
             usage = "method rename <name> <new name> arity <arity>"
         
         class DeleteMethod(UmlCommand):
-            id = "method delete"
-            regex = "^method delete (([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
+            id = r"method delete"
+            regex = r"^method delete (([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
             usage = "method delete <name> arity <arity>"
         
         class ListMethod(UmlCommand):
-            id = "method list"
-            regex = "^method list$"
+            id = r"method list"
+            regex = r"^method list$"
             usage = "method list"
 
         class ContextMethod(UmlCommand):
-            id = "method (?!(add|rename|delete|help|list))"
-            regex = "^method (?!(add|rename|delete|help|list)\s)(([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
+            id = r"method (?!(add|rename|delete|help|list))"
+            regex = r"^method (?!(add|rename|delete|help|list)\s)(([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
             usage = "method <name> arity <arity>"
         
         class HelpMethod(UmlCommand):
-            id = "method"
-            regex = "^method (help){0,1}$"
+            id = r"method"
+            regex = r"^method (help){0,1}$"
             usage = "method commands:\n"
         
         Commands:list[UmlCommand] = [AddMethod, RenameMethod, DeleteMethod, ListMethod, ContextMethod, HelpMethod]
@@ -95,28 +96,28 @@ class UmlCommands:
 
     class UmlParameterCommands:
         class AddParameter(UmlCommand):
-            id = "parameter add"
-            regex = "^parameter add ([A-Za-z][A-Za-z0-9_]*)$"
+            id = r"parameter add"
+            regex = r"^parameter add ([A-Za-z][A-Za-z0-9_]*)$"
             usage = "parameter add <name>"
         
         class RenameParameter(UmlCommand):
-            id = "parameter rename"
-            regex = "^parameter rename ([A-Za-z][A-Za-z0-9_]*) ([A-Za-z][A-Za-z0-9_]*)$"
+            id = r"parameter rename"
+            regex = r"^parameter rename ([A-Za-z][A-Za-z0-9_]*) ([A-Za-z][A-Za-z0-9_]*)$"
             usage = "parameter rename <name> <new name>"
         
         class DeleteParameter(UmlCommand):
-            id = "parameter delete"
-            regex = "^parameter delete ([A-Za-z][A-Za-z0-9_]*)$"
+            id = r"parameter delete"
+            regex = r"^parameter delete ([A-Za-z][A-Za-z0-9_]*)$"
             usage = "parameter delete <name>"
 
         class ListParameter(UmlCommand):
-            id = "parameter list"
-            regex = "^parameter list$"
+            id = r"parameter list"
+            regex = r"^parameter list$"
             usage = "parameter list"
         
         class HelpParameter(UmlCommand):
-            id = "parameter"
-            regex = "^parameter (help){0,1}$"
+            id = r"parameter"
+            regex = r"^parameter (help){0,1}$"
             usage = "parameter commands:\n"
         
         Commands:list[UmlCommand] = [AddParameter, RenameParameter, DeleteParameter, ListParameter, HelpParameter]
@@ -307,10 +308,9 @@ class UmlController:
         #commands that function either in or out of a class context
         elif cmd == 'relation':
             # TODO - Align this to prompt for additional input.
-            # TODO - Implement type into cli command
-            if len(args) < 3:
+            if len(args) < 2:
                 self.view.handle_exceptions(error_text)
-            elif args[1].lower() in ['add', 'rename', 'list']:
+            elif args[1].lower() in ['add', 'delete', 'list']:
                 self.command_relation(args)
             else:
                 self.view.handle_exceptions(error_text)
@@ -514,14 +514,14 @@ class UmlController:
 
         # TODO - These commands should take in a type parameter for the relation type
         if cmd == 'add':
-            self.command_add_relation(args[2], args[3])
+            self.command_add_relation(args[2], args[3], args[4])
         elif cmd == 'delete':
             self.command_delete_relation(args[2], args[3])
         elif cmd == 'list':
             self.command_list_relation()
 
     @_requires_active_project
-    def command_add_relation(self, source:str, destination:str) -> None:
+    def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Adds a relationship.
         
         Params:
@@ -532,7 +532,7 @@ class UmlController:
             NoSuchObjectError
         """
         # TODO - Add parameter for relationship type
-        self.model.add_relationship(source, destination)
+        self.model.add_relationship(source, destination, relationship_type)
 
     @_requires_active_project
     def command_delete_relation(self, source:str, destination:str) -> None:
@@ -545,13 +545,14 @@ class UmlController:
             NoActiveProjectException
             NoSuchObjectError
         """
-        # TODO - Add parameter for relationship type
         self.model.delete_relationship(source, destination)
 
     @_requires_active_project
     def command_list_relation(self):
         """Display all relationships."""
-        
+        for relation in self.model.relationships:
+            data = self._get_relation_data_object(relation)
+            self.view.render_umlrelationship(data)
 
     @_requires_active_class
     def command_method(self, args:list[str]):
@@ -670,6 +671,9 @@ class UmlController:
 
         return UmlClassData(umlclass.class_name, fields, methods)
     
+    def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
+        return UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+
     def run(self):
         """Runs the application."""
         self.is_running = True
@@ -1196,15 +1200,15 @@ class UmlApplication:
         cmd = args[1].lower()
 
         if cmd == 'add':
-            return lambda: self.command_add_relation(args[2], args[3])
+            return lambda: self.command_add_relation(args[2], args[3], args[4])
         elif cmd == 'delete':
-            return lambda: self.command_delete_relation(args[2], args[3])
+            return lambda: self.command_delete_relation(args[2], args[3], args[4])
         elif cmd == 'list':
             return self.command_list_relation
         return lambda: self.inform_invalid_command(" ".join(args))
 
     @_requires_active_project
-    def command_add_relation(self, source:str, destination:str) -> None:
+    def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Adds a relationship.
         
         Params:
@@ -1214,10 +1218,10 @@ class UmlApplication:
             NoActiveProjectException
             NoSuchObjectError
         """
-        self.project.add_relationship(source, destination)
+        self.project.add_relationship(source, destination, relationship_type)
 
     @_requires_active_project
-    def command_delete_relation(self, source:str, destination:str) -> None:
+    def command_delete_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Delete a relationship.
         
         Params:
@@ -1227,7 +1231,7 @@ class UmlApplication:
             NoActiveProjectException
             NoSuchObjectError
         """
-        self.project.delete_relationship(source, destination)
+        self.project.delete_relationship(source, destination, relationship_type)
 
     @_requires_active_project
     def command_list_relation(self):
