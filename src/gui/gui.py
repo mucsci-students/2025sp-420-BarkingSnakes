@@ -3,6 +3,7 @@ from flask import Flask, request, Response, render_template, jsonify
 
 from umlcontroller import UmlController
 from views.umlview_gui import UmlGuiView
+from umlrelationship import RelationshipType
 import errors
 import sys
 
@@ -218,8 +219,11 @@ def loadFile():
 @handle_umlexception
 def save():
     """"""
-    file = request.args.get("filename")
-    app.controller.save_project(file)
+    data = request.get_json()
+    print(data)
+    file = data.get("filename")
+    # app.controller.save_project(file)
+    app.controller.execute_command(["save", file])
     return Response(status=200)
 
 
@@ -237,3 +241,48 @@ def newproject():
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return jsonify({"error": "Failed to create project"}), 400
+    
+@app.post("/addMethodParam")
+@handle_umlexception
+def add_method_param():
+    data = request.get_json()
+    methodname = data.get('methodname')
+    paramname = data.get('paramname')
+    arity = data.get('arity')
+    
+    app.controller.execute_command(["method", methodname, "arity", str(arity)])
+    app.controller.execute_command(["parameter", "add", paramname])
+    return Response(status=200)
+
+@app.route("/relationList")
+@handle_umlexception
+def relation_list():
+    project_dto = app.controller._get_model_as_data_object()
+    relation_types = list(filter(lambda n: n != "DEFAULT", RelationshipType._member_names_))
+
+    data = {'html': render_template("_umlrelationshiplist.html", model = project_dto, relation_types = relation_types)}
+
+    return jsonify(data)
+
+@app.post("/addRelation")
+@handle_umlexception
+def add_relation():
+    data = request.get_json()
+    source = data.get('source')
+    destination = data.get('destination')
+    relation_type = data.get('type')
+    if source and destination and relation_type:
+        app.controller.execute_command(["relation", "add", source, destination, relation_type])
+        return Response(status=202)
+    return Response(status=406)
+
+@app.post("/deleteRelation")
+@handle_umlexception
+def delete_relation():
+    data = request.get_json()
+    source = data.get('source')
+    destination = data.get('destination')
+    if source and destination:
+        app.controller.execute_command(["relation", "delete", source, destination])
+        return Response(status=202)
+    return Response(status=406)

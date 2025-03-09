@@ -5,6 +5,7 @@
 
 <head>
     <title>BS-UML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body style="background-color: #0e1113;">
@@ -318,6 +319,18 @@
         However, delay the fade out process for 2.5 seconds */
             -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
             animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
         }
 
         /* Animations to fade the snackbar in and out */
@@ -794,6 +807,31 @@
             }
         }
 
+        function addMethodParam(event, target, methodname, arity) {
+            fetch("/addMethodParam", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodname,
+                    paramname: target.value,
+                    arity: arity
+                })
+            })
+                .then(res => {
+                    if (res.status >= 400) {
+                        target.value = "";
+                        return res.json();
+                    } else {
+                        displayClassDetails("");
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(err => console.log(err))
+        }
+
         function newProject(elem) {
             elem = document.getElementById("fileNameInput")
             fetch("/newproject", {
@@ -830,7 +868,24 @@
         function saveProject() {
             fileName = document.getElementById("fileNameInput").value;
 
-            fetch(`/saveproject?filename=${fileName}`, { method: "POST" })
+            fetch(`/saveproject`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: fileName
+                    })
+                }
+            )
+                .then(res => {
+                    if (res >= 400) {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
                 .catch(error => {
                     console.error("Error saving project:", error);
                 });
@@ -985,6 +1040,69 @@
 
             }
         }
+
+        function addRelation() {
+        let sourceClass = document.getElementById("newRelationSource").value;
+        let targetClass = document.getElementById("newRelationDestination").value;
+        let relationType = document.getElementById("newRelationType").value;
+
+        fetch("/addRelation", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                source: sourceClass,
+                destination: targetClass,
+                type: relationType
+            })
+        })
+        .then(resp => {
+            if (resp.status >= 400) {
+                return resp.json();
+            } else {
+                getRelationList();
+            }
+        })
+        .then(data => {
+            if (data && data.error) {
+                snackbar(data.error);
+            }
+        })
+        .catch(error => console.log(error));
+
+        toggleVisibility(['cntrAddRelationship']);
+    }
+
+    function deleteRelation(source, destination) {
+        console.log(source, destination);
+        fetch("/deleteRelation", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                source: source,
+                destination: destination
+            })
+        })
+        .then(resp => {
+            console.log(resp);
+            if (resp.status >= 400) {
+                return resp.json();
+            } else {
+                getRelationList();
+            }
+        })
+        .then(data => {
+            if (data && data.error) {
+                snackbar(data.error);
+            }
+        })
+        .catch(error => console.log(error));
+    }
     </script>
 </body>
 
