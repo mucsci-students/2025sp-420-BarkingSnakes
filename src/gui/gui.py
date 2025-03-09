@@ -61,9 +61,33 @@ def class_list():
 @app.route("/classdetails")
 def classdetails():
     class_name = request.args.get('name')
-    class_info = app.controller.model.classes
-    details = class_info.get(class_name, {"fields": [], "methods": []})
-    return jsonify(details)
+    # class_info = app.controller.model.classes
+    model = app.controller.model
+    umlclass = model.get_umlclass(class_name)
+    # details = class_info.get(class_name, {"fields": [], "methods": []})
+    dto = app.controller._get_class_data_object(umlclass)
+    # dto = {
+    #     'name':_dto.name,
+    #     'fields': [f.name for f in _dto.fields],
+    #     'methods':[{'name':m.name, 'params':[p.name for p in m.params]} for m in _dto.methods]
+    # }
+    data = {'html': render_template("/_umlclass.html", dto = dto)}
+    return jsonify(data)
+
+@app.post("/renameField")
+def rename_field():
+    data = request.get_json()
+    class_name = data.get('classname')
+    oldname = data.get('oldname')
+    newname = data.get('newname')
+
+    app.controller.execute_command(["class", class_name])
+    app.controller.execute_command(["field", "rename", oldname, newname])
+
+    return Response(status=200)
+
+
+
 
 @app.post("/setActiveClass")
 def set_active_class():
@@ -89,4 +113,3 @@ def loadFile():
     file = request.args.get("filename")
     app.controller.load_project(file)
     return Response(status=200)
-    
