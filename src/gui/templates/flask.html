@@ -28,9 +28,9 @@
     </div>
 
     <div id="RelationTable" style="display: none;">
-        <table id="RelationData">
+        <!-- <table id="RelationData"> -->
             <!-- Relation data will be inserted here -->
-        </table>
+        <!-- </table> -->
     </div>
 
     <div id="ClassDetails" style="display: none;">
@@ -157,6 +157,12 @@
             color: white;
             margin-bottom: 20px;
             position: relative;
+            width: 20%;
+        }
+
+        .RelationData {
+            width: 100%;
+            text-align: center;
         }
 
         #ClassDetails {
@@ -465,19 +471,26 @@
          * Sends a request to the server to get the list of relations.
          */
         function getRelationList() {
-            fetch('/relationlist')
-                .then(response => response.json())
-                .then(data => {
-                    table = document.getElementById("RelationData");
-                    table.innerHTML = "";
-                    data.forEach(element => {
-                        table.insertRow(0).insertCell(0).innerHTML = element;
-                    });
-                    // Add a row with a plus sign at the bottom
-                    let plusRow = table.insertRow();
-                    let plusCell = plusRow.insertCell(0);
-                    plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
-                });
+            // fetch('/relationlist')
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         table = document.getElementById("RelationData");
+            //         table.innerHTML = "";
+            //         data.forEach(element => {
+            //             table.insertRow(0).insertCell(0).innerHTML = element;
+            //         });
+            //         // Add a row with a plus sign at the bottom
+            //         let plusRow = table.insertRow();
+            //         let plusCell = plusRow.insertCell(0);
+            //         plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
+            //     });
+
+            fetch("/relationList")
+            .then(res => res.json())
+            .then(data => {
+                container = document.getElementById("RelationTable");
+                container.innerHTML = data.html;
+            })
         }
 
         /**
@@ -619,19 +632,20 @@
                         classname: elem.value
                     })
                 })
-                    .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        } else {
-                            getClassList();
-                        }
-                    })
-                    .then(data => {
-                        console.log(data);
-                        snackbar(data.error);
-                    })
-                    .catch(error => console.log(error))
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = "";
+                        return resp.json();
+                    } else {
+                        getClassList();
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    snackbar(data.error);
+                })
+                .catch(error => console.log(error))
             }
         }
 
@@ -837,15 +851,16 @@
                 })
             }
             )
-                .then(res => {
-                    if (res.ok) {
-                        getClassList();
-                    } else {
-                        return res.json();
-                    }
-                })
-                .then(data => snackbar(data.error))
-                .catch(reason => target.value = classname);
+            .then(res => {
+                if (res.ok) {
+                    getClassList();
+                    getRelationList();
+                } else {
+                    return res.json();
+                }
+            })
+            .then(data => snackbar(data.error))
+            .catch(reason => target.value = classname);
 
             displayClassDetails("");
         }

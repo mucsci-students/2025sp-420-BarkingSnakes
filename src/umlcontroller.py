@@ -651,7 +651,8 @@ class UmlController:
 
     def _get_model_as_data_object(self) -> UmlProjectData:
         classes = list(map(self._get_class_data_object, self.model.classes.values()))
-        return UmlProjectData(classes, None)
+        relationsips = list(map(self._get_relation_data_object, self.model.relationships))
+        return UmlProjectData(classes, relationsips)
 
     def _get_class_data_object(self, umlclass:UmlClass) -> UmlClassData:
         def get_field_data_object(umlfield:UmlField) -> UmlFieldData:
@@ -672,7 +673,8 @@ class UmlController:
         return UmlClassData(umlclass.class_name, fields, methods)
     
     def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
-        return UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+        r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+        return r
 
     def run(self):
         """Runs the application."""
