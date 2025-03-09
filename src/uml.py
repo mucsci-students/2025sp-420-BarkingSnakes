@@ -51,7 +51,7 @@ if __name__ == "__main__":
     gui_type:GUI_TYPE = ns.cli or GUI_TYPE.GUI
 
     # PROD
-    main(GUI_TYPE.GUI)
+    main(gui_type)
 
     # Dev testing only
     # main(GUI_TYPE.CLI)
