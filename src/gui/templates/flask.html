@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+<link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+
 <head>
     <title>BS-UML</title>
 </head>
@@ -43,6 +45,16 @@
             <p id="modalPrompt">Enter Class Name:</p>
             <input type="text" id="classNameInput" />
             <button id="modalSubmitButton" onclick="addClass()">Submit</button>
+        </div>
+    </div>
+
+    <!-- The Modal for creating a new project -->
+    <div id="newModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNewModal">&times;</span>
+            <p>Enter File Name:</p>
+            <input type="text" id="fileNameInput" />
+            <button onclick="newProject()">Create Project</button>
         </div>
     </div>
 
@@ -238,7 +250,7 @@
             border: none;
         }
 
-        #cntrAddClass > input {
+        #cntrAddClass>input {
             background: #333;
             width: 100%
         }
@@ -252,51 +264,93 @@
         /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
         /* The snackbar - position it at the bottom and in the middle of the screen */
         #snackbar {
-        visibility: hidden; /* Hidden by default. Visible on click */
-        min-width: 250px; /* Set a default minimum width */
-        margin-left: -125px; /* Divide value of min-width by 2 */
-        background-color: #f70909; /* Black background color */
-        color: #fff; /* White text color */
-        text-align: center; /* Centered text */
-        border-radius: 2px; /* Rounded borders */
-        padding: 16px; /* Padding */
-        position: fixed; /* Sit on top of the screen */
-        z-index: 1; /* Add a z-index if needed */
-        left: 50%; /* Center the snackbar */
-        bottom: 30px; /* 30px from the bottom */
+            visibility: hidden;
+            /* Hidden by default. Visible on click */
+            min-width: 250px;
+            /* Set a default minimum width */
+            margin-left: -125px;
+            /* Divide value of min-width by 2 */
+            background-color: #f70909;
+            /* Black background color */
+            color: #fff;
+            /* White text color */
+            text-align: center;
+            /* Centered text */
+            border-radius: 2px;
+            /* Rounded borders */
+            padding: 16px;
+            /* Padding */
+            position: fixed;
+            /* Sit on top of the screen */
+            z-index: 1;
+            /* Add a z-index if needed */
+            left: 50%;
+            /* Center the snackbar */
+            bottom: 30px;
+            /* 30px from the bottom */
         }
 
         /* Show the snackbar when clicking on a button (class added with JavaScript) */
         #snackbar.show {
-        visibility: visible; /* Show the snackbar */
-        /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+            visibility: visible;
+            /* Show the snackbar */
+            /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
         However, delay the fade out process for 2.5 seconds */
-        -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
-        animation: fadein 0.5s, fadeout 0.5s 4.5s;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
+            animation: fadein 0.5s, fadeout 0.5s 4.5s;
         }
 
         /* Animations to fade the snackbar in and out */
         @-webkit-keyframes fadein {
-        from {bottom: 0; opacity: 0;}
-        to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
 
         @keyframes fadein {
-        from {bottom: 0; opacity: 0;}
-        to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
 
         @-webkit-keyframes fadeout {
-        from {bottom: 30px; opacity: 1;}
-        to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
 
         @keyframes fadeout {
-        from {bottom: 30px; opacity: 1;}
-        to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
+
         /* END SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
-        
+
         input.class-name {
             background: #333;
             color: white;
@@ -306,20 +360,19 @@
             text-align: center;
             border: none;
         }
-
     </style>
 
     <script>
         function snackbar(text) {
-        // Get the snackbar DIV
-        var x = document.getElementById("snackbar");
+            // Get the snackbar DIV
+            var x = document.getElementById("snackbar");
 
-        // Add the "show" class to DIV
-        x.className = "show";
-        x.innerText = text;
+            // Add the "show" class to DIV
+            x.className = "show";
+            x.innerText = text;
 
-        // After 3 seconds, remove the show class from DIV
-        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 5000);
+            // After 3 seconds, remove the show class from DIV
+            setTimeout(function () { x.className = x.className.replace("show", ""); }, 5000);
         }
 
 
@@ -378,13 +431,13 @@
         //             plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
         //         });
         // }
-        
+
         function getClassList() {
             fetch('/classlist')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("ClassTable").innerHTML = data.html
-            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("ClassTable").innerHTML = data.html
+                })
         }
 
         function toggleVisibility(ids) {
@@ -401,7 +454,7 @@
                 } else {
                     elem.style.display = "none";
                     if (input) {
-                    input.blur();
+                        input.blur();
                     }
                 }
             })
@@ -445,6 +498,7 @@
         // Get the modal
         var modal = document.getElementById("myModal");
         var saveModal = document.getElementById("saveModal");
+        var newModal = document.getElementById("newModal");
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
@@ -477,10 +531,25 @@
         }
 
         /**
+         * Shows the new project modal.
+         */
+        function showNewModal() {
+            document.getElementById("fileNameInput").value = ".json"
+            newModal.style.display = "block";
+        }
+
+        /**
+         * Closes the new project modal.
+         */
+        function closeNewModal() {
+            newModal.style.display = "none";
+        }
+
+        /**
          * Shows the save modal.
          */
         function showSaveModal() {
-            document.getElementById("fileNameInput").value = fileName
+            document.getElementById("fileNameInput")
             saveModal.style.display = "block";
         }
 
@@ -541,7 +610,7 @@
             if (event.key === "Enter") {
 
                 fetch("/addClass", {
-                    method:"POST", 
+                    method: "POST",
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -550,19 +619,19 @@
                         classname: elem.value
                     })
                 })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = "";
-                        return resp.json();
-                    } else {
-                        getClassList();
-                    }
-                })
-                .then(data => {
-                    console.log(data);
-                    snackbar(data.error);
-                })
-                .catch(error => console.log(error))
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        } else {
+                            getClassList();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                        snackbar(data.error);
+                    })
+                    .catch(error => console.log(error))
             }
         }
 
@@ -598,7 +667,7 @@
             fieldsList.appendChild(div);
             modal.style.display = "none";
         }
-        
+
         function onkeydown_enter(event, func) {
             if (event.key === "Enter") {
                 func();
@@ -608,7 +677,7 @@
         function addField2(event, elem) {
             if (event.key === "Enter") {
                 fetch("/addField", {
-                    method:"POST", 
+                    method: "POST",
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
@@ -617,16 +686,16 @@
                         fieldname: elem.value
                     })
                 })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = "";
-                        return resp.json();
-                    }
-                    console.log(resp);
-                    displayClassDetails("");
-                })
-                .then(data => snackbar(data.error))
-                .catch(error => console.log(error))
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        }
+                        console.log(resp);
+                        displayClassDetails("");
+                    })
+                    .then(data => snackbar(data.error))
+                    .catch(error => console.log(error))
             }
         }
 
@@ -644,6 +713,35 @@
             div.innerHTML = `+ ${methodName}`;
             methodsList.appendChild(div);
             modal.style.display = "none";
+        }
+
+        function newProject(elem) {
+            elem = document.getElementById("fileNameInput")
+            fetch("/newproject", {
+                method: "Post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: elem.value
+                })
+            }).then(resp => {
+                return resp.json().then(data => {
+                    if (resp.status >= 400) {
+                        elem.value = "";
+                    } else {
+                        closeNewModal();
+                    }
+                    return data;
+                });
+            })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error))
         }
 
         /**
@@ -706,7 +804,7 @@
             }
 
             fetch("/renameField", {
-                method:"POST", 
+                method: "POST",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -715,10 +813,11 @@
                     classname: className,
                     oldname: fieldName,
                     newname: newname
-                })}
+                })
+            }
             )
-            .then(res => console.log(res))
-            .catch(reason => target.value = fieldName);
+                .then(res => console.log(res))
+                .catch(reason => target.value = fieldName);
         }
 
         function renameClass(target, classname) {
@@ -728,24 +827,25 @@
             }
 
             fetch("/renameClass", {
-                method:"POST", 
+                method: "POST",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     newname: newname
-                })}
+                })
+            }
             )
-            .then(res => {
-                if (res.ok) {
-                    getClassList();
-                } else {
-                    return res.json();
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(reason => target.value = classname);
+                .then(res => {
+                    if (res.ok) {
+                        getClassList();
+                    } else {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(reason => target.value = classname);
 
             displayClassDetails("");
         }
@@ -760,9 +860,9 @@
         function confirmQuit() {
             var result = confirm("Are you sure you want to quit?")
             if (result) {
-                fetch("/quit", {method:"POST"})
-                .then(res => window.close())
-                .catch(error => console.log(error))
+                fetch("/quit", { method: "POST" })
+                    .then(res => window.close())
+                    .catch(error => console.log(error))
 
             }
         }

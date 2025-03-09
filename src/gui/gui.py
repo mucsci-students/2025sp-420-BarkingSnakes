@@ -174,4 +174,19 @@ def save():
     file = request.args.get("filename")
     app.controller.save_project(file)
     return Response(status=200)
+
+@app.post("/newproject")
+@handle_umlexception
+def newproject():
+    """"""
+    try:
+        data = request.get_json()
+        file = data.get("filename")
+        
+        app.controller.execute_command(["new", file])
+        return jsonify({"message": "Project created successfully"}), 200
+    
+    except errors.UMLException as uml_e:
+        app.view.handle_umlexception(uml_e)
+        return jsonify({"error": "Failed to create project"}), 400
     
