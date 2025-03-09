@@ -246,7 +246,8 @@ class UmlProject:
             'classes': [c.to_dict() for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
-                'destination': r.destination_class.class_name
+                'destination': r.destination_class.class_name,
+                'type': "Composition"
             } for r in self.relationships]
         }
 
