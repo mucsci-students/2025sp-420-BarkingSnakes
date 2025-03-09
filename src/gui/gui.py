@@ -240,3 +240,15 @@ def relation_list():
     data = {'html': render_template("_umlrelationshiplist.html", model = project_dto, relation_types = relation_types)}
 
     return jsonify(data)
+
+@app.post("/addRelation")
+@handle_umlexception
+def add_relation():
+    data = request.get_json()
+    source = data.get('source')
+    destination = data.get('destination')
+    relation_type = data.get('type')
+    if source and destination and relation_type:
+        app.controller.execute_command(["relation", "add", source, destination, relation_type])
+        return Response(status=202)
+    return Response(status=406)

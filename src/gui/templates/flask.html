@@ -767,16 +767,16 @@
                     arity: arity
                 })
             })
-            .then(res => {
-                if (res.status >= 400) {
-                    target.value = "";
-                    return res.json();
-                } else {
-                    displayClassDetails("");
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(err => console.log(err))
+                .then(res => {
+                    if (res.status >= 400) {
+                        target.value = "";
+                        return res.json();
+                    } else {
+                        displayClassDetails("");
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(err => console.log(err))
         }
 
         function newProject(elem) {
@@ -815,7 +815,7 @@
         function saveProject() {
             fileName = document.getElementById("fileNameInput").value;
 
-            fetch(`/saveproject`, 
+            fetch(`/saveproject`,
                 {
                     method: "POST",
                     headers: {
@@ -827,15 +827,15 @@
                     })
                 }
             )
-            .then(res => {
-                if (res >= 400) {
-                    return res.json();
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(error => {
-                console.error("Error saving project:", error);
-            });
+                .then(res => {
+                    if (res >= 400) {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => {
+                    console.error("Error saving project:", error);
+                });
 
             console.log("Save project as:", fileName);
             closeSaveModal();
@@ -987,6 +987,40 @@
 
             }
         }
+
+        function addRelation() {
+        let sourceClass = document.getElementById("newRelationSource").value;
+        let targetClass = document.getElementById("newRelationDestination").value;
+        let relationType = document.getElementById("newRelationType").value;
+
+        fetch("/addRelation", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                source: sourceClass,
+                destination: targetClass,
+                type: relationType
+            })
+        })
+        .then(resp => {
+            if (resp.status >= 400) {
+                return resp.json();
+            } else {
+                getRelationList();
+            }
+        })
+        .then(data => {
+            if (data && data.error) {
+                snackbar(data.error);
+            }
+        })
+        .catch(error => console.log(error));
+
+        toggleVisibility(['cntrAddRelationship']);
+    }
     </script>
 </body>
 
