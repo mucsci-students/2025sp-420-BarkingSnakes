@@ -251,6 +251,7 @@
         }
 
         .input-mode-view {
+            margin-top: 10px;
             background: transparent;
             color: white;
             border: none;
@@ -266,6 +267,19 @@
             display: none;
             margin-top: 10px;
         }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
 
         /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
         /* The snackbar - position it at the bottom and in the middle of the screen */
@@ -647,6 +661,32 @@
                     })
                     .catch(error => console.log(error))
             }
+        }
+
+        function deleteClass(classname) {
+            fetch("/deleteclass", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: classname
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getClassList();
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    snackbar(data.error);
+                })
+                .catch(error => console.log(error))
         }
 
         /**

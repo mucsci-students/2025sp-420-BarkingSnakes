@@ -411,7 +411,7 @@ class UmlController:
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.prompt_user(prompt):
+        if not self.view.prompt_user(prompt):
             return
         # Remove from project
         self.model.delete_umlclass(self.view.active_class)
@@ -859,7 +859,7 @@ class UmlApplication:
         elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
                 \nWARNING: this will erase the old file's contents. "
-            if not self.prompt_user(prompt):
+            if not self.view.prompt_user(prompt):
                 return
         #set current filepath to ignore save prompts on later saves of file
         self._current_filepath = self.project._save_path
@@ -908,7 +908,7 @@ class UmlApplication:
             if user_response.lower() != 'n':
                 self.inform_invalid_command(user_response)
                 #is a recursive loop until user inputs Y or N
-                return self.prompt_user(prompt)
+                return self.view.prompt_user(prompt)
             return False
         return True
     
@@ -1078,7 +1078,7 @@ class UmlApplication:
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
             prompt = "that class does not yet exist. Do you want to create it? Y/N. "
-            if self.prompt_user(prompt):
+            if self.view.prompt_user(prompt):
                 #check name is valid
                 errors.valid_name(name)
                 self.active_class = name
@@ -1108,7 +1108,7 @@ class UmlApplication:
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.prompt_user(prompt):
+        if not self.view.prompt_user(prompt):
             return
         # Remove from project
         self.project.delete_umlclass(self.active_class)
