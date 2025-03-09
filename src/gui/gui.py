@@ -3,7 +3,6 @@ from flask import Flask, request, Response, render_template, jsonify
 
 from umlcontroller import UmlController
 from views.umlview_gui import UmlGuiView
-from umlrelationship import RelationshipType
 import errors
 import sys
 
@@ -50,7 +49,6 @@ def quit():
     return Response(status=200)
 
 @app.get("/classlist")
-@handle_umlexception
 def class_list():
     # app.view.set_command("class list")
     # while app.view.get_renderable() is None:
@@ -64,12 +62,16 @@ def class_list():
     # return jsonify(data), 200
     
     # return jsonify(app.controller.model.classes)
-    classes = [k for k in app.controller.model.classes.keys()]
-    # project_dto = app.view.get_umlproject()
-    # classes = [c.name for c in project_dto.classes]
-    data = {'html': render_template("/_umlclasslist.html", classes = classes)}
+    try:
+        classes = [k for k in app.controller.model.classes.keys()]
+        # project_dto = app.view.get_umlproject()
+        # classes = [c.name for c in project_dto.classes]
+        data = {'html': render_template("/_umlclasslist.html", classes = classes)}
 
-    return jsonify(data)
+        return jsonify(data)
+    except errors.UMLException as uml_e:
+        app.view.handle_umlexception(uml_e)
+        return app.view.response
 
 @app.route("/classdetails")
 def classdetails():
@@ -106,12 +108,15 @@ def add_umlclass():
     return Response(status=406)
 
 @app.post("/renameClass")
-@handle_umlexception
 def rename_umlclass():
-    data = request.get_json()
-    newname = data.get('newname')
-    app.controller.execute_command(["rename", newname])
-    return Response(status=202)
+    try:
+        data = request.get_json()
+        oldname = data.get('oldname')
+        newname = data.get('newname')
+        app.controller.execute_command(["rename", newname])
+    except errors.UMLException as uml_e:
+        app.view.handle_umlexception(uml_e)
+        return app.view.response
 
 @app.post("/addField")
 @handle_umlexception
@@ -130,11 +135,11 @@ def rename_field():
     class_name = data.get('classname')
     oldname = data.get('oldname')
     newname = data.get('newname')
-
-    app.controller.execute_command(["class", class_name])
-    app.controller.execute_command(["field", "rename", oldname, newname])
-
-    return Response(status=200)
+    if class_name and oldname and newname:
+        app.controller.execute_command(["class", class_name])
+        app.controller.execute_command(["field", "rename", oldname, newname])
+        return Response(status=202)
+    return Response(status=406)
 
 @app.post("/setActiveClass")
 def set_active_class():
@@ -185,11 +190,3 @@ def newproject():
         app.view.handle_umlexception(uml_e)
         return jsonify({"error": "Failed to create project"}), 400
     
-@app.route("/relationList")
-def relationship_list():
-    project_dto = app.controller._get_model_as_data_object()
-    relation_types = RelationshipType._member_names_[1:]
-    print(project_dto.relationships)
-    data = {'html': render_template("/_umlrelationshiplist.html", model = project_dto, relation_types = relation_types)}
-
-    return jsonify(data)

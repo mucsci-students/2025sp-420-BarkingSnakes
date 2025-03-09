@@ -29,7 +29,7 @@
 
     <div id="RelationTable" style="display: none;">
         <!-- <table id="RelationData"> -->
-            <!-- Relation data will be inserted here -->
+        <!-- Relation data will be inserted here -->
         <!-- </table> -->
     </div>
 
@@ -486,11 +486,11 @@
             //     });
 
             fetch("/relationList")
-            .then(res => res.json())
-            .then(data => {
-                container = document.getElementById("RelationTable");
-                container.innerHTML = data.html;
-            })
+                .then(res => res.json())
+                .then(data => {
+                    container = document.getElementById("RelationTable");
+                    container.innerHTML = data.html;
+                })
         }
 
         /**
@@ -632,20 +632,20 @@
                         classname: elem.value
                     })
                 })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = "";
-                        return resp.json();
-                    } else {
-                        getClassList();
-                        getRelationList();
-                    }
-                })
-                .then(data => {
-                    console.log(data);
-                    snackbar(data.error);
-                })
-                .catch(error => console.log(error))
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        } else {
+                            getClassList();
+                            getRelationList();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                        snackbar(data.error);
+                    })
+                    .catch(error => console.log(error))
             }
         }
 
@@ -811,14 +811,15 @@
             document.getElementById("loadError").style.display = "none";
         }
 
-        function renameField(target, className, fieldName) {
+        function renameField(target,elem ,className, fieldName) {
             newname = target.value;
+            oldname = elem.value
             if (fieldName === newname) {
                 return;
             }
 
             fetch("/renameField", {
-                method: "POST",
+                method: "post",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -830,8 +831,16 @@
                 })
             }
             )
-                .then(res => console.log(res))
-                .catch(reason => target.value = fieldName);
+            .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = fieldName;
+                            return resp.json();
+                        }
+                        console.log(resp);
+                        displayClassDetails("");
+                    })
+                    .then(data => snackbar(data.error))
+                    .catch(error => console.log(error))
         }
 
         function renameClass(target, classname) {
@@ -851,16 +860,16 @@
                 })
             }
             )
-            .then(res => {
-                if (res.ok) {
-                    getClassList();
-                    getRelationList();
-                } else {
-                    return res.json();
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(reason => target.value = classname);
+                .then(res => {
+                    if (res.ok) {
+                        getClassList();
+                        getRelationList();
+                    } else {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(reason => target.value = classname);
 
             displayClassDetails("");
         }
