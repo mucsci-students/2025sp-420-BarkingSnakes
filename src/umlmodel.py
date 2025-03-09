@@ -141,7 +141,7 @@ class UmlProject:
         """
         # "not not" serves to resolve to true if file was a .json
         return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
-         
+
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
 
@@ -161,7 +161,14 @@ class UmlProject:
 
         uml_relationships:list[dict] = data.get("relationships")
 
-        self.relationships = set([self._parse_uml_relationship(r) for r in uml_relationships])
+        self.relationships = set()
+
+        for relation_data in uml_relationships:
+            new_relation = self._parse_uml_relationship(relation_data)
+            for existing_relation in self.relationships:
+                if new_relation.source_class == existing_relation.source_class and new_relation.destination_class == existing_relation.destination_class:
+                    raise errors.DuplicateRelationshipException()
+            self.relationships.add(new_relation)
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
         """Converts the provided dict to a UmlClass.
@@ -237,7 +244,7 @@ class UmlProject:
         Exceptions:
             None
         """
-        return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+        return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
     @property
     def _save_object(self) -> dict:
@@ -247,7 +254,7 @@ class UmlProject:
             'relationships': [{
                 'source': r.source_class.class_name,
                 'destination': r.destination_class.class_name,
-                'type': "Composition"
+                'type': r.relationship_type.name.capitalize()
             } for r in self.relationships]
         }
 
@@ -445,8 +452,23 @@ class UmlProject:
     def delete_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
         uml_class = self.get_umlclass(classname)
         uml_class.remove_parameter(methodname, arity, parameter)
+    
+    def _relationship_type_from_str(self, relationship_str:str)->RelationshipType:
+        """Retrieves the relevant value from the RelationshipType Enum based on a string of that value's name or number.
+        
+        Params:
+            relationship_str: the name of the RelationshipType (case-insensitive) or the number of the type as a string.
+        
+        """
+        try:
+            return RelationshipType[relationship_str.upper()] # Try to retrieve the type from a name like "DEFAULT"
+        except KeyError:
+            try:
+                return RelationshipType(int(relationship_str)) # Try to retrieve the type from a number string like "0"
+            except ValueError:
+                raise errors.InvalidRelationshipTypeException()
 
-    def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
+    def get_relationship(self, source:str, destination:str)->UmlRelationship:
         """Get the relationship between source and destination.
 
         Params:
@@ -463,27 +485,26 @@ class UmlProject:
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
             raise errors.NoSuchObjectException()
         
-        search_target = UmlRelationship(relationship_type, self.get_umlclass(source), self.get_umlclass(destination))
+        search_target = UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(source), self.get_umlclass(destination))
         for relation in self.relationships:
-            if search_target == relation:
+            if search_target.source_class == relation.source_class and search_target.destination_class == relation.destination_class:
                 return relation
 
         raise errors.NoSuchObjectException()
 
     # @_regex_pattern(2)
     @_has_changed
-    def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+    def add_relationship(self, source:str, destination:str, relationship_type:str):
         """Creates a relationship of a specified type between the specified classes.
         Params:
             source: name of UML class for source end of the relationship
             destination: name of UML class for destination end of the relationship
-            relationship_type: the type of relationship, default value: DEFAULT
         Returns:
             Nothing
         Exceptions:
             UMLException:NullObjectError for nonexistent objects
             UMLException:NoSuchObjectError for nonexistent UMLClass names.
-            UMLException:ExistingRelationshipError if the relationship already exists
+            UMLException:ExistingRelationshipError if a relationship  with the specified source and destination already exists
         """
         if source is None or destination is None:
             raise errors.UMLException("NullObjectError")
@@ -493,20 +514,20 @@ class UmlProject:
         
         source_class = self.get_umlclass(source)
         destination_class = self.get_umlclass(destination)
-        addend = UmlRelationship(relationship_type, source_class, destination_class)
+        addend = UmlRelationship(self._relationship_type_from_str(relationship_type), source_class, destination_class)
 
-        if addend in self.relationships:
-            raise errors.DuplicateRelationshipException()
+        for relation in self.relationships:
+            if addend.destination_class == relation.destination_class and addend.source_class == relation.source_class:
+                raise errors.DuplicateRelationshipException()
         
         self.relationships.add(addend)
         
     @_has_changed
-    def delete_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+    def delete_relationship(self, source:str, destination:str):
         """Deletes a relationship of a specified type between the specified classes.
         Params:
             source: name of UML class for source end of the relationship
             destination: name of UML class for destination end of the relationship
-            relationship_type: the type of relationship, default value: DEFAULT
         Returns:
             Nothing
         Exceptions:
@@ -520,7 +541,7 @@ class UmlProject:
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
             raise errors.UMLException("NoSuchObjectError")
         
-        match = self.get_relationship(source, destination, relationship_type)
+        match = self.get_relationship(source, destination)
 
         if not match:
             raise errors.UMLException("NoSuchObjectError") # Note, an error is raised by get_relationship. This should never occur.
