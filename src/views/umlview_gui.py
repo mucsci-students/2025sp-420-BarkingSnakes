@@ -10,6 +10,7 @@ class UmlGuiView(View):
     """"""
     command:str = ""
     renderable:Renderable = None
+    _active_class:str = None
 
     def render(self, renderable:Renderable):
         self.renderable = renderable
@@ -30,4 +31,12 @@ class UmlGuiView(View):
     def get_renderable(self) -> Renderable:
         """"""
         return self.renderable
+    
+    def set_active_class(self, name:str):
+        """"""
+        self._active_class = name
 
+    @property
+    def active_class(self) -> str:
+        """"""
+        return self._active_class
