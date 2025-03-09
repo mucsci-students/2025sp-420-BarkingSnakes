@@ -10,7 +10,20 @@
                     "name": "mph"
                 }
             ],
-            "methods": []
+            "methods": [
+                {
+                    "name": "drive",
+                    "params": []
+                },
+                {
+                    "name": "drive",
+                    "params": [
+                        {
+                            "name": "destination"
+                        }
+                    ]
+                }
+            ]
         },
         {
             "name": "truck",
