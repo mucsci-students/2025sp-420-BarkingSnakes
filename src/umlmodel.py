@@ -524,6 +524,15 @@ class UmlProject:
         self.relationships.add(addend)
         
     @_has_changed
+    def set_type_relationship(self, source:str, destination:str, new_relationship_type:str):
+        """"""
+        existing_relation = self.get_relationship(source, destination)
+        if existing_relation.relationship_type != self._relationship_type_from_str(new_relationship_type):
+            self.relationships.remove(existing_relation)
+            existing_relation.relationship_type = self._relationship_type_from_str(new_relationship_type)
+            self.relationships.add(existing_relation)
+    
+    @_has_changed
     def delete_relationship(self, source:str, destination:str):
         """Deletes a relationship of a specified type between the specified classes.
         Params:
