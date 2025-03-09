@@ -296,6 +296,16 @@
         to {bottom: 0; opacity: 0;}
         }
         /* END SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
+        
+        input.class-name {
+            background: #333;
+            color: white;
+            width: 100%;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            border: none;
+        }
 
     </style>
 
@@ -588,6 +598,12 @@
             fieldsList.appendChild(div);
             modal.style.display = "none";
         }
+        
+        function onkeydown_enter(event, func) {
+            if (event.key === "Enter") {
+                func();
+            }
+        }
 
         function addField2(event, elem) {
             if (event.key === "Enter") {
@@ -703,6 +719,35 @@
             )
             .then(res => console.log(res))
             .catch(reason => target.value = fieldName);
+        }
+
+        function renameClass(target, classname) {
+            newname = target.value;
+            if (classname === newname) {
+                return;
+            }
+
+            fetch("/renameClass", {
+                method:"POST", 
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    newname: newname
+                })}
+            )
+            .then(res => {
+                if (res.ok) {
+                    getClassList();
+                } else {
+                    return res.json();
+                }
+            })
+            .then(data => snackbar(data.error))
+            .catch(reason => target.value = classname);
+
+            displayClassDetails("");
         }
 
         function inputBlur(event, func) {

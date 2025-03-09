@@ -1,6 +1,6 @@
 <button class="close" onclick="closeClassDetails()">&times;</button>
 <div style="text-align: center;">
-    <h2 style="margin-left: 30px;">{{ dto.name }}</h2> <!-- Centered class name -->
+    <input class="class-name" value="{{ dto.name }}" onkeydown="onkeydown_enter(event, () => this.blur())" onblur="renameClass(event.target, '{{ dto.name }}')"/>
     <hr>
     <h3>Fields</h3>
 </div>
