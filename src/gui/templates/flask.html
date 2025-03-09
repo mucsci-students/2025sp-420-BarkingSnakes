@@ -10,6 +10,7 @@
         <button onclick="showNewModal()">New</button>
         <button onclick="showSaveModal()">Save</button>
         <button onclick="showLoadModal()">Load</button>
+        <button onclick="confirmQuit()">Quit</button>
     </div>
 
     <div id="content">
@@ -664,7 +665,8 @@
                 .then(data => {
                     // Handle the loaded project content
                     closeLoadModal();
-                    document.getElementById("fileNameInput").value = fileName
+                    document.getElementById("fileNameInput").value = fileName;
+                    getClassList();
                 })
                 .catch(error => {
                     // loadError.style.display = "block";
@@ -710,7 +712,15 @@
             }
         }
 
+        function confirmQuit() {
+            var result = confirm("Are you sure you want to quit?")
+            if (result) {
+                fetch("/quit", {method:"POST"})
+                .then(res => window.close())
+                .catch(error => console.log(error))
 
+            }
+        }
     </script>
 </body>
 

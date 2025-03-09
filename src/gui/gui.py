@@ -4,7 +4,7 @@ from flask import Flask, request, Response, render_template, jsonify
 from umlcontroller import UmlController
 from views.umlview_gui import UmlGuiView
 import errors
-import os
+import sys
 
 class UmlFlaskApp(Flask):
     """"""
@@ -40,11 +40,12 @@ def handle_umlexception(func):
 def index():
     return render_template("flask.html")
 
-@app.route("/quit", methods=["POST"])
+@app.post("/quit")
+@handle_umlexception
 def quit():
-    app.controller.running = False
     app.view.set_command("quit")
-
+    # sys.exit(0)
+    # app.controller.execute_command(["quit"])
     return Response(status=200)
 
 @app.get("/classlist")
