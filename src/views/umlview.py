@@ -4,39 +4,33 @@
 # Description: View (MVC) for UML program.
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, NamedTuple
 
 
-class UmlFieldData:
-    def __init__(self, name:str):
-        self.name = name
+class UmlFieldData(NamedTuple):
+    name:str
 
-class UmlMethodParamData:
-    def __init__(self, name):
-        self.name = name
+class UmlMethodParamData(NamedTuple):
+    name:str
 
-class UmlMethodData:
-    def __init__(self, name:str, params:list[UmlMethodParamData]):
-        self.name = name
-        self.params = params
+class UmlMethodData(NamedTuple):
+    name:str
+    params:list[UmlMethodParamData]
+        
 
-class UmlClassData:
-    def __init__(self, name:str, fields:list[UmlFieldData], methods:list[UmlMethodData]):
-        """"""
-        self.name = name
-        self.fields = fields
-        self.methods = methods
+class UmlClassData(NamedTuple):
+    name:str
+    fields:list[UmlFieldData]
+    methods:list[UmlMethodData]
 
-class UmlRelationshipData:
-    def __init__(self, type:str, source:str, destination:str):
-        self.type = type
-        self.source = source
-        self.destination = destination
+class UmlRelationshipData(NamedTuple):
+    relation_type:str
+    source:str
+    destination:str
 
-class UmlProjectData:
-    def __init__(self, classes: list[UmlClassData], relationships:list[UmlRelationshipData]):
-        self.classes = classes
-        self.relationships = relationships
+class UmlProjectData(NamedTuple):
+    classes:list[UmlClassData]
+    relationships:list[UmlRelationshipData]
 
 
 @dataclass
