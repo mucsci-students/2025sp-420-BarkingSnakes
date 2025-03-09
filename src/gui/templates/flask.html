@@ -729,6 +729,31 @@
             modal.style.display = "none";
         }
 
+        function addMethod2(event, elem) {
+            if (event.key === "Enter") {
+                fetch("/addMethod", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        methodname: elem.value
+                    })
+                })
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        }
+                        console.log(resp);
+                        displayClassDetails("");
+                    })
+                    .then(data => snackbar(data.error))
+                    .catch(error => console.log(error))
+            }
+        }
+
         function newProject(elem) {
             elem = document.getElementById("fileNameInput")
             fetch("/newproject", {
@@ -811,7 +836,7 @@
             document.getElementById("loadError").style.display = "none";
         }
 
-        function renameField(target,elem ,className, fieldName) {
+        function renameField(target, elem, className, fieldName) {
             newname = target.value;
             oldname = elem.value
             if (fieldName === newname) {
@@ -831,16 +856,46 @@
                 })
             }
             )
-            .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = fieldName;
-                            return resp.json();
-                        }
-                        console.log(resp);
-                        displayClassDetails("");
-                    })
-                    .then(data => snackbar(data.error))
-                    .catch(error => console.log(error))
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = fieldName;
+                        return resp.json();
+                    }
+                    console.log(resp);
+                    displayClassDetails("");
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => console.log(error))
+        }
+
+        function renameMethod(target, elem, className, methodName) {
+            const newname = target.value;
+            if (methodName === newname) {
+                return;
+            }
+
+            fetch("/renameMethod", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: className,
+                    oldname: methodName,
+                    newname: newname
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = methodName;
+                        return resp.json();
+                    }
+                    console.log(resp);
+                    displayClassDetails("");
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => console.log(error));
         }
 
         function renameClass(target, classname) {

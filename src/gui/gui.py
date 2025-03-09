@@ -141,6 +141,31 @@ def rename_field():
         return Response(status=202)
     return Response(status=406)
 
+@app.post("/addMethod")
+@handle_umlexception
+def add_method():
+    data = request.get_json()
+    fieldname = data.get('methodname')
+    if fieldname:
+        app.controller.execute_command(["method", "add", fieldname])
+        return Response(status=202)
+    return Response(status=406)
+
+@app.post("/renameMethod")
+@handle_umlexception
+def rename_method():
+    data = request.get_json()
+    class_name = data.get('classname')
+    oldname = data.get('oldname')
+    newname = data.get('newname')
+    if class_name and oldname and newname:
+        app.controller.execute_command(["class", class_name])
+        app.controller.execute_command(["method", "rename", oldname, newname, "arity", "0"])
+        return Response(status=202)
+    return Response(status=406)
+
+
+
 @app.post("/setActiveClass")
 def set_active_class():
     try:

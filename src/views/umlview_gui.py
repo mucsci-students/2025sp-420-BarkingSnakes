@@ -13,6 +13,7 @@ class UmlGuiView(UmlView):
     renderable:Renderable = None
     _active_class:str = None
     _umlexception:errors.UMLException = None
+    _active_method:tuple[str, int] = None
 
     def render(self, renderable:Renderable):
         self.renderable = renderable
@@ -137,3 +138,12 @@ class UmlGuiView(UmlView):
     def render_umlrelationship(self, umlrelationship:UmlRelationshipData):
         """"""
         self.relation_dto = umlrelationship
+
+    def set_active_method(self, method:tuple[str, int]):
+        """"""
+        self._active_method = method
+
+    @property
+    def active_method(self) -> tuple[str, int]:
+        """"""
+        return self._active_method

@@ -59,7 +59,7 @@ class UmlView(Protocol):
     def active_class(self) -> str:
         """"""
 
-    def set_active_method(self, name:str, arity:int):
+    def set_active_method(self, method:tuple[str, int]):
         """"""
 
     @property

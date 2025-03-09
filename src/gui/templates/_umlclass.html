@@ -23,10 +23,14 @@
 </div>
 <div id="methodsList" style="text-align: left;">
     {% for m in dto.methods %}
-    <div>+ {{ m.name }} ({{ m.params|join(', ', attribute='name')}})</div>
+    {% include "_umlmethod.html" %}
     {% endfor %}
 </div>
 <br>
 <div style="text-align: center;">
-    <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
-</div>
+    <button style="display: block;" id="btnAddMethod" class="add-button" onclick="toggleVisibility(['btnAddMethod', 'cntrAddMethod'])"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
+    <div id="cntrAddMethod" style="width: 100%; display:none;">
+        <label for="newMethodName">Method Name:</label>
+        <input class="input-mode-view" id="newMethodName" type="text" onkeydown="addMethod2(event, this)" onblur="inputBlur(event, () => toggleVisibility(['btnAddMethod', 'cntrAddMethod']))">
+    </div>
+

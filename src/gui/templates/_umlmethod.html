@@ -1,0 +1,8 @@
+<div>- <input 
+    class="input-mode-view" 
+    type="text" 
+    id="umlmethod-{{ m.name }}" 
+    value="{{ m.name }}"
+    onblur="renameMethod(event.target,this ,'{{ dto.name }}', '{{ m.name }}')"
+    onkeydown= "onkeydown_enter(event, () => this.blur())"/>
+</div>
