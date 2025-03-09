@@ -1,0 +1,54 @@
+{
+    "classes": [
+        {
+            "name": "car",
+            "fields": [
+                {
+                    "name": "topspeed"
+                },
+                {
+                    "name": "mph"
+                },
+                {
+                    "name": "kph"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "drive",
+                    "params": []
+                },
+                {
+                    "name": "drive",
+                    "params": [
+                        {
+                            "name": "destination"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "truck",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "bus",
+            "fields": [],
+            "methods": []
+        }
+    ],
+    "relationships": [
+        {
+            "source": "car",
+            "destination": "bus",
+            "type": "Aggregation"
+        },
+        {
+            "source": "car",
+            "destination": "truck",
+            "type": "Aggregation"
+        }
+    ]
+}

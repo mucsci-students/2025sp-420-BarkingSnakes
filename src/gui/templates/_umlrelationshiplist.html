@@ -14,7 +14,8 @@
                 {% with selected_type = r.relation_type %}
                 {% include "_umlrelationtypes_dropdown.html" %}
                 {% endwith %}
-                {% endwith %}</td>
+                {% endwith %}
+            </td>
             <td>
                 {% with tagId='relationSourceRow-' + loop.index|string() %}
                 {% with selected_type = r.source %}
@@ -28,6 +29,11 @@
                 {% include "_umlclasses_dropdown.html" %}
                 {% endwith %}
                 {% endwith %}
+            </td>
+            <td>
+                <a href="#" onclick="deleteRelation('{{ r.source }}', '{{ r.destination }}')" title="Delete Relation">
+                    <i class="fa-solid fa-delete-left delete-icon"></i>
+                </a>
             </td>
         </tr>
         {% endfor %}

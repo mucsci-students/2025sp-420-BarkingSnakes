@@ -252,3 +252,14 @@ def add_relation():
         app.controller.execute_command(["relation", "add", source, destination, relation_type])
         return Response(status=202)
     return Response(status=406)
+
+@app.post("/deleteRelation")
+@handle_umlexception
+def delete_relation():
+    data = request.get_json()
+    source = data.get('source')
+    destination = data.get('destination')
+    if source and destination:
+        app.controller.execute_command(["relation", "delete", source, destination])
+        return Response(status=202)
+    return Response(status=406)
