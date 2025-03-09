@@ -205,8 +205,9 @@ class UmlController:
         # validate beforehand to keep current project open
         self.model._validate_filepath(filepath)
         # create new project, this may need moved to model
-        self.model = UmlProject()
-        self.model.load(filepath)
+        loaded_model = UmlProject()
+        loaded_model.load(filepath)
+        self.model = loaded_model
         # save file path to keep from prompting when user saves,
         # since overriding should not be concern if same as loaded file
 
