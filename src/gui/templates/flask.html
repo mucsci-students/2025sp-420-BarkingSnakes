@@ -243,7 +243,6 @@
             display: none;
             margin-top: 10px;
         }
-
     </style>
 
     <script>
@@ -506,7 +505,12 @@
          */
         function saveProject() {
             let fileName = document.getElementById("fileNameInput").value;
-            // Add logic to save the project with the given file name
+
+            fetch(`/saveproject?filename=${fileName}`, { method: "POST" })
+                .catch(error => {
+                    console.error("Error saving project:", error);
+                });
+
             console.log("Save project as:", fileName);
             closeSaveModal();
         }
