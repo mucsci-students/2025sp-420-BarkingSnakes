@@ -3,5 +3,6 @@
     type="text" 
     id="umlfield-{{ f.name }}" 
     value="{{ f.name }}"
-    onblur="renameField(event.target, '{{ dto.name }}', '{{ f.name }}')">
+    onblur="renameField(event.target,this ,'{{ dto.name }}', '{{ f.name }}')"
+    onkeydown= "onkeydown_enter(event, () => this.blur())"/>
 </div>
