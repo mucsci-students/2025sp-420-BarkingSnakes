@@ -1,3 +1,4 @@
+import os
 import threading
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -23,12 +24,20 @@ def main(gui_type:GUI_TYPE):
         view.init()
         controller.run()
     elif gui_type == GUI_TYPE.GUI:
+
         view = UmlGuiView()
         controller = UmlController(view)
-        controller_thread = threading.Thread(target=controller.run)
-        controller_thread.start()
         app.set_controller(controller)
-        app.run(debug=True)
+
+        # controller_thread = threading.Thread(target=controller.run)
+        flask_thread = threading.Thread(target=app.run, kwargs={'debug':True, 'use_reloader': False})
+        flask_thread.daemon = True
+
+        # controller_thread.start()
+        flask_thread.start()
+
+        controller.run()
+        
         
         
 
