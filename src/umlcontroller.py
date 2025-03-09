@@ -1,5 +1,5 @@
 # Filename: uml.py
-# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
 # Date: 2025-02-24
 # Description: Controller for the UML
 from __future__ import annotations
@@ -7,24 +7,132 @@ from __future__ import annotations
 import os
 import functools
 import logging
+from typing import Protocol, Callable
+import re
 
 import umlmodel
 from umlmodel import UmlProject
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
+from umlrelationship import UmlRelationship, RelationshipType
+from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 # from views.umlview import UmlView
 from views.umlview import *
 import errors
 class UmlApplication:()
 
-class UmlController:
+class UmlCommand(Protocol):
+    id:str
+    regex:str
+    usage:str
 
+class UmlCommands:
+    class UmlClass:
+        class AddClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+        
+        class RenameClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+        
+        class DeleteClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+        
+        class ListClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+        
+        class ContextClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+
+        class HelpClass(UmlCommand):
+            id = r""
+            regex = r""
+            usage = ""
+
+        Commands:list[UmlCommand] = [AddClass, RenameClass, DeleteClass, ListClass, ContextClass, HelpClass]
+        Usage:str = HelpClass.usage + "\n".join([c.usage for c in Commands[:-1]])
+
+    class UmlMethodCommands:
+        class AddMethod(UmlCommand):
+            id = r"method add"
+            regex = r"^method add ([A-Za-z][A-Za-z0-9_]*)(\s[A-Za-z][A-Za-z0-9_]*)*$"
+            usage = "method add <name> [<param list>]"
+        
+        class RenameMethod(UmlCommand):
+            id = r"method rename"
+            regex = r"^method rename (([A-Za-z][A-Za-z0-9_]*)\s){2}arity [0-9]+$"
+            usage = "method rename <name> <new name> arity <arity>"
+        
+        class DeleteMethod(UmlCommand):
+            id = r"method delete"
+            regex = r"^method delete (([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
+            usage = "method delete <name> arity <arity>"
+        
+        class ListMethod(UmlCommand):
+            id = r"method list"
+            regex = r"^method list$"
+            usage = "method list"
+
+        class ContextMethod(UmlCommand):
+            id = r"method (?!(add|rename|delete|help|list))"
+            regex = r"^method (?!(add|rename|delete|help|list)\s)(([A-Za-z][A-Za-z0-9_]*)\s)arity [0-9]+$"
+            usage = "method <name> arity <arity>"
+        
+        class HelpMethod(UmlCommand):
+            id = r"method"
+            regex = r"^method (help){0,1}$"
+            usage = "method commands:\n"
+        
+        Commands:list[UmlCommand] = [AddMethod, RenameMethod, DeleteMethod, ListMethod, ContextMethod, HelpMethod]
+        Usage:str = HelpMethod.usage + "\n".join([c.usage for c in Commands[:-1]])
+
+    class UmlParameterCommands:
+        class AddParameter(UmlCommand):
+            id = r"parameter add"
+            regex = r"^parameter add ([A-Za-z][A-Za-z0-9_]*)$"
+            usage = "parameter add <name>"
+        
+        class RenameParameter(UmlCommand):
+            id = r"parameter rename"
+            regex = r"^parameter rename ([A-Za-z][A-Za-z0-9_]*) ([A-Za-z][A-Za-z0-9_]*)$"
+            usage = "parameter rename <name> <new name>"
+        
+        class DeleteParameter(UmlCommand):
+            id = r"parameter delete"
+            regex = r"^parameter delete ([A-Za-z][A-Za-z0-9_]*)$"
+            usage = "parameter delete <name>"
+
+        class ListParameter(UmlCommand):
+            id = r"parameter list"
+            regex = r"^parameter list$"
+            usage = "parameter list"
+        
+        class HelpParameter(UmlCommand):
+            id = r"parameter"
+            regex = r"^parameter (help){0,1}$"
+            usage = "parameter commands:\n"
+        
+        Commands:list[UmlCommand] = [AddParameter, RenameParameter, DeleteParameter, ListParameter, HelpParameter]
+        Usage:str = HelpParameter.usage + "\n".join([c.usage for c in Commands[:-1]])
+
+class UmlController:
+    HELP_PATH = os.path.join(umlmodel.__DIR__, 'help.txt')
+    
     def __init__(self, view:UmlView):
         self.view = view
 
         self.model:UmlProject = UmlProject()
         self.active_class:str = None
-
+        # self.model.load("test_json.json")
         self.is_running = False
     
     def _handle_unsaved_changes(func):
@@ -33,7 +141,7 @@ class UmlController:
         def wrapper(self:UmlController, *args, **kwargs):
             if self.model and self.model.has_unsaved_changes:
                 # TODO - Finish logic, shouldn't check for y or no here, only true/false returned from prompt_user()
-                prompt = "The current project has unsaved changes. Would you like to save before continuing?"
+                prompt = "The current project has unsaved changes. Would you like to save before continuing?Y/N. "
 
                 if self.view.prompt_user(prompt):
                     # if not self.model._save_path:
@@ -72,6 +180,14 @@ class UmlController:
         def wrapper(self:UmlController, *args, **kwargs):
             if self.view.active_class is None:
                 raise errors.NoActiveClassException()
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    def _requires_active_method(func):
+        @functools.wraps(func)
+        def wrapper(self:UmlController, *args, **kwargs):
+            if self.view.active_method is None:
+                raise errors.NoActiveMethodException()
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -115,7 +231,7 @@ class UmlController:
             
             if self.model._save_path != filename and self.model._filepath_exists(filename):
                 prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                    \nWARNING: this will erase the old file's contents"
+                    \nWARNING: this will erase the old file's contents. "
                 if not self.view.prompt_user(prompt):
                     return
                 
@@ -146,6 +262,9 @@ class UmlController:
         self.model.new()
 
     def execute_command(self, args:list):
+        #if no arguments then don't try to do anything
+        if len(args) == 0:
+            return
         error_text = f"Invalid command: {' '.join(args)}.  Use command 'help' for a list of valid commands."
         cmd = args[0].lower()
 
@@ -190,13 +309,18 @@ class UmlController:
         #commands that function either in or out of a class context
         elif cmd == 'relation':
             # TODO - Align this to prompt for additional input.
-            # TODO - Implement type into cli command
-            if len(args) < 3:
+            if len(args) < 2:
                 self.view.handle_exceptions(error_text)
-            elif args[1].lower() in ['add', 'rename', 'list']:
+            elif args[1].lower() in ['add', 'set', 'delete', 'list']:
                 self.command_relation(args)
             else:
                 self.view.handle_exceptions(error_text)
+
+        elif cmd == 'method':
+            self.command_method(args)
+
+        elif cmd == 'parameter':
+            self.command_parameter(args)
 
         elif cmd == 'help':
             self.command_show_help()
@@ -229,10 +353,21 @@ class UmlController:
             if len(args) == 1:
                 args.append(self.view.get_user_input("Enter project file name: "))
             self.load_project(args[1])
+        else:
+            self.view.handle_exceptions(error_text)
+
+    def command_show_help(self):
+        """Command: help  
+        Displays help menu.
+        """
+        with open(self.HELP_PATH, "r") as f:
+            print(f.read())
 
     def command_back(self) -> None:
         """Brings terminal out of class context"""
-        if self.view.active_class:
+        if self.view.active_method:
+            self.view.set_active_method(None)
+        elif self.view.active_class:
             self.view.set_active_class(None)
 
     @_requires_active_project
@@ -250,7 +385,7 @@ class UmlController:
         temp_class = self.model.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N."
+            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
             if self.view.prompt_user(prompt):
                 self.command_add_umlclass(name)
         else:
@@ -277,7 +412,7 @@ class UmlController:
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.prompt_user(prompt):
+        if not self.view.prompt_user(prompt):
             return
         # Remove from project
         self.model.delete_umlclass(self.view.active_class)
@@ -321,7 +456,8 @@ class UmlController:
             NoActiveClassException
         """
         #active class is currently a string so get the reference from project
-        self.model.get_umlclass(self.view.active_class).add_field(name)
+        # self.model.get_umlclass(self.view.active_class).add_field(name)
+        self.model.add_field(self.view.active_class, name)
 
     @_requires_active_class
     def command_delete_field(self, name:str) -> None:
@@ -330,7 +466,8 @@ class UmlController:
         Exceptions:
             NoActiveClassException
         """
-        self.model.get_umlclass(self.view.active_class).remove_field(name)
+        # self.model.get_umlclass(self.view.active_class).remove_field(name)
+        self.model.delete_field(self.view.active_class, name)
 
     @_requires_active_class
     def command_rename_field(self, oldname:str, newname:str) -> None:
@@ -344,7 +481,8 @@ class UmlController:
             InvalidNameError
             DuplicateNameError
         """
-        self.model.get_umlclass(self.view.active_class).rename_field(oldname, newname)
+        # self.model.get_umlclass(self.view.active_class).rename_field(oldname, newname)
+        self.model.rename_field(self.view.active_class, oldname, newname)
     
     @_requires_active_project
     def command_list(self) -> None:
@@ -375,27 +513,42 @@ class UmlController:
         """        
         cmd = args[1].lower()
 
-        # TODO - These commands should take in a type parameter for the relation type
         if cmd == 'add':
-            self.command_add_relation(args[2], args[3])
+            self.command_add_relation(args[2], args[3], args[4])
+        elif cmd == 'set':
+            self.command_set_relation(args[2], args[3], args[4])
         elif cmd == 'delete':
             self.command_delete_relation(args[2], args[3])
         elif cmd == 'list':
             self.command_list_relation()
 
     @_requires_active_project
-    def command_add_relation(self, source:str, destination:str) -> None:
+    def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Adds a relationship.
         
         Params:
             source: a class name owning the source
             destination: a class name owning the destination
+            relationship_type: the name of the relationship type
         Exceptions:
             NoActiveProjectException
             NoSuchObjectError
         """
-        # TODO - Add parameter for relationship type
-        self.model.add_relationship(source, destination)
+        self.model.add_relationship(source, destination, relationship_type)
+
+    @_requires_active_project
+    def command_set_relation(self, source:str, destination:str, relationship_type:str) -> None:
+        """Sets the type of an existing relationship.
+        
+        Params:
+            source: a class name owning the source
+            destination: a class name owning the destination
+            relationship_type: the type of relationship that the relationship should be given
+        Exceptions:
+            NoActiveProjectException
+            NoSuchObjectError
+        """
+        self.model.set_type_relationship(source, destination, relationship_type)
 
     @_requires_active_project
     def command_delete_relation(self, source:str, destination:str) -> None:
@@ -408,16 +561,114 @@ class UmlController:
             NoActiveProjectException
             NoSuchObjectError
         """
-        # TODO - Add parameter for relationship type
         self.model.delete_relationship(source, destination)
 
     @_requires_active_project
     def command_list_relation(self):
         """Display all relationships."""
+        for relation in self.model.relationships:
+            data = self._get_relation_data_object(relation)
+            self.view.render_umlrelationship(data)
+
+    @_requires_active_class
+    def command_method(self, args:list[str]):
+        """"""
+        command = " ".join(args)
+        umlcommand:UmlCommand = None
+        command_match = False
+        for c in UmlCommands.UmlMethodCommands.Commands:
+            command_match = re.search(c.regex, command) or re.search(c.id, command)
+            if command_match:
+                umlcommand = c
+                break
         
+        if umlcommand == UmlCommands.UmlMethodCommands.HelpMethod:
+            self.view.handle_exceptions(UmlCommands.UmlMethodCommands.Usage)
+            return
+
+        if umlcommand and re.search(umlcommand.regex, command) is None:
+            self.view.handle_exceptions(f"Failed: Invalid command.\nUsage: {umlcommand.usage}")
+            return
+        
+        active_class = self.view.active_class
+
+        if umlcommand == UmlCommands.UmlMethodCommands.AddMethod:
+            methodname = args[2]
+            methodparams = args[3:]
+            self.model.add_method(active_class, methodname, methodparams)
+        elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
+            oldname = args[2]
+            newname = args[3]
+            arity = int(args[5])
+            self.model.rename_method(active_class, oldname, newname, arity)
+            self.set_active_method(newname, arity)
+        elif umlcommand == UmlCommands.UmlMethodCommands.DeleteMethod:
+            methodname = args[2]
+            arity = int(args[4])
+            self.model.delete_method(active_class, methodname, arity)
+        elif umlcommand == UmlCommands.UmlMethodCommands.ListMethod:
+            umlclass = self.model.get_umlclass(active_class)
+            data_object = self._get_class_data_object(umlclass)
+            for m in data_object.methods:
+                self.view.render_umlmethod(m)
+        elif umlcommand == UmlCommands.UmlMethodCommands.ContextMethod:
+            methodname = args[1]
+            arity = int(args[3])
+            self.set_active_method(methodname, arity)
+        elif umlcommand == UmlCommands.UmlMethodCommands.HelpMethod:
+            self.view.handle_exceptions(UmlCommands.UmlMethodCommands.Usage)
+
+    @_requires_active_class 
+    def set_active_method(self, name:str, arity:int):
+        self.model.get_umlmethod(self.view.active_class, name, arity)
+        self.view.set_active_method((name, arity,))
+        
+
+    @_requires_active_method
+    def command_parameter(self, args:list[str]):
+        command = " ".join(args)
+        umlcommand:UmlCommand = None
+        command_match = False
+
+        for c in UmlCommands.UmlParameterCommands.Commands:
+            command_match = re.search(c.regex, command) or re.search(c.id, command)
+            if command_match:
+                umlcommand = c
+                break
+        
+        if umlcommand == UmlCommands.UmlParameterCommands.HelpParameter:
+            self.view.handle_exceptions(UmlCommands.UmlParameterCommands.Usage)
+            return
+
+        if umlcommand and re.search(umlcommand.regex, command) is None:
+            self.view.handle_exceptions(f"Failed: Invalid command.\nUsage: {umlcommand.usage}")
+            return
+        
+        active_class = self.view.active_class
+        active_method, arity = self.view.active_method
+
+        if umlcommand == UmlCommands.UmlParameterCommands.AddParameter:
+            self.model.add_parameter(active_class, active_method, arity, args[2])
+            self.set_active_method(active_method, arity + 1)
+        elif umlcommand == UmlCommands.UmlParameterCommands.RenameParameter:
+            self.model.rename_parameter(active_class, active_method, arity, args[2], args[3])
+        elif umlcommand == UmlCommands.UmlParameterCommands.DeleteParameter:
+            self.model.delete_parameter(active_class, active_method, arity, args[2])
+            self.set_active_method(active_method, arity - 1)
+        elif umlcommand == UmlCommands.UmlParameterCommands.ListParameter:
+            umlclass = self.model.get_umlclass(active_class)
+            data_object = self._get_class_data_object(umlclass)
+            for m in data_object.methods:
+                if m.name == active_method and len(m.params) == arity:
+                    self.view.render_umlmethod(m)
+                    break
+        elif umlcommand == UmlCommands.UmlParameterCommands.HelpParameter:
+            self.view.handle_exceptions(UmlCommands.UmlParameterCommands.Usage)
+
     def _get_model_as_data_object(self) -> UmlProjectData:
         classes = list(map(self._get_class_data_object, self.model.classes.values()))
-        return UmlProjectData(classes, None)
+        relationsips = list(map(self._get_relation_data_object, self.model.relationships))
+        return UmlProjectData(classes, relationsips)
 
     def _get_class_data_object(self, umlclass:UmlClass) -> UmlClassData:
         def get_field_data_object(umlfield:UmlField) -> UmlFieldData:
@@ -426,7 +677,6 @@ class UmlController:
         def get_method_data_object(umlmethod:UmlMethod) -> UmlMethodData:
             def get_param_data_model(umlparam:UmlParameter) -> UmlMethodParamData:
                 return UmlMethodParamData(umlparam.name)
-            print(umlmethod.params)
             params = list(map(get_param_data_model, umlmethod.params.values()))
             return UmlMethodData(umlmethod.name, params)
         
@@ -438,6 +688,10 @@ class UmlController:
 
         return UmlClassData(umlclass.class_name, fields, methods)
     
+    def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
+        r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
+        return r
+
     def run(self):
         """Runs the application."""
         self.is_running = True
@@ -465,6 +719,14 @@ class UmlController:
                 self.view.handle_exceptions("Failed: This relationship already exists in this project.")
             except errors.NoSuchObjectException as nso_e:
                 self.view.handle_exceptions(f"Failed: That {nso_e.object_type} does not exist.")
+            except errors.InvalidNameException:
+                self.view.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
+            except errors.MethodOverloadNotExistsException:
+                self.view.handle_exceptions("Failed: The arity level does not exist for this method.")
+            except errors.NoActiveMethodException:
+                self.view.handle_exceptions("Failed: Not in a method context. Use: method help")
+            except errors.DuplicateMethodOverloadException:
+                self.view.handle_exceptions("Failed: An arity level already exists for the target method.")
             except errors.UMLException as uml_e:
                 self.view.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
             except EOFError:
@@ -612,7 +874,7 @@ class UmlApplication:
             pass
         elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                \nWARNING: this will erase the old file's contents"
+                \nWARNING: this will erase the old file's contents. "
             if not self.prompt_user(prompt):
                 return
         #set current filepath to ignore save prompts on later saves of file
@@ -831,7 +1093,7 @@ class UmlApplication:
         temp_class = self.project.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N."
+            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
             if self.prompt_user(prompt):
                 #check name is valid
                 errors.valid_name(name)
@@ -956,15 +1218,15 @@ class UmlApplication:
         cmd = args[1].lower()
 
         if cmd == 'add':
-            return lambda: self.command_add_relation(args[2], args[3])
+            return lambda: self.command_add_relation(args[2], args[3], args[4])
         elif cmd == 'delete':
-            return lambda: self.command_delete_relation(args[2], args[3])
+            return lambda: self.command_delete_relation(args[2], args[3], args[4])
         elif cmd == 'list':
             return self.command_list_relation
         return lambda: self.inform_invalid_command(" ".join(args))
 
     @_requires_active_project
-    def command_add_relation(self, source:str, destination:str) -> None:
+    def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Adds a relationship.
         
         Params:
@@ -974,10 +1236,10 @@ class UmlApplication:
             NoActiveProjectException
             NoSuchObjectError
         """
-        self.project.add_relationship(source, destination)
+        self.project.add_relationship(source, destination, relationship_type)
 
     @_requires_active_project
-    def command_delete_relation(self, source:str, destination:str) -> None:
+    def command_delete_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Delete a relationship.
         
         Params:
@@ -987,7 +1249,7 @@ class UmlApplication:
             NoActiveProjectException
             NoSuchObjectError
         """
-        self.project.delete_relationship(source, destination)
+        self.project.delete_relationship(source, destination, relationship_type)
 
     @_requires_active_project
     def command_list_relation(self):
@@ -997,6 +1259,22 @@ class UmlApplication:
         else:
             print("Displaying", len(self.project.relationships), "relationships.")
             print("\n".join(map(str, self.project.relationships)))
+
+    def run_gui(self):
+        """"""
+        if self.is_running:
+            return
+        self.isrunning = True
+        while self.self.is_running:
+            print("[Controller]Start asking for commands")
+            command = self.view.get_user_command()
+            print(command)
+            if command == ["class", "list"]:
+                self.view.render(UmlClassListRenderable(self.model.classes))
+            elif command[0] == "class":
+                self.view.render(UmlClassRenderable(self.model.classes[0]))
+            self.view.set_command("")
+        print("[Controller]Quitting.")
 
     def run(self):
         """

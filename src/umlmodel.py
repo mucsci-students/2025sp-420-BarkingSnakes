@@ -10,6 +10,8 @@ import os
 import json
 import re
 import logging
+import jsonschema
+import jsonschema.exceptions
 
 import errors
 from umlclass import UmlClass, UmlField
@@ -18,6 +20,8 @@ from umlrelationship import UmlRelationship, RelationshipType
 
 #project directory path
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
+SCHEMA_PATH = os.path.join(__DIR__, "templates", "umlschema.json")
+REGEX_DEFAULT = "^[A-Za-z][A-Za-z0-9_]*$"
 
 class UmlProject:
     """"""
@@ -27,12 +31,26 @@ class UmlProject:
         self._save_path = None
         self.has_unsaved_changes = False
 
+    def _regex_pattern(count:int = 1, pattern:str = REGEX_DEFAULT):
+        print(count, pattern)
+        def regex_decorator(func):
+            @functools.wraps(func)
+            def wrapper(self:UmlProject, *args, **kwargs):
+                print(count, args)
+                for i in range(count):
+                    if re.search(pattern, args[i]) is None:
+                        raise errors.InvalidNameException()
+                return func(self, *args, **kwargs)
+            return wrapper
+        return regex_decorator
+    
     def _has_changed(func):
         @functools.wraps(func)
         def wrapper(self:UmlProject, *args, **kwargs):
             self.has_unsaved_changes = True
             return func(self, *args, **kwargs)
         return wrapper
+
 
     def new(self) -> None:
         """Create a new project from template.
@@ -48,6 +66,7 @@ class UmlProject:
         #open needs moved to save section in model
         with open(template_path, "r") as t:
             data = json.load(t)
+            self.validate_json_schema(data)
             self._parse_uml_data(data)
     
     def load(self, filepath:str) -> int:
@@ -64,12 +83,13 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        #use when saving later
-        self._save_path = filepath
         
         with open(filepath, "r") as f:
             data =  json.load(f)
+            self.validate_json_schema(data)
             self._parse_uml_data(data)
+        #use when saving later
+        self._save_path = filepath
 
         return 0
     
@@ -86,12 +106,27 @@ class UmlProject:
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
+        
+        self.validate_json_schema(self._save_object)
         #will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
         self.has_unsaved_changes = False
         return 0
     
+    def validate_json_schema(self, data:dict) -> bool:
+        with open(SCHEMA_PATH, "r") as f:
+            schema = json.load(f)
+        
+        try:
+            jsonschema.validate(instance=data, schema=schema)
+        except jsonschema.exceptions.ValidationError:
+            raise errors.InvalidJsonSchemaException()
+        except jsonschema.exceptions.SchemaError:
+            raise errors.InvalidJsonSchemaException()
+
+        return True
+
     def is_json_file(self, filepath:str) -> bool:
         """Validates if the filepath is .json\n
         error handling is left to callee
@@ -106,8 +141,7 @@ class UmlProject:
         """
         # "not not" serves to resolve to true if file was a .json
         return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
-        
-    
+
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
 
@@ -127,7 +161,14 @@ class UmlProject:
 
         uml_relationships:list[dict] = data.get("relationships")
 
-        self.relationships = set([self._parse_uml_relationship(r) for r in uml_relationships])
+        self.relationships = set()
+
+        for relation_data in uml_relationships:
+            new_relation = self._parse_uml_relationship(relation_data)
+            for existing_relation in self.relationships:
+                if new_relation.source_class == existing_relation.source_class and new_relation.destination_class == existing_relation.destination_class:
+                    raise errors.DuplicateRelationshipException()
+            self.relationships.add(new_relation)
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
         """Converts the provided dict to a UmlClass.
@@ -203,7 +244,7 @@ class UmlProject:
         Exceptions:
             None
         """
-        return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+        return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
     @property
     def _save_object(self) -> dict:
@@ -212,7 +253,8 @@ class UmlProject:
             'classes': [c.to_dict() for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
-                'destination': r.destination_class.class_name
+                'destination': r.destination_class.class_name,
+                'type': r.relationship_type.name.capitalize()
             } for r in self.relationships]
         }
 
@@ -258,6 +300,7 @@ class UmlProject:
         """
         return uml_class_name in self.classes.keys()
     
+    # @_regex_pattern()
     @_has_changed
     def add_umlclass(self, name:str):
         """Adds an UmlClass to the project.
@@ -271,9 +314,12 @@ class UmlProject:
         """
         if name in self.classes:
             raise errors.DuplicateClassException()
+        
+        errors.valid_name(name)
+
         self.classes[name] = UmlClass(name, {}, {})
     
-    @_has_changed
+    # @_has_changed
     def get_umlclass(self, name:str) -> UmlClass:
         """Gets the UmlClass instance for the provided class name.
 
@@ -286,6 +332,7 @@ class UmlProject:
         """
         return self.classes.get(name)
 
+    # @_regex_pattern(2)
     @_has_changed
     def rename_umlclass(self,oldName:str, newName:str) -> int:
         """Renames a UmlClass with the first name to the second.
@@ -304,12 +351,14 @@ class UmlProject:
         elif newName in self.classes.keys():
             raise errors.DuplicateClassException()
         # rename the class using its own rename method
-        #uml_class = self.classes.pop(oldName)
-        #uml_class.rename_umlclass(newName)
-        #self.add_umlclass(uml_class)
+        uml_class = self.classes.get(oldName)
+        uml_class.rename_umlclass(newName)
+        uml_class = self.classes.pop(oldName)
+        # self.add_umlclass(uml_class)
         
         # rename using the class itself not the copy
-        self.classes[oldName].rename_umlclass(newName)
+        self.classes[newName] = uml_class
+
         return 0
     
     @_has_changed
@@ -332,6 +381,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    # @_regex_pattern(count=2)
     @_has_changed
     def add_field(self, classname:str, field_name:str)  -> int:
         """Adds an field to the UmlClass with classname.
@@ -345,9 +395,81 @@ class UmlProject:
             None
         """
         if self.classes.get(classname):
-            self.classes.get(classname).add_field(UmlField(field_name))
+            self.classes.get(classname).add_field(field_name)
+            # self.classes.get(classname).add_field(UmlField(field_name))
 
-    def get_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT)->UmlRelationship:
+    @_has_changed
+    def rename_field(self, classname:str, oldname:str, newname:str) -> int:
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.rename_field(oldname, newname)
+
+    @_has_changed
+    def delete_field(self, classname:str, fieldname:str) -> int:
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.remove_field(fieldname)
+
+    def get_umlmethod(self, classname:str, methodname:str, arity:int) -> UmlMethod:
+        uml_class = self.get_umlclass(classname)
+
+        if uml_class and uml_class.class_methods.get(methodname) is None:
+            raise errors.MethodNameNotExistsException()
+        
+        uml_method = uml_class.class_methods.get(methodname).get(arity)
+
+        if uml_method is None:
+            raise errors.MethodOverloadNotExistsException()
+        
+        return uml_method
+        
+
+    @_has_changed
+    def add_method(self, classname:str, methodname:str, params:list[str]):
+        if self.classes.get(classname):
+            self.classes.get(classname).add_method(methodname, params)
+
+    @_has_changed
+    def rename_method(self, classname:str, oldname:str, newname:str, arity:int):
+        if self.classes.get(classname):
+            self.classes.get(classname).rename_method(oldname, arity, newname)
+
+    @_has_changed
+    def delete_method(self, classname:str, methodname:str, arity:int):
+        if self.classes.get(classname):
+            self.classes.get(classname).remove_method(methodname, arity)
+
+    @_has_changed
+    def add_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.add_parameter(methodname, arity, parameter)
+
+    @_has_changed
+    def rename_parameter(self, classname:str, methodname:str, arity:int, oldname:str, newname:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.rename_parameter(methodname, arity, oldname, newname)
+
+    @_has_changed
+    def delete_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
+        uml_class = self.get_umlclass(classname)
+        uml_class.remove_parameter(methodname, arity, parameter)
+    
+    def _relationship_type_from_str(self, relationship_str:str)->RelationshipType:
+        """Retrieves the relevant value from the RelationshipType Enum based on a string of that value's name or number.
+        
+        Params:
+            relationship_str: the name of the RelationshipType (case-insensitive) or the number of the type as a string.
+        
+        """
+        try:
+            return RelationshipType[relationship_str.upper()] # Try to retrieve the type from a name like "DEFAULT"
+        except KeyError:
+            try:
+                return RelationshipType(int(relationship_str)) # Try to retrieve the type from a number string like "0"
+            except ValueError:
+                raise errors.InvalidRelationshipTypeException()
+
+    def get_relationship(self, source:str, destination:str)->UmlRelationship:
         """Get the relationship between source and destination.
 
         Params:
@@ -364,26 +486,26 @@ class UmlProject:
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
             raise errors.NoSuchObjectException()
         
-        search_target = UmlRelationship(relationship_type, self.get_umlclass(source), self.get_umlclass(destination))
+        search_target = UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(source), self.get_umlclass(destination))
         for relation in self.relationships:
-            if search_target == relation:
+            if search_target.source_class == relation.source_class and search_target.destination_class == relation.destination_class:
                 return relation
 
         raise errors.NoSuchObjectException()
 
+    # @_regex_pattern(2)
     @_has_changed
-    def add_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+    def add_relationship(self, source:str, destination:str, relationship_type:str):
         """Creates a relationship of a specified type between the specified classes.
         Params:
             source: name of UML class for source end of the relationship
             destination: name of UML class for destination end of the relationship
-            relationship_type: the type of relationship, default value: DEFAULT
         Returns:
             Nothing
         Exceptions:
             UMLException:NullObjectError for nonexistent objects
             UMLException:NoSuchObjectError for nonexistent UMLClass names.
-            UMLException:ExistingRelationshipError if the relationship already exists
+            UMLException:ExistingRelationshipError if a relationship  with the specified source and destination already exists
         """
         if source is None or destination is None:
             raise errors.UMLException("NullObjectError")
@@ -393,20 +515,29 @@ class UmlProject:
         
         source_class = self.get_umlclass(source)
         destination_class = self.get_umlclass(destination)
-        addend = UmlRelationship(relationship_type, source_class, destination_class)
+        addend = UmlRelationship(self._relationship_type_from_str(relationship_type), source_class, destination_class)
 
-        if addend in self.relationships:
-            raise errors.DuplicateRelationshipException()
+        for relation in self.relationships:
+            if addend.destination_class == relation.destination_class and addend.source_class == relation.source_class:
+                raise errors.DuplicateRelationshipException()
         
         self.relationships.add(addend)
         
     @_has_changed
-    def delete_relationship(self, source:str, destination:str, relationship_type:RelationshipType = RelationshipType.DEFAULT):
+    def set_type_relationship(self, source:str, destination:str, new_relationship_type:str):
+        """"""
+        existing_relation = self.get_relationship(source, destination)
+        if existing_relation.relationship_type != self._relationship_type_from_str(new_relationship_type):
+            self.relationships.remove(existing_relation)
+            existing_relation.relationship_type = self._relationship_type_from_str(new_relationship_type)
+            self.relationships.add(existing_relation)
+    
+    @_has_changed
+    def delete_relationship(self, source:str, destination:str):
         """Deletes a relationship of a specified type between the specified classes.
         Params:
             source: name of UML class for source end of the relationship
             destination: name of UML class for destination end of the relationship
-            relationship_type: the type of relationship, default value: DEFAULT
         Returns:
             Nothing
         Exceptions:
@@ -420,7 +551,7 @@ class UmlProject:
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
             raise errors.UMLException("NoSuchObjectError")
         
-        match = self.get_relationship(source, destination, relationship_type)
+        match = self.get_relationship(source, destination)
 
         if not match:
             raise errors.UMLException("NoSuchObjectError") # Note, an error is raised by get_relationship. This should never occur.

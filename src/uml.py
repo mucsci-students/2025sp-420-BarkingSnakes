@@ -1,13 +1,16 @@
-
+import os
+import webbrowser
+import threading
 from dataclasses import dataclass
 from enum import Enum, auto
 import argparse
+
 
 from umlcontroller import UmlController
 from views.umlview import UmlView
 from views.umlview_cli import UmlCliView
 from views.umlview_gui import UmlGuiView
-
+from gui.gui import app
 
 class GUI_TYPE(Enum):
     CLI = auto()
@@ -18,14 +21,27 @@ def main(gui_type:GUI_TYPE):
     view:UmlView = None
     if gui_type == GUI_TYPE.CLI:
         view = UmlCliView()
+        controller = UmlController(view)
+        view.init()
+        controller.run()
     elif gui_type == GUI_TYPE.GUI:
+
         view = UmlGuiView()
-    
-    controller = UmlController(view)
-    view.init()
+        controller = UmlController(view)
+        app.set_controller(controller)
+        # app.set_view(view)
+
+        flask_thread = threading.Thread(target=app.run, kwargs={'debug':True, 'use_reloader': False})
+        flask_thread.daemon = True
+        flask_thread.start()
+
+        print(webbrowser.open("http://127.0.0.1:5000"))
+        controller.run()
 
 
-    controller.run()
+        
+        
+        
 
 
 if __name__ == "__main__":
@@ -37,7 +53,7 @@ if __name__ == "__main__":
     gui_type:GUI_TYPE = ns.cli or GUI_TYPE.GUI
 
     # PROD
-    # main(gui_type)
+    main(gui_type)
 
     # Dev testing only
-    main(GUI_TYPE.CLI)
+    # main(GUI_TYPE.CLI)

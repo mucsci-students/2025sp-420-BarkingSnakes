@@ -8,14 +8,18 @@ class UmlCliView(UmlView):
 
     def __init__(self):
         """"""
-        self.active_class = None
+        self._active_class = None
+        self._active_method = None
 
     @property
     def prompt(self) -> str:
         """The CLI prompt to display each loop."""
+        prompt = f"{self.DEFAULT_PROMPT}"
         if self.active_class:
-            return f"{self.DEFAULT_PROMPT}[{self.active_class}]> "
-        return f"{self.DEFAULT_PROMPT}> "
+            prompt += f"[{self.active_class}]"
+        if self.active_method:
+            prompt += f"[+{self.active_method[0]}({self.active_method[1]})]"
+        return f"{prompt}> "
 
     def prompt_user(self, prompt:str) -> bool:
         """
@@ -61,10 +65,21 @@ class UmlCliView(UmlView):
 
     def set_active_class(self, name:str):
         """"""
-        self.active_class = name
+        self._active_class = name
 
-    def set_active_method(self, name:str):
+    @property
+    def active_class(self) -> str:
         """"""
+        return self._active_class
+
+    def set_active_method(self, method:tuple[str, int]):
+        """"""
+        self._active_method = method
+
+    @property
+    def active_method(self) -> tuple[str, int]:
+        """"""
+        return self._active_method
 
     def render_umlproject(self, project:UmlProjectData):
         """"""
@@ -99,7 +114,7 @@ class UmlCliView(UmlView):
 
     def render_umlrelationship(self, umlrelationship:UmlRelationshipData):
         """"""
-        print(f"<{umlrelationship.type}>{umlrelationship.source} --> {umlrelationship.destination}")
+        print(f"<{umlrelationship.relation_type}> {umlrelationship.source} --> {umlrelationship.destination}")
 
     def quit(self):
         """"""
