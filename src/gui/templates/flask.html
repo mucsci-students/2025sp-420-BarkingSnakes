@@ -232,6 +232,12 @@
             cursor: pointer;
         }
 
+        .input-mode-view {
+            background: transparent;
+            color: white;
+            border: none;
+        }
+
         #loadError {
             color: red;
             display: none;
@@ -325,29 +331,30 @@
             fetch(`/classdetails?name=${className}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log(data)
                     let detailsDiv = document.getElementById("ClassDetails");
-                    detailsDiv.innerHTML = `
-            <button class="close" onclick="closeClassDetails()">&times;</button>
-            <div style="text-align: center;">
-                <h2 style="margin-left: 30px;">${className}</h2> <!-- Centered class name -->
-                <hr>
-                <h4>Fields</h4>
-            </div>
-            <div id="fieldsList" style="text-align: left;">
-                ${Object.values(data.class_fields).map(field => `<div>- ${field.name}</div>`).join('')}
-            </div>
-            <div style="text-align: center;">
-                <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
-                <hr>
-                <h4>Methods</h4>
-            </div>
-            <div id="methodsList" style="text-align: left;">
-                ${Object.values(data.class_methods).map(method => `<div>+ ${method.name}</div>`).join('')}
-            </div>
-            <div style="text-align: center;">
-                <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
-            </div>
-            `;
+                    detailsDiv.innerHTML = data.html;
+            // <button class="close" onclick="closeClassDetails()">&times;</button>
+            // <div style="text-align: center;">
+            //     <h2 style="margin-left: 30px;">${className}</h2> <!-- Centered class name -->
+            //     <hr>
+            //     <h4>Fields</h4>
+            // </div>
+            // <div id="fieldsList" style="text-align: left;">
+            //     ${Object.values(data.class_fields).map(field => `<div>- ${field.name}</div>`).join('')}
+            // </div>
+            // <div style="text-align: center;">
+            //     <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
+            //     <hr>
+            //     <h4>Methods</h4>
+            // </div>
+            // <div id="methodsList" style="text-align: left;">
+            //     ${Object.values(data.class_methods).map(method => `<div>+ ${method.name}</div>`).join('')}
+            // </div>
+            // <div style="text-align: center;">
+            //     <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
+            // </div>
+            // `;
                     detailsDiv.style.display = "block";
                 });
         }
@@ -537,6 +544,28 @@
         function closeLoadModal() {
             document.getElementById("loadModal").style.display = "none";
             document.getElementById("loadError").style.display = "none";
+        }
+
+        function renameField(target, className, fieldName) {
+            newname = target.value;
+            if (fieldName === newname) {
+                return;
+            }
+
+            fetch("/renameField", {
+                method:"POST", 
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: className,
+                    oldname: fieldName,
+                    newname: newname
+                })}
+            )
+            .then(res => console.log(res))
+            .catch(reason => target.value = fieldName);
         }
 
     </script>
