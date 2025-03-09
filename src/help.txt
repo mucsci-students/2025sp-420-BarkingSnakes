@@ -28,6 +28,8 @@ relation add <source class> <destination class> <relationship type>
 relation delete <source class> <destination class>
     Deletes a relationship of from <source class> to <destination class> 
     if it exists
+relation set <source class> <destination class> <relationship type>
+    Finds the relationship with the specified source and destination, and sets its type.
 relation list
     Lists all relations in the current project.
 
