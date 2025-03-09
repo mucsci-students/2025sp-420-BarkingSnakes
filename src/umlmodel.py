@@ -141,7 +141,7 @@ class UmlProject:
         """
         # "not not" serves to resolve to true if file was a .json
         return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
-         
+
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
 
@@ -161,7 +161,14 @@ class UmlProject:
 
         uml_relationships:list[dict] = data.get("relationships")
 
-        self.relationships = set([self._parse_uml_relationship(r) for r in uml_relationships])
+        self.relationships = set()
+
+        for relation_data in uml_relationships:
+            new_relation = self._parse_uml_relationship(relation_data)
+            for existing_relation in self.relationships:
+                if new_relation.source_class == existing_relation.source_class and new_relation.destination_class == existing_relation.destination_class:
+                    raise errors.DuplicateRelationshipException()
+            self.relationships.add(new_relation)
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
         """Converts the provided dict to a UmlClass.
@@ -237,7 +244,7 @@ class UmlProject:
         Exceptions:
             None
         """
-        return UmlRelationship(RelationshipType.DEFAULT, self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+        return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
     @property
     def _save_object(self) -> dict:
@@ -246,7 +253,8 @@ class UmlProject:
             'classes': [c.to_dict() for c in self.classes.values()],
             'relationships': [{
                 'source': r.source_class.class_name,
-                'destination': r.destination_class.class_name
+                'destination': r.destination_class.class_name,
+                'type': r.relationship_type.name.capitalize()
             } for r in self.relationships]
         }
 
@@ -459,7 +467,6 @@ class UmlProject:
                 return RelationshipType(int(relationship_str)) # Try to retrieve the type from a number string like "0"
             except ValueError:
                 raise errors.InvalidRelationshipTypeException()
-
 
     def get_relationship(self, source:str, destination:str)->UmlRelationship:
         """Get the relationship between source and destination.
