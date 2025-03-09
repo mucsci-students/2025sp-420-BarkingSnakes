@@ -20,9 +20,8 @@
     </div>
 
     <div id="ClassTable" style="display: none;">
-        <table id="Data">
-            <!-- Class data will be inserted here -->
-        </table>
+        <!-- <table id="Data">
+        </table> -->
     </div>
 
     <div id="RelationTable" style="display: none;">
@@ -65,7 +64,7 @@
             <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
-
+    <div id="snackbar">Some text some message..</div>
     <style>
         body {
             background-color: #0e1113;
@@ -238,14 +237,81 @@
             border: none;
         }
 
+        #cntrAddClass > input {
+            background: #333;
+            width: 100%
+        }
+
         #loadError {
             color: red;
             display: none;
             margin-top: 10px;
         }
+
+        /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
+        /* The snackbar - position it at the bottom and in the middle of the screen */
+        #snackbar {
+        visibility: hidden; /* Hidden by default. Visible on click */
+        min-width: 250px; /* Set a default minimum width */
+        margin-left: -125px; /* Divide value of min-width by 2 */
+        background-color: #f70909; /* Black background color */
+        color: #fff; /* White text color */
+        text-align: center; /* Centered text */
+        border-radius: 2px; /* Rounded borders */
+        padding: 16px; /* Padding */
+        position: fixed; /* Sit on top of the screen */
+        z-index: 1; /* Add a z-index if needed */
+        left: 50%; /* Center the snackbar */
+        bottom: 30px; /* 30px from the bottom */
+        }
+
+        /* Show the snackbar when clicking on a button (class added with JavaScript) */
+        #snackbar.show {
+        visibility: visible; /* Show the snackbar */
+        /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+        However, delay the fade out process for 2.5 seconds */
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        /* Animations to fade the snackbar in and out */
+        @-webkit-keyframes fadein {
+        from {bottom: 0; opacity: 0;}
+        to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadein {
+        from {bottom: 0; opacity: 0;}
+        to {bottom: 30px; opacity: 1;}
+        }
+
+        @-webkit-keyframes fadeout {
+        from {bottom: 30px; opacity: 1;}
+        to {bottom: 0; opacity: 0;}
+        }
+
+        @keyframes fadeout {
+        from {bottom: 30px; opacity: 1;}
+        to {bottom: 0; opacity: 0;}
+        }
+        /* END SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
+
     </style>
 
     <script>
+        function snackbar(text) {
+        // Get the snackbar DIV
+        var x = document.getElementById("snackbar");
+
+        // Add the "show" class to DIV
+        x.className = "show";
+        x.innerText = text;
+
+        // After 3 seconds, remove the show class from DIV
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+
         /**
          * Toggles the display of the class list.
          * Fetches class list data from the server and displays it.
@@ -278,28 +344,56 @@
          * Fetches and displays the class list.
          * Sends a request to the server to get the list of classes.
          */
+        // function getClassList() {
+        //     fetch('/classlist')
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             table = document.getElementById("Data");
+        //             table.innerHTML = "";
+        //             Object.keys(data).forEach(element => {
+        //                 let row = table.insertRow();
+        //                 let cell = row.insertCell(0);
+        //                 let button = document.createElement("button");
+        //                 button.innerHTML = element;
+        //                 button.className = "class-button";
+        //                 button.onclick = function () {
+        //                     displayClassDetails(element);
+        //                 };
+        //                 cell.appendChild(button);
+        //             });
+        //             // Add a row with a plus sign at the bottom
+        //             let plusRow = table.insertRow();
+        //             let plusCell = plusRow.insertCell(0);
+        //             plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
+        //         });
+        // }
+        
         function getClassList() {
             fetch('/classlist')
-                .then(response => response.json())
-                .then(data => {
-                    table = document.getElementById("Data");
-                    table.innerHTML = "";
-                    Object.keys(data).forEach(element => {
-                        let row = table.insertRow();
-                        let cell = row.insertCell(0);
-                        let button = document.createElement("button");
-                        button.innerHTML = element;
-                        button.className = "class-button";
-                        button.onclick = function () {
-                            displayClassDetails(element);
-                        };
-                        cell.appendChild(button);
-                    });
-                    // Add a row with a plus sign at the bottom
-                    let plusRow = table.insertRow();
-                    let plusCell = plusRow.insertCell(0);
-                    plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
-                });
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("ClassTable").innerHTML = data.html
+            })
+        }
+
+        function toggleVisibility(ids) {
+            console.log("Toggle: " + ids);
+            ids.forEach(id => {
+                elem = document.getElementById(id);
+                input = elem.getElementsByTagName("input")[0];
+                console.log(elem.style.display, elem);
+                if (elem.style.display === "none" || elem.style.display === "" || elem.style.display === null) {
+                    elem.style.display = "block";
+                    if (input) {
+                        input.focus();
+                    }
+                } else {
+                    elem.style.display = "none";
+                    if (input) {
+                    input.blur();
+                    }
+                }
+            })
         }
 
         /**
@@ -333,27 +427,6 @@
                     console.log(data)
                     let detailsDiv = document.getElementById("ClassDetails");
                     detailsDiv.innerHTML = data.html;
-            // <button class="close" onclick="closeClassDetails()">&times;</button>
-            // <div style="text-align: center;">
-            //     <h2 style="margin-left: 30px;">${className}</h2> <!-- Centered class name -->
-            //     <hr>
-            //     <h4>Fields</h4>
-            // </div>
-            // <div id="fieldsList" style="text-align: left;">
-            //     ${Object.values(data.class_fields).map(field => `<div>- ${field.name}</div>`).join('')}
-            // </div>
-            // <div style="text-align: center;">
-            //     <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
-            //     <hr>
-            //     <h4>Methods</h4>
-            // </div>
-            // <div id="methodsList" style="text-align: left;">
-            //     ${Object.values(data.class_methods).map(method => `<div>+ ${method.name}</div>`).join('')}
-            // </div>
-            // <div style="text-align: center;">
-            //     <button class="add-button" onclick="showModal('method')"><span class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
-            // </div>
-            // `;
                     detailsDiv.style.display = "block";
                 });
         }
@@ -453,6 +526,35 @@
             modal.style.display = "none";
         }
 
+        function addClass2(event, elem) {
+            if (event.key === "Enter") {
+
+                fetch("/addClass", {
+                    method:"POST", 
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        classname: elem.value
+                    })
+                })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = "";
+                        return resp.json();
+                    } else {
+                        getClassList();
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    snackbar(data.error);
+                })
+                .catch(error => console.log(error))
+            }
+        }
+
         /**
          * Adds a new relation.
          * Adds the new relation to the relation list and updates the display.
@@ -484,6 +586,31 @@
             div.innerHTML = `- ${fieldName}`;
             fieldsList.appendChild(div);
             modal.style.display = "none";
+        }
+
+        function addField2(event, elem) {
+            if (event.key === "Enter") {
+                fetch("/addField", {
+                    method:"POST", 
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fieldname: elem.value
+                    })
+                })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = "";
+                        return resp.json();
+                    }
+                    console.log(resp);
+                    displayClassDetails("");
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => console.log(error))
+            }
         }
 
         /**
@@ -575,6 +702,14 @@
             .then(res => console.log(res))
             .catch(reason => target.value = fieldName);
         }
+
+        function inputBlur(event, func) {
+            elem = event.target;
+            if (elem.value === "") {
+                func();
+            }
+        }
+
 
     </script>
 </body>
