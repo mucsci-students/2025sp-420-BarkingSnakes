@@ -54,6 +54,7 @@ class UmlCommands:
             id = r""
             regex = r""
             usage = ""
+
         class HelpClass(UmlCommand):
             id = r""
             regex = r""
@@ -219,8 +220,9 @@ class UmlController:
         # validate beforehand to keep current project open
         self.model._validate_filepath(filepath)
         # create new project, this may need moved to model
-        self.model = UmlProject()
-        self.model.load(filepath)
+        loaded_model = UmlProject()
+        loaded_model.load(filepath)
+        self.model = loaded_model
         # save file path to keep from prompting when user saves,
         # since overriding should not be concern if same as loaded file
 
@@ -339,7 +341,7 @@ class UmlController:
             # TODO - Align this to prompt for additional input.
             if len(args) < 2:
                 self.view.handle_exceptions(error_text)
-            elif args[1].lower() in ['add', 'delete', 'list']:
+            elif args[1].lower() in ['add', 'set', 'delete', 'list']:
                 self.command_relation(args)
             else:
                 self.view.handle_exceptions(error_text)
@@ -556,9 +558,10 @@ class UmlController:
         """        
         cmd = args[1].lower()
 
-        # TODO - These commands should take in a type parameter for the relation type
         if cmd == 'add':
             self.command_add_relation(args[2], args[3], args[4])
+        elif cmd == 'set':
+            self.command_set_relation(args[2], args[3], args[4])
         elif cmd == 'delete':
             self.command_delete_relation(args[2], args[3])
         elif cmd == 'list':
@@ -571,12 +574,26 @@ class UmlController:
         Params:
             source: a class name owning the source
             destination: a class name owning the destination
+            relationship_type: the name of the relationship type
         Exceptions:
             NoActiveProjectException
             NoSuchObjectError
         """
-        # TODO - Add parameter for relationship type
         self.model.add_relationship(source, destination, relationship_type)
+
+    @_requires_active_project
+    def command_set_relation(self, source:str, destination:str, relationship_type:str) -> None:
+        """Sets the type of an existing relationship.
+        
+        Params:
+            source: a class name owning the source
+            destination: a class name owning the destination
+            relationship_type: the type of relationship that the relationship should be given
+        Exceptions:
+            NoActiveProjectException
+            NoSuchObjectError
+        """
+        self.model.set_type_relationship(source, destination, relationship_type)
 
     @_requires_active_project
     def command_delete_relation(self, source:str, destination:str) -> None:
