@@ -31,7 +31,7 @@
 In the command-line interface, type the help command to see a list of possible commands and their usage.
 
 ### GUI Mode (Flask):
-Interact with the web-based interface by navigating to the URL provided when the Flask server starts. Use the toolbar, menus, and on-screen instructions to manage your class diagrams.
+Interact with the web-based interface after it opens in your browser or by navigating to the URL provided when the Flask server starts. Use the toolbar, menus, and on-screen instructions to manage your class diagrams.
 
 ## GUI Instructions
 When running BS-uml in GUI mode, the following applies:
@@ -47,7 +47,44 @@ Use on-screen buttons and menu options to add new classes, define fields/methods
 #### Saving & Loading Diagrams:
 The interface includes options for saving your current diagram or loading a previously saved diagram.
 
+### How-to GUI
+#### NOTICE: To be able to save project, must click 'new' button to start
+Upper Tool Bar includes: new, save, load, quit
+New
+    Create a new project file with a <filename.json> provided 
+Load
+    Load the file at the <filename.json> given
+Save
+    Save the file with the given name
+Quit
+    Quits the program. Prompts 'Are you sure?'
 
+#### Navigation
+Side pop buttons:
+ClassList
+    View current classes, or add more
+RelationList
+    View all relationships in the current project.
+Within ClassList:
+To enter the details of that class, click on the class name and you can view: fields, methods and parameters. 
+
+Adding, renaming, and deleting - classes, fields, methods, and parameters:
+      add
+            click on appropriately labeled button
+      rename
+            Click on the field, method, or parameter 'name' to reveal a textbox where you can rename it
+      delete
+            Click on the red x box on the right of the field, method, or parameter you want to delete
+
+Within RelationList:
+Shows list of existing relationships by displaying type, source class, and target class.
+      add
+            Choose type from drop down and classes from drop downs
+      edit
+            Use appropriate drop downs to edit existing relationships
+      remove
+            Click red x box on the right of the relationship to remove
+            
 
 ## Running tests
 - Use for specific test 
