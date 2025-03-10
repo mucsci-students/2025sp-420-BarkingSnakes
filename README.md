@@ -27,6 +27,27 @@
       or to start in CLI: `python src\uml.py --cli`
 - Linux: `python3 src/uml.py`
       or to start in CLI: `python3 src/uml.py --cli`
+### CLI Mode:
+In the command-line interface, type the help command to see a list of possible commands and their usage.
+
+### GUI Mode (Flask):
+Interact with the web-based interface by navigating to the URL provided when the Flask server starts. Use the toolbar, menus, and on-screen instructions to manage your class diagrams.
+
+## GUI Instructions
+When running BS-uml in GUI mode, the following applies:
+
+Launching the GUI:
+The program starts a Flask server, which hosts the GUI on a local web address (default: http://127.0.0.1:5000). Check your terminal for the exact URL once the server is running.
+
+### Using the Web Interface:
+#### Main Page:
+The browser window will display the main interface where you can create and edit class diagrams.
+#### Toolbar & Menus:
+Use on-screen buttons and menu options to add new classes, define fields/methods, and establish relationships like inheritance or composition.
+#### Saving & Loading Diagrams:
+The interface includes options for saving your current diagram or loading a previously saved diagram.
+
+
 
 ## Running tests
 - Use for specific test 
