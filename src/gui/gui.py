@@ -123,7 +123,7 @@ def delete_umlclass():
     classname = data.get("classname")
     app.controller.execute_command(["class", classname])
     app.controller.execute_command(["delete"])
-    return Response(status=202)
+    return jsonify({"message": "Class deleted successfully"}), 200
 
 
 @app.post("/renameClass")
@@ -237,7 +237,7 @@ def save():
     file = data.get("filename")
     # app.controller.save_project(file)
     app.controller.execute_command(["save", file])
-    return Response(status=200)
+    return jsonify({"message": "Project saved Successfully"}), 200
 
 
 @app.post("/newproject")

@@ -686,20 +686,21 @@
                     classname: classname
                 })
             })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        return resp.json();
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
                     } else {
                         getClassList();
                         getRelationList();
                     }
                 })
-                .then(data => {
-                    console.log(data);
-                    snackbar(data.error);
-                })
-                .catch(error => console.log(error))
+                .catch(err => {
+                    console.error("Failed to delete class:", err);
+                    snackbar("An error occurred while deleting the class.");
+                });
         }
+
 
         /**
          * Adds a new relation.
@@ -904,17 +905,17 @@
                     })
                 }
             )
-                .then(res => {
-                    if (res >= 400) {
-                        return res.json();
+            .then(resp => resp.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
                     }
                 })
-                .then(data => snackbar(data.error))
-                .catch(error => {
-                    console.error("Error saving project:", error);
+                .catch(err => {
+                    console.error("Failed to save project:", err);
+                    snackbar("An error occurred while ");
                 });
-
-            console.log("Save project as:", fileName);
+                
             closeSaveModal();
         }
 
