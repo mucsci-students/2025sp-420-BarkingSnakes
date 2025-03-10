@@ -141,7 +141,11 @@ class UmlController:
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
             print("[controller::_handle_unsaved_changes]", kwargs, args)
-            override = kwargs.get("override") or False
+            try:
+                override = args[1]
+            except:
+                override = False
+            # override = kwargs.get("override") or False
             if self.model and self.model.has_unsaved_changes and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileHasUnsavedChangesException()

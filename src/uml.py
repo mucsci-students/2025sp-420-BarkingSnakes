@@ -35,7 +35,7 @@ def main(gui_type:GUI_TYPE):
         flask_thread.daemon = True
         flask_thread.start()
 
-        print(webbrowser.open("http://127.0.0.1:5000"))
+        print(webbrowser.open_new("http://127.0.0.1:5000"))
         controller.run()
 
 
