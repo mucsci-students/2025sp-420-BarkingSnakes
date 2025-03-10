@@ -5,6 +5,7 @@
 
 <head>
     <title>BS-UML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body style="background-color: #0e1113;">
@@ -265,6 +266,7 @@
         }
 
         .input-mode-view {
+            margin-top: 10px;
             background: transparent;
             color: white;
             border: none;
@@ -280,6 +282,19 @@
             display: none;
             margin-top: 10px;
         }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
 
         /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
         /* The snackbar - position it at the bottom and in the middle of the screen */
@@ -318,6 +333,18 @@
         However, delay the fade out process for 2.5 seconds */
             -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
             animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
         }
 
         /* Animations to fade the snackbar in and out */
@@ -491,7 +518,6 @@
             fetch(`/classdetails?name=${className}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     let detailsDiv = document.getElementById("ClassDetails");
                     detailsDiv.innerHTML = data.html;
                     detailsDiv.style.display = "block";
@@ -639,6 +665,32 @@
             }
         }
 
+        function deleteClass(classname) {
+            fetch("/deleteclass", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: classname
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getClassList();
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    snackbar(data.error);
+                })
+                .catch(error => console.log(error))
+        }
+
         /**
          * Adds a new relation.
          * Adds the new relation to the relation list and updates the display.
@@ -678,7 +730,7 @@
             }
         }
 
-        function addField2(event, elem) {
+        function addField2(event, elem, className) {
             if (event.key === "Enter") {
                 fetch("/addField", {
                     method: "POST",
@@ -687,20 +739,45 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fieldname: elem.value
+                        fieldname: elem.value,
+                        classname: className
                     })
                 })
                     .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        }
-                        console.log(resp);
-                        displayClassDetails("");
+                        return resp.json();
                     })
-                    .then(data => snackbar(data.error))
-                    .catch(error => console.log(error))
+                    .then(data => {
+                        if (data.error) {
+                            snackbar(data.error);
+                        } else {
+                            displayClassDetails(className);
+                        }
+                    })
             }
+        }
+
+        function deleteField(className, fieldName) {
+            fetch("/deleteField", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fieldname: fieldName,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         /**
@@ -757,16 +834,16 @@
                     arity: arity
                 })
             })
-            .then(res => {
-                if (res.status >= 400) {
-                    target.value = "";
-                    return res.json();
-                } else {
-                    displayClassDetails("");
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(err => console.log(err))
+                .then(res => {
+                    if (res.status >= 400) {
+                        target.value = "";
+                        return res.json();
+                    } else {
+                        displayClassDetails("");
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(err => console.log(err))
         }
         
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
@@ -839,7 +916,7 @@
         function saveProject(override) {
             elem = document.getElementById("saveFileNameInput");
 
-            fetch(`/saveproject`, 
+            fetch(`/saveproject`,
                 {
                     method: "POST",
                     headers: {
@@ -934,7 +1011,6 @@
             if (fieldName === newname) {
                 return;
             }
-
             fetch("/renameField", {
                 method: "post",
                 headers: {
@@ -949,15 +1025,16 @@
             }
             )
                 .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = fieldName;
-                        return resp.json();
-                    }
-                    console.log(resp);
-                    displayClassDetails("");
+                    return resp.json();
                 })
-                .then(data => snackbar(data.error))
-                .catch(error => console.log(error))
+                .then(data => {
+                    if (data.error) {
+                        elem.value = fieldName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         function renameMethod(target, elem, className, methodName) {
@@ -1036,6 +1113,69 @@
                     .catch(error => console.log(error))
 
             }
+        }
+
+        function addRelation() {
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value;
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
+
+            toggleVisibility(['cntrAddRelationship']);
+        }
+
+        function deleteRelation(source, destination) {
+            console.log(source, destination);
+            fetch("/deleteRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination
+                })
+            })
+                .then(resp => {
+                    console.log(resp);
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
         }
     </script>
 </body>
