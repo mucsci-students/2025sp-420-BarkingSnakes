@@ -52,9 +52,10 @@
     <div id="newModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeNewModal()">&times;</span>
+            <h2>New File</h2>
             <p>Enter File Name:</p>
-            <input type="text" id="fileNameInput" />
-            <button onclick="newProject()">Create Project</button>
+            <input type="text" id="newFileNameInput" />
+            <button onclick="newProject(false)">Create Project</button>
         </div>
     </div>
 
@@ -62,21 +63,34 @@
     <div id="saveModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSaveModal()">&times;</span>
+            <h2>Save File</h2>
             <p>Enter File Name:</p>
-            <input type="text" id="fileNameInput" />
-            <button onclick="saveProject()">Save</button>
+            <input type="text" id="saveFileNameInput" />
+            <button onclick="saveProject(false)">Save</button>
         </div>
     </div>
 
     <div id="loadModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLoadModal()">&times;</span>
+            <h2>Load File</h2>
             <p>Enter File Name:</p>
             <input type="text" id="loadFileNameInput" />
-            <button onclick="loadProject()">Load</button>
+            <button onclick="loadProject(false)">Load</button>
             <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
+    <!-- Modal for asking the user if they want to override an existing file. -->
+    <div id="yesNoModal" class="modal">
+        <div class="modal-content">
+            <p id="yesNoModalPrompt"></p>
+            <div>
+                <span><button id="btnModalYes" onclick="">Yes</button></span>
+                <span><button id="btnModalNo" onclick="toggleVisibility(['yesNoModal'])">No</button></span>
+            </div>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
@@ -414,30 +428,6 @@
          * Fetches and displays the class list.
          * Sends a request to the server to get the list of classes.
          */
-        // function getClassList() {
-        //     fetch('/classlist')
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             table = document.getElementById("Data");
-        //             table.innerHTML = "";
-        //             Object.keys(data).forEach(element => {
-        //                 let row = table.insertRow();
-        //                 let cell = row.insertCell(0);
-        //                 let button = document.createElement("button");
-        //                 button.innerHTML = element;
-        //                 button.className = "class-button";
-        //                 button.onclick = function () {
-        //                     displayClassDetails(element);
-        //                 };
-        //                 cell.appendChild(button);
-        //             });
-        //             // Add a row with a plus sign at the bottom
-        //             let plusRow = table.insertRow();
-        //             let plusCell = plusRow.insertCell(0);
-        //             plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
-        //         });
-        // }
-
         function getClassList() {
             fetch('/classlist')
                 .then(response => response.json())
@@ -547,7 +537,7 @@
          * Shows the new project modal.
          */
         function showNewModal() {
-            document.getElementById("fileNameInput").value = ".json"
+            // document.getElementById("newFileNameInput").value = ".json"
             newModal.style.display = "block";
         }
 
@@ -562,7 +552,7 @@
          * Shows the save modal.
          */
         function showSaveModal() {
-            document.getElementById("fileNameInput")
+            // document.getElementById("fileNameInput")
             saveModal.style.display = "block";
         }
 
@@ -778,9 +768,33 @@
             .then(data => snackbar(data.error))
             .catch(err => console.log(err))
         }
+        
+        function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
+            switch(action) {
+                case "showModal":
+                    modal = document.getElementById(tagId);
+                    e_text = document.getElementById("yesNoModalPrompt");
+                    e_text.innerText = error_text;
+                    btn_yes = document.getElementById("btnModalYes");
+                    btn_no = document.getElementById("btnModalNo");
+                    if (btn_yes) {
+                        btn_yes.onclick = () => {
+                            toggleVisibility([tagId]);
+                            yes_callback();
+                        }
+                    }
+                    if (btn_no) {
+                        btn_no.onclick = () => {
+                            toggleVisibility([tagId]);
+                            no_callback();
+                        };
+                    }
+                    toggleVisibility([tagId]);
+            }
+        }
 
-        function newProject(elem) {
-            elem = document.getElementById("fileNameInput")
+        function newProject(override) {
+            elem = document.getElementById("newFileNameInput")
             fetch("/newproject", {
                 method: "Post",
                 headers: {
@@ -788,32 +802,42 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    filename: elem.value
+                    filename: elem.value,
+                    override_file: override
                 })
             }).then(resp => {
-                return resp.json().then(data => {
-                    if (resp.status >= 400) {
-                        elem.value = "";
-                    } else {
-                        closeNewModal();
-                    }
-                    return data;
-                });
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    document.getElementById("saveFileNameInput").value = fileName;
+                    closeNewModal();
+                    getClassList();
+                    getRelationList();
+                }
             })
-                .then(data => {
-                    if (data.error) {
-                        snackbar(data.error);
-                    }
-                })
-                .catch(error => console.log(error))
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => newProject(true);
+                    no_callback = () => {
+                        document.getElementById("newFileNameInput").value = "";
+                    };
+
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
+            .catch(error => console.log(error))
         }
 
         /**
          * Saves the project with the given file name.
          * Prompts the user to enter a file name and saves the project.
          */
-        function saveProject() {
-            fileName = document.getElementById("fileNameInput").value;
+        function saveProject(override) {
+            elem = document.getElementById("saveFileNameInput");
 
             fetch(`/saveproject`, 
                 {
@@ -823,45 +847,71 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        filename: fileName
+                        filename: elem.value,
+                        override: override
                     })
                 }
             )
-            .then(res => {
-                if (res >= 400) {
-                    return res.json();
+            .then(resp => {
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    closeSaveModal();
                 }
             })
-            .then(data => snackbar(data.error))
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => saveProject(true);
+                    no_callback = () => {
+                        document.getElementById("saveFileNameInput").value = "";
+                    };
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
             .catch(error => {
                 console.error("Error saving project:", error);
             });
-
-            console.log("Save project as:", fileName);
-            closeSaveModal();
         }
 
-        function loadProject() {
+        function loadProject(override) {
             fileName = document.getElementById("loadFileNameInput").value;
-            let loadError = document.getElementById("loadError");
+            // let loadError = document.getElementById("loadError");
 
-            if (!fileName.endsWith(".json")) {
-                loadError.style.display = "block";
-                return;
-            }
+            // if (!fileName.endsWith(".json")) {
+            //     loadError.style.display = "block";
+            //     return;
+            // }
 
-            fetch(`/loadfile?filename=${fileName}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("File not found");
-                    }
+            fetch(`/loadfile?filename=${fileName}&override=${override}`)
+                .then(resp => {
+                    // if (!response.ok) {
+                    //     throw new Error("File not found");
+                    // }
                     // return response.json();
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        closeLoadModal();
+                        document.getElementById("saveFileNameInput").value = fileName;
+                        getClassList();
+                    }
                 })
                 .then(data => {
-                    // Handle the loaded project content
-                    closeLoadModal();
-                    document.getElementById("fileNameInput").value = fileName;
-                    getClassList();
+                    if (data.action) {
+                        yes_callback = () => loadProject(true);
+                        no_callback = () => {
+                            document.getElementById("loadFileNameInput").value = "";
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
                 })
                 .catch(error => {
                     // loadError.style.display = "block";
