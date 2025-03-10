@@ -140,7 +140,8 @@ class UmlController:
         """Decorator to prompt for unsaved changes."""
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
-            override = kwargs.get("override")
+            print("[controller::_handle_unsaved_changes]", kwargs, args)
+            override = kwargs.get("override") or False
             if self.model and self.model.has_unsaved_changes and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileHasUnsavedChangesException()
@@ -380,9 +381,12 @@ class UmlController:
             
         elif cmd == 'load':
             #ask for rest of input
+            override = False
             if len(args) == 1:
                 args.append(self.view.get_user_input("Enter project file name: "))
-            self.load_project(args[1])
+            if len(args) == 3:
+                override = args[2] == "True"
+            self.load_project(args[1], override)
         else:
             self.view.handle_exceptions(error_text)
 

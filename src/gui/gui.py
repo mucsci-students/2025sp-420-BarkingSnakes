@@ -225,9 +225,10 @@ def set_active_class():
 def loadFile():
     """"""
     file = request.args.get("filename")
-    override = request.args.get("override") or False
+    override = request.args.get("override").capitalize() or False
     print("[gui::loadFile]", file, override)
-    app.controller.load_project(file, override)
+    # app.controller.load_project(file, override == "True")
+    app.controller.execute_command(["load", file, str(override)])
     return Response(status=200)
 
 
