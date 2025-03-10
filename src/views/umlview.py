@@ -4,7 +4,7 @@
 # Description: View (MVC) for UML program.
 
 from dataclasses import dataclass
-from typing import Protocol, NamedTuple
+from typing import Protocol, NamedTuple, Callable
 import errors
 
 
@@ -37,7 +37,7 @@ class UmlProjectData(NamedTuple):
 @dataclass
 class UmlView(Protocol):
 
-    def prompt_user(self, prompt:str) -> bool:
+    def prompt_user(self, prompt:str, callback:Callable) -> bool:
         """Shown directly to the user for additional information."""
 
     def get_user_input(self, text:str) -> str:
@@ -68,6 +68,16 @@ class UmlView(Protocol):
 
     @property
     def get_umlexception(self) -> errors.UMLException:
+        """"""
+
+    def set_callback(self, callback:Callable):
+        """"""
+    @property
+    def callback(self) -> Callable:
+        """"""
+
+    @property
+    def prompt_response(self) -> bool:
         """"""
 
     def set_umlexception(self, e:errors.UMLException):

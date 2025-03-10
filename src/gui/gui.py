@@ -121,8 +121,9 @@ def add_umlclass():
 def delete_umlclass():
     data = request.get_json()
     classname = data.get("classname")
+    override = data.get("override") or False
     app.controller.execute_command(["class", classname])
-    app.controller.execute_command(["delete"])
+    app.controller.execute_command(["delete", str(override)])
     return jsonify({"message": "Class deleted successfully"}), 200
 
 
@@ -224,7 +225,9 @@ def set_active_class():
 def loadFile():
     """"""
     file = request.args.get("filename")
-    app.controller.load_project(file)
+    override = request.args.get("override") or False
+    print("[gui::loadFile]", file, override)
+    app.controller.load_project(file, override)
     return Response(status=200)
 
 
@@ -235,8 +238,10 @@ def save():
     data = request.get_json()
     print(data)
     file = data.get("filename")
+    override = data.get("override") or False
     # app.controller.save_project(file)
-    app.controller.execute_command(["save", file])
+    command = ["save", file, str(override)]
+    app.controller.execute_command(command)
     return jsonify({"message": "Project saved Successfully"}), 200
 
 
@@ -244,16 +249,13 @@ def save():
 @handle_umlexception
 def newproject():
     """"""
-    try:
-        data = request.get_json()
-        file = data.get("filename")
-
-        app.controller.execute_command(["new", file])
-        return jsonify({"message": "Project created successfully"}), 200
-
-    except errors.UMLException as uml_e:
-        app.view.handle_umlexception(uml_e)
-        return jsonify({"error": "Failed to create project"}), 400
+    data = request.get_json()
+    file = data.get("filename")
+    override = data.get("override_file") or False
+    command = ["new", file, str(override)]
+    print(command)
+    app.controller.execute_command(command)
+    return Response(status=202)
     
 @app.post("/addMethodParam")
 @handle_umlexception
