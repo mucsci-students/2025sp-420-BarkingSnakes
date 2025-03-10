@@ -1,78 +1,89 @@
 # Filename: umlclass.py
 # Authors: Kyle Kalbach, Steven Barnes, Evan Magill
-# Date: 2025-02-16
+# Date: 2025-02-25
 # Description: umlclass methods
 import logging
-from dataclasses import dataclass
-from attribute import Attribute
+from dataclasses import dataclass, field
+from umlfield import UmlField
+from umlmethod import UmlMethod
 import errors
 
 @dataclass
 class UmlClass:
     class_name:str
-    class_attributes:dict[str, Attribute]
+    class_fields:dict[str, UmlField] = field(default_factory= lambda: {})
 
-    def add_attribute(self,attribute:Attribute) -> int:
+    """ Method name is top level key and arity is lowest level key.
+     e.g {'add': {0: <UmlMethod>, 2: <UmlMethod>}}
+    """
+    class_methods:dict[str, dict[int, UmlMethod]] = field(default_factory= lambda: {})
+
+    def add_field(self,name:str) -> int:
         """
-        Adds an attribute to the UmlClass
+        Adds an field to the UmlClass
             Returns:
-                0: if attribute added to the class
+                0: if field added to the class
             Exceptions:
-                DuplicateNameError: if name exists
+                DuplicateFieldError: if name exists
                 InvalidNameError: if name invalid
         """ 
-        if attribute.name in self.class_attributes.keys():
+        if name in self.class_fields.keys():
             #return error code or handle existing key
-            raise errors.DuplicateAttributeException()
-        errors.valid_name(attribute.name)
-        self.class_attributes[attribute.name] = attribute
+            raise errors.DuplicateFieldException()
+        errors.valid_name(name)
+        self.class_fields[name] = UmlField(name)
         return 0
 
-    def remove_attribute(self,name:str) -> int:
-        """Removes an Attribute from the UmlClass
+    def remove_field(self,name:str) -> int:
+        """Removes an field from the UmlClass
         Params:
-            name: name of the attribute to remove
+            name: name of the field to remove
         Returns:
-            0: if the attribute was successfully removed
+            0: if the field was successfully removed
             a number corresponding to an error in the errors class
-            if an attribute was not removed form the class
+            if an field was not removed from the class
         """
-        if name not in self.class_attributes.keys():
-            #return error code for nonexistent attribute 
-            raise errors.NoSuchObjectException()
-        self.class_attributes.pop(name)
+        if name not in self.class_fields.keys():
+            #return error code for nonexistent field
+            raise errors.NoSuchObjectException(object_type="field")
+        self.class_fields.pop(name)
         return 0
     
-    def rename_attribute(self,oldname:str,newname:str) -> int:
-        """Renames the specified attribute
+    def rename_field(self,oldname:str,newname:str) -> int:
+        """Renames the specified field
         Params: 
-            oldname: existing attribute to rename
+            oldname: existing field to rename
             newname: name to replace oldname
         Returns:
-            0: if the attribute was successfully renamed
+            0: if the field was successfully renamed
         Exceptions:
             UMLException:InvalidNameError if the new name is invalid
-            UMLException:NoSuchObjectError if the attribute does not exist
-            UMLException:DuplicateNameError if newname exist in class_attributes
+            UMLException:NoSuchObjectError if the field does not exist
+            UMLException:DuplicateFieldError if newname exist in class_fields
         """
+        if oldname not in self.class_fields.keys():
+            #return error code for nonexistent field
+            raise errors.NoSuchObjectException(object_type="field")
+
         errors.valid_name(newname)
 
-        if newname in self.class_attributes.keys():
+        if newname in self.class_fields.keys():
             #return error code or handle existing key
-            raise errors.DuplicateAttributeException()
+            raise errors.DuplicateFieldException()
         
-        current_attr = self.class_attributes.pop(oldname)
-        current_attr.rename_attr(newname)
-        self.add_attribute(current_attr)
+        self.class_fields.pop(oldname)
+        self.add_field(newname)
         return 0
 
     def rename_umlclass(self,name:str) -> int:
-        """
-        Renames the UmlClass
-        Params: 
-            name: new name for the class
+        """Renames the UmlClass
+
+        Params:
+            name: new name for the class  
+
         Returns:
             0: if the class was successfully renamed
+
         Exceptions:
             UMLException:InvalidNameError if the new name is invalid
             UMLException:NoSuchObjectError if the class does not exist
@@ -82,6 +93,171 @@ class UmlClass:
         errors.valid_name(name)
         self.class_name = name
         return 0
-            
-        
     
+    def _overload_exists(self, name:str, arity:int) -> bool:
+        """Checks if the method name and arity combination already exists on the UmlClass."""
+        return name in self.class_methods.keys() and arity in self.class_methods.get(name).keys()
+
+    def add_method(self, name:str, params:list[str]) -> int:
+        """Adds a UmlMethod to the UmlClass
+
+        Params:
+            name: name for the method to add
+            params: a list of parameter names attached to the method
+
+        Returns:
+            0 if the class was successfully renamed
+
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            UMLException:NoSuchObjectError if the class does not exist
+            DuplicateMethodOverloadException
+        """
+
+        errors.valid_name(name)
+        if self._overload_exists(name, len(params)):
+            raise errors.DuplicateMethodOverloadException()
+        
+        uml_method = UmlMethod(name, {})
+        uml_method.add_parameters(params)
+
+        if self.class_methods.get(name) is None:
+            self.class_methods[name] = {}
+
+        self.class_methods.get(name)[uml_method.arity] = uml_method
+
+        return 0 
+
+    def rename_method(self, name:str, arity:int, newname:str) -> int:
+        """Rename a UmlMethod to the UmlClass
+
+        Params:
+            name: name for the method to add
+            newname: new name to change the method to
+
+        Returns:
+            0 if the method was successfully renamed
+
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            DuplicateMethodOverloadException:
+            MethodOverloadNotExistsException:
+        """
+        if not self.class_methods.get(name):
+            raise errors.MethodNameNotExistsException()
+
+        if self._overload_exists(newname, arity):
+            raise errors.DuplicateMethodOverloadException()
+
+
+        if self._overload_exists(name, arity):
+            uml_method = self.class_methods.get(name).get(arity)
+
+            # add_method handles logic of checking in class_method for missing
+            # top level keys and handles name validation
+            self.add_method(newname, [p for p in uml_method.params.keys()])
+
+            return self.remove_method(name, arity)
+
+        raise errors.MethodOverloadNotExistsException()
+        
+    def remove_method(self, name:str, arity:int) -> int:
+        """Remove a UmlMethod from the UmlClass
+
+        Params:
+            name: name for the method to remove
+            arity: arity of the overload
+
+        Returns:
+            0 if the method was successfully renamed
+
+        Exceptions:
+            MethodNameNotExistsException:
+            MethodOverloadNotExistsException:
+        """
+        if not self.class_methods.get(name):
+            raise errors.MethodNameNotExistsException()
+
+        if self._overload_exists(name, arity):
+            self.class_methods.get(name).pop(arity)
+
+            if not any(self.class_methods.get(name)):
+                self.class_methods.pop(name)
+            
+            return 0
+        
+        raise errors.MethodOverloadNotExistsException()
+
+    def remove_all_methods(self) -> int:
+        """Remove all UmlMethods from the UmlClass
+
+        Params:
+
+        Returns:
+            0 if all methods were successfully removed
+
+        Exceptions:
+        """
+        self.class_methods.clear()
+
+    def remove_all_overloads(self, name:str) -> int:
+        """Remove all overloads of the specified name from the UmlClass
+
+        Params:
+            name: name of the method to remove
+        Returns:
+            0 if all method overloads were sucessfully removed
+
+        Exceptions:
+            MethodNameNotExistsException:
+        """
+        if not self.class_methods.get(name):
+            raise errors.MethodNameNotExistsException()
+        
+        self.class_methods.pop(name)
+        return 0
+    
+    def add_parameter(self, methodname:str, arity:int, parameter:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        if self._overload_exists(methodname, arity + 1):
+            raise errors.DuplicateMethodOverloadException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.add_parameter(parameter)
+
+        self.class_methods.get(methodname).pop(arity)
+        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+        
+    def rename_parameter(self, methodname:str, arity:int, oldname:str, newname:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.rename_parameter(oldname, newname)
+
+    def remove_parameter(self, methodname:str, arity:int, parameter:str):
+        if not self._overload_exists(methodname, arity):
+            raise errors.MethodOverloadNotExistsException()
+        
+        if self._overload_exists(methodname, arity - 1):
+            raise errors.DuplicateMethodOverloadException()
+        
+        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method.remove_parameter(parameter)
+
+        self.class_methods.get(methodname).pop(arity)
+        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+
+    def to_dict(self) -> dict:
+        methods = []
+        for method in self.class_methods.values():
+            methods.extend(method.values())
+        return {
+            'name': self.class_name,
+            'fields': [f.to_dict() for f in self.class_fields.values()],
+            'methods': [m.to_dict() for m in methods]
+        }
+        
+        

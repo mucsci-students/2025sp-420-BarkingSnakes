@@ -1,18 +1,21 @@
-# Filename: attribute.py
-# Authors: John Hershey, Evan Magill
-# Date 2025-02-16
+# Filename: errors.py
+# Authors: John Hershey, Evan Magill, Steven Barnes
+# Date 2025-02-25
 # Description: class listing errors
 
 ## imports
-import keyword
+from __future__ import annotations
 
-## predeclarations
-class UMLException(Exception):()
+import keyword
+import re
 
 ## static class objects
+REGEX_DEFAULT_PATTERN = "^[A-Za-z][A-Za-z0-9_]*$"
+
 uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
-             "back", "add", "delete", "rename", "umlclass", "save", "", " "]
-#adds python keywords to list of invalid works
+             "back", "add", "delete", "rename", "umlclass", "save", " method",
+            "parameter" , "", " "]
+#adds python keywords to list of invalid words
 invalid_names = uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
@@ -22,9 +25,20 @@ error_list = {
     "NoSuchObjectError":4,
     "NoActiveProjectError":5,
     "NoActiveClassError":6,
-    "DuplicateAttributeError":7,
+    "DuplicateFieldError":7,
     "InvalidFileError":8,
-    "DuplicateRelationshipError":9
+    "DuplicateRelationshipError":9,
+    "DuplicateMethodOverloadError":10,
+    "MethodNameNotExistsError":11,
+    "MethodOverloadNotExistsError":12,
+    "DuplicateParameterError":13,
+    "NoSuchParameterError":14,
+    "InvalidJsonSchemaError":15,
+    "NoActiveMethodError":16,
+    "InvalidRelationshipTypeError":17,
+    "FileAlreadyExistsError": 18,
+    "FileHasUnsavedChangesError": 19,
+    "UmlClassDeletionError": 20
 }
 ## class definitions
 class UMLException(Exception):
@@ -48,7 +62,7 @@ class UMLException(Exception):
         return self.error_num == other.error_num
     
     def __init__(self, *args):
-        """initializes the error name and error number"""
+        """initializes the error name and error number of the specific error"""
         #initalize superclass as well
         super().__init__(*args)
         #set name to specifed error
@@ -80,7 +94,7 @@ class UMLException(Exception):
         return self.error_num
 
 #class methods
-def valid_name(name:str) -> int:
+def valid_name(name:str, regex:str = REGEX_DEFAULT_PATTERN) -> int:
     """
     Checks if a class name is valid
         Params: 
@@ -90,8 +104,9 @@ def valid_name(name:str) -> int:
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in invalid_names:
-        raise UMLException("InvalidNameError")
+    if name.lower() in invalid_names or re.search(regex, name) is None:
+        raise InvalidNameException()
+    
     return 0
 
 def get_error_name(val:int) -> str:
@@ -147,8 +162,9 @@ class NoSuchObjectException(UMLException):
             None: Error automatically passes its name onto
             UMLException so no args are needed
     """
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         super().__init__(get_error_name(4),*args)
+        self.object_type = kwargs.get("object_type")
 
 class NoActiveProjectException(UMLException):
     """
@@ -170,9 +186,9 @@ class NoActiveClassException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(6), *args)
 
-class DuplicateAttributeException(UMLException):
+class DuplicateFieldException(UMLException):
     """
-    Wrapper of UMLException class for duplicate attribute error
+    Wrapper of UMLException class for duplicate field error
         Args:
             None: Error automatically passes its name onto
             UMLException so no args are needed
@@ -199,3 +215,47 @@ class DuplicateRelationshipException(UMLException):
     """
     def __init__(self, *args):
         super().__init__(get_error_name(9),*args)
+
+class DuplicateMethodOverloadException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(10), *args)
+
+class MethodNameNotExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(11), *args)
+
+class MethodOverloadNotExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(12), *args)
+
+class DuplicateParameterException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(13), *args)
+
+class NoSuchParameterException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(14), *args)
+
+class InvalidJsonSchemaException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(15), *args)
+
+class NoActiveMethodException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(16), *args)
+
+class InvalidRelationshipTypeException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(17), *args)
+
+class FileAlreadyExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(18), *args)
+
+class FileHasUnsavedChangesException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(19), *args)
+
+class UmlClassDeletionErrorException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(20), *args)

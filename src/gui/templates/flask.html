@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html>
+<link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+
+<head>
+    <title>BS-UML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body style="background-color: #0e1113;">
+    <div id="toolbar">
+        <button onclick="showNewModal()">New</button>
+        <button onclick="showSaveModal()">Save</button>
+        <button onclick="showLoadModal()">Load</button>
+        <button onclick="confirmQuit()">Quit</button>
+    </div>
+
+    <div id="content">
+        <div id="mySidenav" class="sidenav">
+            <button id="ClassList" onclick="toggleClassList()">ClassList</button>
+            <button id="RelationList" onclick="toggleRelationList()">RelationList</button>
+        </div>
+    </div>
+
+    <div id="ClassTable" style="display: none;">
+        <!-- <table id="Data">
+        </table> -->
+    </div>
+
+    <div id="RelationTable" style="display: none;">
+        <!-- <table id="RelationData"> -->
+        <!-- Relation data will be inserted here -->
+        <!-- </table> -->
+    </div>
+
+    <div id="ClassDetails" style="display: none;">
+        <button class="close" onclick="closeClassDetails()">&times;</button>
+        <!-- Class details will be displayed here -->
+    </div>
+
+    <!-- The Modal for adding classes and relationships -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="modalPrompt">Enter Class Name:</p>
+            <input type="text" id="classNameInput" />
+            <button id="modalSubmitButton" onclick="addClass()">Submit</button>
+        </div>
+    </div>
+
+    <!-- The Modal for creating a new project -->
+    <div id="newModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNewModal()">&times;</span>
+            <h2>New File</h2>
+            <p>Enter File Name:</p>
+            <input type="text" id="newFileNameInput" />
+            <button onclick="newProject(false)">Create Project</button>
+        </div>
+    </div>
+
+    <!-- The Modal for saving the project -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSaveModal()">&times;</span>
+            <h2>Save File</h2>
+            <p>Enter File Name:</p>
+            <input type="text" id="saveFileNameInput" />
+            <button onclick="saveProject(false)">Save</button>
+        </div>
+    </div>
+
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoadModal()">&times;</span>
+            <h2>Load File</h2>
+            <p>Enter File Name:</p>
+            <input type="text" id="loadFileNameInput" />
+            <button onclick="loadProject(false)">Load</button>
+            <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
+        </div>
+    </div>
+    <!-- Modal for asking the user if they want to override an existing file. -->
+    <div id="yesNoModal" class="modal">
+        <div class="modal-content">
+            <p id="yesNoModalPrompt"></p>
+            <div>
+                <span><button id="btnModalYes" onclick="">Yes</button></span>
+                <span><button id="btnModalNo" onclick="toggleVisibility(['yesNoModal'])">No</button></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="snackbar">Some text some message..</div>
+    <style>
+        body {
+            background-color: #0e1113;
+            padding-top: 60px;
+        }
+
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            z-index: 2;
+        }
+
+        #toolbar button {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #toolbar button:hover {
+            background-color: #028a5e;
+        }
+
+        #mySidenav {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            /* Adjusted to be below the toolbar */
+            height: calc(100% - 60px);
+            /* Adjusted to be below the toolbar */
+            width: 125px;
+            background-color: #111;
+            padding-top: 20px;
+        }
+
+        #mySidenav button {
+            position: relative;
+            left: -75px;
+            transition: 0.3s;
+            padding: 15px;
+            width: 125px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            border-radius: 0 5px 5px 0;
+        }
+
+        #mySidenav button:hover {
+            left: 0;
+        }
+
+        #ClassList {
+            top: 20px;
+            background-color: #04AA6D;
+        }
+
+        #RelationList {
+            top: 80px;
+            background-color: #04AA6D;
+        }
+
+        #ClassTable,
+        #RelationTable {
+            padding: 15px;
+            margin-left: 10%;
+            margin-right: 80%;
+            background-color: #04AA6D;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            width: 20%;
+        }
+
+        .RelationData {
+            width: 100%;
+            text-align: center;
+        }
+
+        #ClassDetails {
+            position: fixed;
+            /* Changed from absolute to fixed */
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px;
+            background-color: #333;
+            color: white;
+            border-radius: 10px;
+            width: 20%;
+            text-align: center;
+            display: none;
+        }
+
+        .class-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .class-button:hover {
+            background-color: #555;
+        }
+
+        .add-button {
+            background-color: #04AA6D;
+            color: white;
+            border: 2px solid #028a5e;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .add-button:hover {
+            background-color: #028a5e;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #333;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: white;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .input-mode-view {
+            margin-top: 10px;
+            background: transparent;
+            color: white;
+            border: none;
+        }
+
+        #cntrAddClass>input {
+            background: #333;
+            width: 100%
+        }
+
+        #loadError {
+            color: red;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+
+        /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
+        /* The snackbar - position it at the bottom and in the middle of the screen */
+        #snackbar {
+            visibility: hidden;
+            /* Hidden by default. Visible on click */
+            min-width: 250px;
+            /* Set a default minimum width */
+            margin-left: -125px;
+            /* Divide value of min-width by 2 */
+            background-color: #f70909;
+            /* Black background color */
+            color: #fff;
+            /* White text color */
+            text-align: center;
+            /* Centered text */
+            border-radius: 2px;
+            /* Rounded borders */
+            padding: 16px;
+            /* Padding */
+            position: fixed;
+            /* Sit on top of the screen */
+            z-index: 1;
+            /* Add a z-index if needed */
+            left: 50%;
+            /* Center the snackbar */
+            bottom: 30px;
+            /* 30px from the bottom */
+        }
+
+        /* Show the snackbar when clicking on a button (class added with JavaScript) */
+        #snackbar.show {
+            visibility: visible;
+            /* Show the snackbar */
+            /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+        However, delay the fade out process for 2.5 seconds */
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
+            animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        /* Animations to fade the snackbar in and out */
+        @-webkit-keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @-webkit-keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        /* END SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
+
+        input.class-name {
+            background: #333;
+            color: white;
+            width: 100%;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            border: none;
+        }
+    </style>
+
+    <script>
+        function snackbar(text) {
+            // Get the snackbar DIV
+            var x = document.getElementById("snackbar");
+
+            // Add the "show" class to DIV
+            x.className = "show";
+            x.innerText = text;
+
+            // After 3 seconds, remove the show class from DIV
+            setTimeout(function () { x.className = x.className.replace("show", ""); }, 5000);
+        }
+
+
+        /**
+         * Toggles the display of the class list.
+         * Fetches class list data from the server and displays it.
+         */
+        function toggleClassList() {
+            let classTable = document.getElementById("ClassTable");
+            if (classTable.style.display === "none" || classTable.style.display === "") {
+                classTable.style.display = "block";
+                getClassList();
+            } else {
+                classTable.style.display = "none";
+            }
+        }
+
+        /**
+         * Toggles the display of the relation list.
+         * Fetches relation list data from the server and displays it.
+         */
+        function toggleRelationList() {
+            let relationTable = document.getElementById("RelationTable");
+            if (relationTable.style.display === "none" || relationTable.style.display === "") {
+                relationTable.style.display = "block";
+                getRelationList();
+            } else {
+                relationTable.style.display = "none";
+            }
+        }
+
+        /**
+         * Fetches and displays the class list.
+         * Sends a request to the server to get the list of classes.
+         */
+        function getClassList() {
+            fetch('/classlist')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("ClassTable").innerHTML = data.html
+                })
+        }
+
+        function toggleVisibility(ids) {
+            console.log("Toggle: " + ids);
+            ids.forEach(id => {
+                elem = document.getElementById(id);
+                input = elem.getElementsByTagName("input")[0];
+                console.log(elem.style.display, elem);
+                if (elem.style.display === "none" || elem.style.display === "" || elem.style.display === null) {
+                    elem.style.display = "block";
+                    if (input) {
+                        input.focus();
+                    }
+                } else {
+                    elem.style.display = "none";
+                    if (input) {
+                        input.blur();
+                    }
+                }
+            })
+        }
+
+        /**
+         * Fetches and displays the relation list.
+         * Sends a request to the server to get the list of relations.
+         */
+        function getRelationList() {
+            // fetch('/relationlist')
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         table = document.getElementById("RelationData");
+            //         table.innerHTML = "";
+            //         data.forEach(element => {
+            //             table.insertRow(0).insertCell(0).innerHTML = element;
+            //         });
+            //         // Add a row with a plus sign at the bottom
+            //         let plusRow = table.insertRow();
+            //         let plusCell = plusRow.insertCell(0);
+            //         plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
+            //     });
+
+            fetch("/relationList")
+                .then(res => res.json())
+                .then(data => {
+                    container = document.getElementById("RelationTable");
+                    container.innerHTML = data.html;
+                })
+        }
+
+        /**
+         * Fetches and displays the details of a class.
+         * @param {string} className - The name of the class.
+         */
+        function displayClassDetails(className) {
+            fetch(`/classdetails?name=${className}`)
+                .then(response => response.json())
+                .then(data => {
+                    let detailsDiv = document.getElementById("ClassDetails");
+                    detailsDiv.innerHTML = data.html;
+                    detailsDiv.style.display = "block";
+                });
+        }
+
+        // Get the modal
+        var modal = document.getElementById("myModal");
+        var saveModal = document.getElementById("saveModal");
+        var newModal = document.getElementById("newModal");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        var fileName;
+
+        /**
+         * Shows the modal for adding a class, relation, field, or method.
+         * @param {string} type - The type of item to add.
+         */
+        function showModal(type) {
+            if (type === 'class') {
+                document.getElementById("modalPrompt").innerText = "Enter Class Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addClass;
+            } else if (type === 'relation') {
+                document.getElementById("modalPrompt").innerText = "Enter Source Class and Target Class:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addRelation;
+            } else if (type === 'field') {
+                document.getElementById("modalPrompt").innerText = "Enter Field Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addField;
+            } else if (type === 'method') {
+                document.getElementById("modalPrompt").innerText = "Enter Method Name:";
+                document.getElementById("classNameInput").value = "";
+                document.getElementById("modalSubmitButton").onclick = addMethod;
+            }
+            modal.style.display = "block";
+        }
+
+        /**
+         * Shows the new project modal.
+         */
+        function showNewModal() {
+            // document.getElementById("newFileNameInput").value = ".json"
+            newModal.style.display = "block";
+        }
+
+        /**
+         * Closes the new project modal.
+         */
+        function closeNewModal() {
+            newModal.style.display = "none";
+        }
+
+        /**
+         * Shows the save modal.
+         */
+        function showSaveModal() {
+            // document.getElementById("fileNameInput")
+            saveModal.style.display = "block";
+        }
+
+        /**
+         * Closes the save modal.
+         */
+        function closeSaveModal() {
+            saveModal.style.display = "none";
+        }
+
+        /**
+         * Closes the class details.
+         */
+        function closeClassDetails() {
+            document.getElementById("ClassDetails").style.display = "none";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+            closeSaveModal();
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+            if (event.target == saveModal) {
+                saveModal.style.display = "none";
+            }
+        }
+
+        /**
+         * Adds a new class.
+         * Adds the new class to the class list and updates the display.
+         */
+        function addClass() {
+            let className = document.getElementById("classNameInput").value;
+            // Add logic to handle the new class name
+            console.log("New class name:", className);
+            // Add the new class to the list above the "Add Class" button
+            let table = document.getElementById("Data");
+            let plusRow = table.rows[table.rows.length - 1];
+            let row = table.insertRow(table.rows.length - 1);
+            let cell = row.insertCell(0);
+            let button = document.createElement("button");
+            button.innerHTML = className;
+            button.className = "class-button";
+            button.onclick = function () {
+                displayClassDetails(className);
+            };
+            cell.appendChild(button);
+            modal.style.display = "none";
+        }
+
+        function addClass2(event, elem) {
+            if (event.key === "Enter") {
+
+                fetch("/addClass", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        classname: elem.value
+                    })
+                })
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        } else {
+                            getClassList();
+                            getRelationList();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                        snackbar(data.error);
+                    })
+                    .catch(error => console.log(error))
+            }
+        }
+
+        function deleteClass(classname, override) {
+            fetch("/deleteclass", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: classname,
+                    override: override
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getClassList();
+                        getRelationList();
+                    }
+
+                })
+                .then(data => {
+                    if (data.action) {
+                        yes_callback = () => deleteClass(classname, true);
+                        no_callback = () => {
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error))
+        }
+
+
+        /**
+         * Adds a new relation.
+         * Adds the new relation to the relation list and updates the display.
+         */
+        function addRelation() {
+            let input = document.getElementById("classNameInput").value;
+            let [sourceClass, targetClass] = input.split(" ");
+            // Add logic to handle the new relationship
+            console.log("New relationship:", sourceClass, "->", targetClass);
+            // Add the new relationship to the list
+            let table = document.getElementById("RelationData");
+            let row = table.insertRow(table.rows.length - 1);
+            let cell = row.insertCell(0);
+            cell.innerHTML = `${sourceClass} -> ${targetClass}`;
+            modal.style.display = "none";
+        }
+
+        /**
+         * Adds a new field.
+         * Adds the new field to the class details and updates the display.
+         */
+        function addField() {
+            let fieldName = document.getElementById("classNameInput").value;
+            // Add logic to handle the new field name
+            console.log("New field name:", fieldName);
+            // Add the new field to the list above the "Add Field" button
+            let fieldsList = document.getElementById("fieldsList");
+            let div = document.createElement("div");
+            div.innerHTML = `- ${fieldName}`;
+            fieldsList.appendChild(div);
+            modal.style.display = "none";
+        }
+
+        function onkeydown_enter(event, func) {
+            if (event.key === "Enter") {
+                func();
+            }
+        }
+
+        function addField2(event, elem, className) {
+            if (event.key === "Enter") {
+                fetch("/addField", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fieldname: elem.value,
+                        classname: className
+                    })
+                })
+                    .then(resp => {
+                        return resp.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            snackbar(data.error);
+                        } else {
+                            displayClassDetails(className);
+                        }
+                    })
+            }
+        }
+
+        function deleteField(className, fieldName) {
+            fetch("/deleteField", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fieldname: fieldName,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
+        /**
+         * Adds a new method.
+         * Adds the new method to the class details and updates the display.
+         */
+        function addMethod() {
+            let methodName = document.getElementById("classNameInput").value;
+            // Add logic to handle the new method name
+            console.log("New method name:", methodName);
+            // Add the new method to the list above the "Add Method" button
+            let methodsList = document.getElementById("methodsList");
+            let div = document.createElement("div");
+            div.innerHTML = `+ ${methodName}`;
+            methodsList.appendChild(div);
+            modal.style.display = "none";
+        }
+
+        function addMethod2(event, elem) {
+            if (event.key === "Enter") {
+                fetch("/addMethod", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        methodname: elem.value
+                    })
+                })
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        }
+                        console.log(resp);
+                        displayClassDetails("");
+                    })
+                    .then(data => snackbar(data.error))
+                    .catch(error => console.log(error))
+            }
+        }
+
+        function addMethodParam(event, target, methodname, arity) {
+            fetch("/addMethodParam", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodname,
+                    paramname: target.value,
+                    arity: arity
+                })
+            })
+                .then(res => {
+                    if (res.status >= 400) {
+                        target.value = "";
+                        return res.json();
+                    } else {
+                        displayClassDetails("");
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(err => console.log(err))
+        }
+        
+        function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
+            switch(action) {
+                case "showModal":
+                    modal = document.getElementById(tagId);
+                    e_text = document.getElementById("yesNoModalPrompt");
+                    e_text.innerText = error_text;
+                    btn_yes = document.getElementById("btnModalYes");
+                    btn_no = document.getElementById("btnModalNo");
+                    if (btn_yes) {
+                        btn_yes.onclick = () => {
+                            toggleVisibility([tagId]);
+                            yes_callback();
+                        }
+                    }
+                    if (btn_no) {
+                        btn_no.onclick = () => {
+                            toggleVisibility([tagId]);
+                            no_callback();
+                        };
+                    }
+                    toggleVisibility([tagId]);
+            }
+        }
+
+        function newProject(override) {
+            elem = document.getElementById("newFileNameInput")
+            fetch("/newproject", {
+                method: "Post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: elem.value,
+                    override_file: override
+                })
+            }).then(resp => {
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    document.getElementById("saveFileNameInput").value = fileName;
+                    closeNewModal();
+                    getClassList();
+                    getRelationList();
+                }
+            })
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => newProject(true);
+                    no_callback = () => {
+                        document.getElementById("newFileNameInput").value = "";
+                    };
+
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
+            .catch(error => console.log(error))
+        }
+
+        /**
+         * Saves the project with the given file name.
+         * Prompts the user to enter a file name and saves the project.
+         */
+        function saveProject(override) {
+            elem = document.getElementById("saveFileNameInput");
+
+            fetch(`/saveproject`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: elem.value,
+                        override: override
+                    })
+                }
+            )
+            .then(resp => {
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    closeSaveModal();
+                }
+            })
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => saveProject(true);
+                    no_callback = () => {
+                        document.getElementById("saveFileNameInput").value = "";
+                    };
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error saving project:", error);
+            });
+        }
+
+        function loadProject(override) {
+            fileName = document.getElementById("loadFileNameInput").value;
+            // let loadError = document.getElementById("loadError");
+
+            // if (!fileName.endsWith(".json")) {
+            //     loadError.style.display = "block";
+            //     return;
+            // }
+
+            fetch(`/loadfile?filename=${fileName}&override=${override}`)
+                .then(resp => {
+                    // if (!response.ok) {
+                    //     throw new Error("File not found");
+                    // }
+                    // return response.json();
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        closeLoadModal();
+                        document.getElementById("saveFileNameInput").value = fileName;
+                        getClassList();
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data.action) {
+                        yes_callback = () => loadProject(true);
+                        no_callback = () => {
+                            document.getElementById("loadFileNameInput").value = "";
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => {
+                    // loadError.style.display = "block";
+                    console.error("Error loading project:", error);
+                });
+        }
+
+        function showLoadModal() {
+            document.getElementById("loadModal").style.display = "block";
+        }
+
+        function closeLoadModal() {
+            document.getElementById("loadModal").style.display = "none";
+            document.getElementById("loadError").style.display = "none";
+        }
+
+        function renameField(target, elem, className, fieldName) {
+            newname = target.value;
+            oldname = elem.value
+            if (fieldName === newname) {
+                return;
+            }
+            fetch("/renameField", {
+                method: "post",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: className,
+                    oldname: fieldName,
+                    newname: newname
+                })
+            }
+            )
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        elem.value = fieldName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
+        function renameMethod(target, elem, className, methodName) {
+            const newname = target.value;
+            if (methodName === newname) {
+                return;
+            }
+
+            fetch("/renameMethod", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: className,
+                    oldname: methodName,
+                    newname: newname
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = methodName;
+                        return resp.json();
+                    }
+                    console.log(resp);
+                    displayClassDetails("");
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => console.log(error));
+        }
+
+        function renameClass(target, classname) {
+            newname = target.value;
+            if (classname === newname) {
+                return;
+            }
+
+            fetch("/renameClass", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    newname: newname
+                })
+            }
+            )
+                .then(res => {
+                    if (res.ok) {
+                        getClassList();
+                        getRelationList();
+                    } else {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(reason => target.value = classname);
+
+            displayClassDetails("");
+        }
+
+        function inputBlur(event, func) {
+            elem = event.target;
+            if (elem.value === "") {
+                func();
+            }
+        }
+
+        function confirmQuit() {
+            var result = confirm("Are you sure you want to quit?")
+            if (result) {
+                fetch("/quit", { method: "POST" })
+                    .then(res => window.close())
+                    .catch(error => console.log(error))
+
+            }
+        }
+
+        function addRelation() {
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value;
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
+
+            toggleVisibility(['cntrAddRelationship']);
+        }
+
+        function deleteRelation(source, destination) {
+            console.log(source, destination);
+            fetch("/deleteRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination
+                })
+            })
+                .then(resp => {
+                    console.log(resp);
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
+        }
+    </script>
+</body>
+
+</html>

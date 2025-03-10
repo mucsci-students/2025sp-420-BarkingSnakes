@@ -1,0 +1,45 @@
+<button class="close" onclick="closeClassDetails()">&times;</button>
+<div style="text-align: center;">
+    <input class="class-name" value="{{ dto.name }}" onkeydown="onkeydown_enter(event, () => this.blur())"
+        onblur="renameClass(event.target, '{{ dto.name }}')" />
+</div>
+<hr>
+<h3>Fields</h3>
+<div id="fieldsList" style="text-align: left;">
+    <table>
+        {% for f in dto.fields %}
+        {% include "_umlfield.html" %}
+        {% endfor %}
+    </table>
+    <br>
+    <div style="text-align: center;">
+        <!-- <button class="add-button" onclick="showModal('field')"><span class="glyphicon glyphicon-plus-sign"></span> Add Field</button> -->
+        <button style="display: block;" id="btnAddField" class="add-button"
+            onclick="toggleVisibility(['btnAddField', 'cntrAddField'])"><span
+                class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
+        <div id="cntrAddField" style="width: 100%; display:none;">
+            <label for="newFieldName">Field Name:</label>
+            <input class="input-mode-view" id="newFieldName" type="text" onkeydown="addField2(event, this,'{{dto.name}}')"
+                onblur="inputBlur(event, () => toggleVisibility(['btnAddField', 'cntrAddField']))">
+            <!-- <input class="input-mode-view" id="newClassName" type="text" onblur="addUmlClass(event.target.value)"> -->
+        </div>
+    </div>
+</div>
+<hr>
+<h3>Methods</h3>
+<div id="methodsList" style="text-align: left;">
+    {% for m in dto.methods %}
+    {% include "_umlmethod.html" %}
+    {% endfor %}
+</div>
+<br>
+<div style="text-align: center;">
+    <button style="display: block;" id="btnAddMethod" class="add-button"
+        onclick="toggleVisibility(['btnAddMethod', 'cntrAddMethod'])"><span
+            class="glyphicon glyphicon-plus-sign"></span> Add Method</button>
+    <div id="cntrAddMethod" style="width: 100%; display:none;">
+        <label for="newMethodName">Method Name:</label>
+        <input class="input-mode-view" id="newMethodName" type="text" onkeydown="addMethod2(event, this)"
+            onblur="inputBlur(event, () => toggleVisibility(['btnAddMethod', 'cntrAddMethod']))">
+    </div>
+</div>
