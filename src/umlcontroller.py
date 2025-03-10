@@ -18,6 +18,8 @@ from umlrelationship import UmlRelationship, RelationshipType
 from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 # from views.umlview import UmlView
 from views.umlview import *
+from views.umlview_gui import UmlGuiView
+from views.umlview_cli import UmlCliView
 import errors
 class UmlApplication:()
 
@@ -139,16 +141,29 @@ class UmlController:
         """Decorator to prompt for unsaved changes."""
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
-            if self.model and self.model.has_unsaved_changes:
-                # TODO - Finish logic, shouldn't check for y or no here, only true/false returned from prompt_user()
-                prompt = "The current project has unsaved changes. Would you like to save before continuing?Y/N. "
+            print("[controller::_handle_unsaved_changes]", kwargs, args)
+            try:
+                override = args[1]
+            except:
+                override = False
+            # override = kwargs.get("override") or False
+            if self.model and self.model.has_unsaved_changes and not override:
+                if isinstance(self.view, UmlGuiView):
+                    raise errors.FileHasUnsavedChangesException()
+                # prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                #     \nWARNING: this will erase the old file's contents. "
+                # if not self.view.prompt_user(prompt, None):
+                #     return
+                
+                prompt = "The current project has unsaved changes. Would you like to save before continuing?"
 
-                if self.view.prompt_user(prompt):
+                if self.view.prompt_user(prompt, None):
+                    self.save_project(self.model._save_path)
                     # if not self.model._save_path:
                     #     #likely need changed for view with mvc
                     #     self.get_filepath_from_user()
                     #     self.model._save_path = self._current_filepath
-                    self.save_project(None)
+                    # self.save_project(None)
                     # self.save_project(self.model._save_path)
                 # elif user_response.lower() != 'n':
                 #     self.inform_invalid_command(user_response)
@@ -192,7 +207,7 @@ class UmlController:
         return wrapper
 
     @_handle_unsaved_changes
-    def load_project(self, filepath:str) -> None:
+    def load_project(self, filepath:str, override:bool = False) -> None:
         """Load the project at the provided filepath.
 
         Params:
@@ -212,7 +227,7 @@ class UmlController:
         # since overriding should not be concern if same as loaded file
 
     @_requires_active_project
-    def save_project(self, filename:str) -> None:
+    def save_project(self, filename:str, override:bool = False) -> None:
         """
         Saves the currently opened project using the given filepath.\n
         If file already exists, asks the user if they want to override it.\n
@@ -230,10 +245,12 @@ class UmlController:
             if not self.model.is_json_file(filename):
                 raise errors.InvalidFileException()
             
-            if self.model._save_path != filename and self.model._filepath_exists(filename):
+            if self.model._save_path != filename and self.model._filepath_exists(filename) and not override:
+                if isinstance(self.view, UmlGuiView):
+                    raise errors.FileAlreadyExistsException()
                 prompt = "A file with that name already exists. Do you want to override it? Y/N.\
                     \nWARNING: this will erase the old file's contents. "
-                if not self.view.prompt_user(prompt):
+                if not self.view.prompt_user(prompt, None):
                     return
                 
             self.model._save_path = filename
@@ -241,7 +258,7 @@ class UmlController:
         self.model.save()
     
     @_handle_unsaved_changes
-    def new_project(self, filepath:str) -> None:
+    def new_project(self, filepath:str, override:bool = False) -> None:
         """
         Creates a new project using the uml project template,
         and stores a filename.
@@ -256,6 +273,15 @@ class UmlController:
         if filepath:
             if not self.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
+
+            if self.model._filepath_exists(filepath) and not override:
+                if isinstance(self.view, UmlGuiView):
+                    raise errors.FileAlreadyExistsException()
+                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                    \nWARNING: this will erase the old file's contents. "
+                if not self.view.prompt_user(prompt, None):
+                    return
+
             
         #declare new project, and call "new" method
         self.model = UmlProject()
@@ -278,7 +304,10 @@ class UmlController:
             self.command_add_umlclass(args[2])
 
         elif cmd == 'delete':
-            self.command_delete_umlclass()
+            override = False
+            if len(args) == 2:
+                override = args[1] == "True"
+            self.command_delete_umlclass(override)
 
         elif cmd == 'rename':
             #ask for rest of input
@@ -332,28 +361,38 @@ class UmlController:
         elif cmd == 'save':
             # if no filename specified and current save path exists,
             # then call without filepath
+            print("[execute_command(save)]", args)
             if len(args) == 1 and self.model._save_path:
                 args.append(None)
             else:
                 #if no save filepath but only one arg then request filepath
-                if len(args) == 1:
+                if len(args) == 1 and isinstance(self.view, UmlCliView):
                     args.append(self.view.get_user_input("enter file name: "))
-            self.save_project(args[1])
+            override = False
+            if len(args) == 3:
+                override = args[2] == "True"
+            self.save_project(args[1], override)
             
         elif cmd == 'new':
             # if only new is specified, then assume file will be provided at save
             if len(args) == 1:
                 #if input filename is not, then it is not set
                 args.append(None)
+            override = False
+            if len(args) == 3:
+                override = args[2] == "True"
             # if filename is provided, then take it, but
             # don't use to create file at this time
-            self.new_project(args[1])
+            self.new_project(args[1], override)
             
         elif cmd == 'load':
             #ask for rest of input
+            override = False
             if len(args) == 1:
                 args.append(self.view.get_user_input("Enter project file name: "))
-            self.load_project(args[1])
+            if len(args) == 3:
+                override = args[2] == "True"
+            self.load_project(args[1], override)
         else:
             self.view.handle_exceptions(error_text)
 
@@ -402,19 +441,24 @@ class UmlController:
         self.view.set_active_class(name)
 
     @_requires_active_class
-    def command_delete_umlclass(self):
+    def command_delete_umlclass(self, override:bool = False):
         """Removes the UmlClass in the current context from the project.
         Prompts and informs the user to delete relationships.
         
         Exceptions:
             NoActiveClassException
         """        
-        # Confirm with user
-        prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.view.prompt_user(prompt):
-            return
+        if not override:
+            if isinstance(self.view, UmlGuiView):
+                raise errors.UmlClassDeletionErrorException()
+            # Confirm with user
+            prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
+            # return self.view.prompt_user(prompt, lambda: self.command_delete_umlclass(True))
+            if not self.view.prompt_user(prompt, None):
+                return
+
         # Remove from project
         self.model.delete_umlclass(self.view.active_class)
         self.view.set_active_class(None)
@@ -702,34 +746,37 @@ class UmlController:
             try:
                 command = self.view.get_user_command()
                 self.execute_command(command)
-            except errors.NoActiveProjectException:
-                self.view.handle_exceptions("No project has been loaded. Use command: \
-                    load <filepath> or new <filepath> to get started.")
-            except errors.NoActiveClassException:
-                self.view.handle_exceptions("No active class selection. Use command: class <class name> to select a class.")
-            except errors.DuplicateClassException:
-                self.view.handle_exceptions("Failed: A class with that name already exists in this project.")
-            except errors.DuplicateFieldException:
-                self.view.handle_exceptions("Failed: A field with that name already exists on this class.")
-            except errors.InvalidFileException:
-                self.view.handle_exceptions("Invalid file: Use command: save <filename.json> to save to a file, \
-                    \n command: save to save to current loaded/saved file, \
-                    \n or command: load <filename.json> to load a file that exists \
-                    \n in current folder, or specify subfolder with <filepath/filename.json>")
-            except errors.DuplicateRelationshipException:
-                self.view.handle_exceptions("Failed: This relationship already exists in this project.")
-            except errors.NoSuchObjectException as nso_e:
-                self.view.handle_exceptions(f"Failed: That {nso_e.object_type} does not exist.")
-            except errors.InvalidNameException:
-                self.view.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
-            except errors.MethodOverloadNotExistsException:
-                self.view.handle_exceptions("Failed: The arity level does not exist for this method.")
-            except errors.NoActiveMethodException:
-                self.view.handle_exceptions("Failed: Not in a method context. Use: method help")
-            except errors.DuplicateMethodOverloadException:
-                self.view.handle_exceptions("Failed: An arity level already exists for the target method.")
+            # except errors.NoActiveProjectException:
+            #     self.view.handle_exceptions("No project has been loaded. Use command: \
+            #         load <filepath> or new <filepath> to get started.")
+            # except errors.NoActiveClassException:
+            #     self.view.handle_exceptions("No active class selection. Use command: class <class name> to select a class.")
+            # except errors.DuplicateClassException:
+            #     self.view.handle_exceptions("Failed: A class with that name already exists in this project.")
+            # except errors.DuplicateFieldException:
+            #     self.view.handle_exceptions("Failed: A field with that name already exists on this class.")
+            # except errors.InvalidFileException:
+            #     self.view.handle_exceptions("Invalid file: Use command: save <filename.json> to save to a file, \
+            #         \n command: save to save to current loaded/saved file, \
+            #         \n or command: load <filename.json> to load a file that exists \
+            #         \n in current folder, or specify subfolder with <filepath/filename.json>")
+            # except errors.DuplicateRelationshipException:
+            #     self.view.handle_exceptions("Failed: This relationship already exists in this project.")
+            # except errors.NoSuchObjectException as nso_e:
+            #     self.view.handle_exceptions(f"Failed: That {nso_e.object_type} does not exist.")
+            # except errors.InvalidNameException:
+            #     self.view.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
+            # except errors.MethodOverloadNotExistsException:
+            #     self.view.handle_exceptions("Failed: The arity level does not exist for this method.")
+            # except errors.NoActiveMethodException:
+            #     self.view.handle_exceptions("Failed: Not in a method context. Use: method help")
+            # except errors.DuplicateMethodOverloadException:
+            #     self.view.handle_exceptions("Failed: An arity level already exists for the target method.")
+            # except errors.FileAlreadyExistsException:
+            #     self.view.handle_exceptions("Warning: A file with that name already exists.  Would you like to override the file?")
             except errors.UMLException as uml_e:
-                self.view.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
+                # self.view.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
+                self.view.handle_umlexception(uml_e)
             except EOFError:
                 self.is_running = False
             except Exception as e:
@@ -876,7 +923,7 @@ class UmlApplication:
         elif self.project._filepath_exists(self.project._save_path):
             prompt = "A file with that name already exists. Do you want to override it? Y/N.\
                 \nWARNING: this will erase the old file's contents. "
-            if not self.prompt_user(prompt):
+            if not self.view.prompt_user(prompt):
                 return
         #set current filepath to ignore save prompts on later saves of file
         self._current_filepath = self.project._save_path
@@ -925,7 +972,7 @@ class UmlApplication:
             if user_response.lower() != 'n':
                 self.inform_invalid_command(user_response)
                 #is a recursive loop until user inputs Y or N
-                return self.prompt_user(prompt)
+                return self.view.prompt_user(prompt)
             return False
         return True
     
@@ -1095,7 +1142,7 @@ class UmlApplication:
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
             prompt = "that class does not yet exist. Do you want to create it? Y/N. "
-            if self.prompt_user(prompt):
+            if self.view.prompt_user(prompt):
                 #check name is valid
                 errors.valid_name(name)
                 self.active_class = name
@@ -1125,7 +1172,7 @@ class UmlApplication:
         prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
-        if not self.prompt_user(prompt):
+        if not self.view.prompt_user(prompt):
             return
         # Remove from project
         self.project.delete_umlclass(self.active_class)

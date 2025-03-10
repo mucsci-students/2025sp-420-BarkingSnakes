@@ -13,9 +13,16 @@ class UmlGuiView(UmlView):
     renderable:Renderable = None
     _active_class:str = None
     _umlexception:errors.UMLException = None
+    _active_method:tuple[str, int] = None
+    _callback:Callable = None
+    _override:bool = None
 
     def render(self, renderable:Renderable):
         self.renderable = renderable
+
+    def prompt_user(self, prompt:str, callback:Callable) -> bool:
+        """Shown directly to the user for additional information."""
+        self.handle_exceptions(prompt, action="showModal", tagId = "yesNoModal")
 
     def get_user_command(self) -> list[str]:
         """"""
@@ -29,6 +36,15 @@ class UmlGuiView(UmlView):
     def set_command(self, command:str):
         """"""
         self.command = command
+
+    def set_callback(self, callback:Callable):
+        """"""
+        self._callback = callback
+
+    @property
+    def callback(self) -> Callable:
+        """"""
+        return self._callback
 
     def get_renderable(self) -> Renderable:
         """"""
@@ -52,11 +68,11 @@ class UmlGuiView(UmlView):
         """"""
         self._umlexception = e
 
-    def handle_exceptions(self, error_text:str):
+    def handle_exceptions(self, error_text:str, *args,  **kwargs):
         """"""
-        response = {
-            "error": error_text
-        }
+        response = kwargs
+        response["error"] = error_text
+        print(response)
         self.response = jsonify(response), 400
 
     def handle_umlexception(self, uml_exception:errors.UMLException):
@@ -85,6 +101,15 @@ class UmlGuiView(UmlView):
             self.handle_exceptions("Failed: Not in a method context. Use: method help")
         except errors.DuplicateMethodOverloadException:
             self.handle_exceptions("Failed: An arity level already exists for the target method.")
+        except errors.FileAlreadyExistsException:
+            prompt = "Warning: A file with that name already exists.  Would you like to override the file?"
+            self.prompt_user(prompt, None)
+        except errors.FileHasUnsavedChangesException:
+            prompt = "Warning: The current project has unsaved changes.  Do you want to continue without saving?"
+            self.prompt_user(prompt, None)
+        except errors.UmlClassDeletionErrorException:
+            prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
+            self.prompt_user(prompt, None)
         except errors.UMLException as uml_e:
             self.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
         except EOFError:
@@ -137,3 +162,12 @@ class UmlGuiView(UmlView):
     def render_umlrelationship(self, umlrelationship:UmlRelationshipData):
         """"""
         self.relation_dto = umlrelationship
+
+    def set_active_method(self, method:tuple[str, int]):
+        """"""
+        self._active_method = method
+
+    @property
+    def active_method(self) -> tuple[str, int]:
+        """"""
+        return self._active_method

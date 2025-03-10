@@ -35,7 +35,10 @@ error_list = {
     "NoSuchParameterError":14,
     "InvalidJsonSchemaError":15,
     "NoActiveMethodError":16,
-    "InvalidRelationshipTypeError":17
+    "InvalidRelationshipTypeError":17,
+    "FileAlreadyExistsError": 18,
+    "FileHasUnsavedChangesError": 19,
+    "UmlClassDeletionError": 20
 }
 ## class definitions
 class UMLException(Exception):
@@ -244,3 +247,15 @@ class NoActiveMethodException(UMLException):
 class InvalidRelationshipTypeException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(17), *args)
+
+class FileAlreadyExistsException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(18), *args)
+
+class FileHasUnsavedChangesException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(19), *args)
+
+class UmlClassDeletionErrorException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(20), *args)

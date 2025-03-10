@@ -1,4 +1,4 @@
-
+from typing import Callable
 
 from views.umlview import *
 
@@ -10,6 +10,7 @@ class UmlCliView(UmlView):
         """"""
         self._active_class = None
         self._active_method = None
+        self._prompt_response = None
 
     @property
     def prompt(self) -> str:
@@ -21,7 +22,10 @@ class UmlCliView(UmlView):
             prompt += f"[+{self.active_method[0]}({self.active_method[1]})]"
         return f"{prompt}> "
 
-    def prompt_user(self, prompt:str) -> bool:
+    def inform_invalid_command(self, user_response):
+        print(f"Failed: {user_response} is not a valid option.")
+
+    def prompt_user(self, prompt:str, callback:Callable) -> bool:
         """
         Prompt the user if they want to take such an action\n
         will recursively call if response was not Y/N
@@ -31,15 +35,22 @@ class UmlCliView(UmlView):
                 True: if user responded "Y"
                 False: if user responded "N" or invalid
         """
-        user_response = self.get_user_input(prompt)
+        _prompt = prompt + " Y/N: "
+        user_response = self.get_user_input(_prompt)
         if user_response.lower() != 'y':
             if user_response.lower() != 'n':
                 self.inform_invalid_command(user_response)
                 #is a recursive loop until user inputs Y or N
-                return self.prompt_user(prompt)
+                return self.prompt_user(prompt, callback)
+            self._prompt_response = False
             return False
         return True
     
+    @property
+    def prompt_response(self) -> bool:
+        """"""
+        return self._prompt_response
+
     def get_user_input(self, text:str = "") -> str:
         """
         gets user input from the terminal, after prompting with uml name \
@@ -118,3 +129,48 @@ class UmlCliView(UmlView):
 
     def quit(self):
         """"""
+    
+    def handle_umlexception(self, uml_exception:errors.UMLException):
+        """"""
+        try:
+            raise uml_exception
+        except errors.NoActiveProjectException:
+                self.handle_exceptions("Failed: No project has been loaded.")
+        except errors.NoActiveClassException:
+            self.handle_exceptions("Failed: No active class selection.")
+        except errors.DuplicateClassException:
+            self.handle_exceptions("Failed: A class with that name already exists in this project.")
+        except errors.DuplicateFieldException:
+            self.handle_exceptions("Failed: A field with that name already exists on this class.")
+        except errors.InvalidFileException:
+            self.handle_exceptions("Failed: File must be in .json format.")
+        except errors.DuplicateRelationshipException:
+            self.handle_exceptions("Failed: This relationship already exists in this project.")
+        except errors.NoSuchObjectException as nso_e:
+            self.handle_exceptions(f"Failed: That {nso_e.object_type} does not exist.")
+        except errors.InvalidNameException:
+            self.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
+        except errors.MethodOverloadNotExistsException:
+            self.handle_exceptions("Failed: The arity level does not exist for this method.")
+        except errors.NoActiveMethodException:
+            self.handle_exceptions("Failed: Not in a method context. Use: method help")
+        except errors.DuplicateMethodOverloadException:
+            self.handle_exceptions("Failed: An arity level already exists for the target method.")
+        except errors.FileAlreadyExistsException:
+            prompt = "Warning: A file with that name already exists.  Would you like to override the file?"
+            print(self.callback)
+            callback = self.callback
+            # self.set_callback(None)
+            self.prompt_user(prompt, callback)
+        except errors.FileHasUnsavedChangesException:
+            prompt = "Warning: The current project has unsaved changes.  Do you want to continue without saving?"
+            callback = self.callback
+            self.prompt_user(prompt, callback)
+        except errors.UMLException as uml_e:
+            self.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
+        except EOFError:
+            self.is_running = False
+        except Exception as e:
+            self.handle_exceptions(f"Operation failed:Error:{e}")
+            # raise e
+            # logging.info(f" unknown error occured: {e.args}")
