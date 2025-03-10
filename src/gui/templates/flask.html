@@ -677,9 +677,10 @@
                     override: override
                 })
             })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        return resp.json();
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
                     } else {
                         getClassList();
                         getRelationList();
@@ -699,6 +700,7 @@
                 })
                 .catch(error => console.log(error))
         }
+
 
         /**
          * Adds a new relation.

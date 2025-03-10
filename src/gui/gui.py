@@ -124,7 +124,7 @@ def delete_umlclass():
     override = data.get("override") or False
     app.controller.execute_command(["class", classname])
     app.controller.execute_command(["delete", str(override)])
-    return Response(status=202)
+    return jsonify({"message": "Class deleted successfully"}), 200
 
 
 @app.post("/renameClass")
@@ -243,7 +243,7 @@ def save():
     # app.controller.save_project(file)
     command = ["save", file, str(override)]
     app.controller.execute_command(command)
-    return Response(status=200)
+    return jsonify({"message": "Project saved Successfully"}), 200
 
 
 @app.post("/newproject")
