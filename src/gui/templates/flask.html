@@ -665,7 +665,7 @@
             }
         }
 
-        function deleteClass(classname) {
+        function deleteClass(classname, override) {
             fetch("/deleteclass", {
                 method: "POST",
                 headers: {
@@ -673,7 +673,8 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    classname: classname
+                    classname: classname,
+                    override: override
                 })
             })
                 .then(resp => {
@@ -685,8 +686,16 @@
                     }
                 })
                 .then(data => {
-                    console.log(data);
-                    snackbar(data.error);
+                    if (data.action) {
+                        yes_callback = () => deleteClass(classname, true);
+                        no_callback = () => {
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
                 })
                 .catch(error => console.log(error))
         }

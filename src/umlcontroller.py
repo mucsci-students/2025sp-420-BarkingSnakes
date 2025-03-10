@@ -297,7 +297,10 @@ class UmlController:
             self.command_add_umlclass(args[2])
 
         elif cmd == 'delete':
-            self.command_delete_umlclass()
+            override = False
+            if len(args) == 2:
+                override = args[1] == "True"
+            self.command_delete_umlclass(override)
 
         elif cmd == 'rename':
             #ask for rest of input
@@ -438,9 +441,14 @@ class UmlController:
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
         if not override:
+            if isinstance(self.view, UmlGuiView):
+                raise errors.UmlClassDeletionErrorException()
             # Confirm with user
-            prompt = "Deleting a class will also remove its relationships. Y/N to continue. "
-            return self.view.prompt_user(prompt, lambda: self.command_delete_umlclass(True))
+            prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
+            # return self.view.prompt_user(prompt, lambda: self.command_delete_umlclass(True))
+            if not self.view.prompt_user(prompt, None):
+                return
+
         # Remove from project
         self.model.delete_umlclass(self.view.active_class)
         self.view.set_active_class(None)

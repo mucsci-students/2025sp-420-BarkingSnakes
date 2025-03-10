@@ -121,8 +121,9 @@ def add_umlclass():
 def delete_umlclass():
     data = request.get_json()
     classname = data.get("classname")
+    override = data.get("override") or False
     app.controller.execute_command(["class", classname])
-    app.controller.execute_command(["delete"])
+    app.controller.execute_command(["delete", str(override)])
     return Response(status=202)
 
 

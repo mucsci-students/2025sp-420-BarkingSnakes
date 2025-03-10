@@ -37,7 +37,8 @@ error_list = {
     "NoActiveMethodError":16,
     "InvalidRelationshipTypeError":17,
     "FileAlreadyExistsError": 18,
-    "FileHasUnsavedChangesError": 19
+    "FileHasUnsavedChangesError": 19,
+    "UmlClassDeletionError": 20
 }
 ## class definitions
 class UMLException(Exception):
@@ -254,3 +255,7 @@ class FileAlreadyExistsException(UMLException):
 class FileHasUnsavedChangesException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(19), *args)
+
+class UmlClassDeletionErrorException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(20), *args)
