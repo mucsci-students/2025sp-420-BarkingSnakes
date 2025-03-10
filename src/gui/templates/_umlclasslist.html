@@ -1,3 +1,7 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
 <table id="Data">
     <tbody>
         {% for c in classes %}
@@ -5,15 +9,26 @@
             <td>
                 <button class="class-button" onclick="displayClassDetails('{{ c }}')">{{ c }}</button>
             </td>
+            <td style="text-align: center;">
+                <a href="#" onclick="deleteClass('{{ c }}', false)" title="Delete Class">
+                    <i class="fa-solid fa-delete-left"
+                        style="color: red; font-size: 18px; transition: all 0.2s ease-in-out;"
+                        onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
+                        onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';">
+                    </i>
+                </a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
     <tfoot>
         <tr>
-            <td>
-                <!-- <button class="add-button" onclick="showModal('class')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button> -->
-                <button style="display: block;" id="btnAddClass" class="add-button" onclick="toggleVisibility(['btnAddClass', 'cntrAddClass'])"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>
-                <div id="cntrAddClass" style="width: 100%; display:none;">
+            <td colspan="2">
+                <button style="display: block;" id="btnAddClass" class="add-button"
+                    onclick="toggleVisibility(['btnAddClass', 'cntrAddClass'])">
+                    <i class="fas fa-plus-circle"></i> Add Class
+                </button>
+                <div id="cntrAddClass" style="width: 100%; padding: 10px; ; display:none;">
                     <label for="newClassName">Class Name:</label>
                     <input class="input-mode-view" id="newClassName" type="text" onkeydown="addClass2(event, this)" onblur="inputBlur(event, () => toggleVisibility(['btnAddClass', 'cntrAddClass']))">
                     <!-- <input class="input-mode-view" id="newClassName" type="text" onblur="addUmlClass(event.target.value)"> -->

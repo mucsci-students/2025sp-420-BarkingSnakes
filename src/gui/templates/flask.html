@@ -5,6 +5,7 @@
 
 <head>
     <title>BS-UML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body style="background-color: #0e1113;">
@@ -29,7 +30,7 @@
 
     <div id="RelationTable" style="display: none;">
         <!-- <table id="RelationData"> -->
-            <!-- Relation data will be inserted here -->
+        <!-- Relation data will be inserted here -->
         <!-- </table> -->
     </div>
 
@@ -52,9 +53,10 @@
     <div id="newModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeNewModal()">&times;</span>
+            <h2>New File</h2>
             <p>Enter File Name:</p>
-            <input type="text" id="fileNameInput" />
-            <button onclick="newProject()">Create Project</button>
+            <input type="text" id="newFileNameInput" />
+            <button onclick="newProject(false)">Create Project</button>
         </div>
     </div>
 
@@ -62,21 +64,34 @@
     <div id="saveModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSaveModal()">&times;</span>
+            <h2>Save File</h2>
             <p>Enter File Name:</p>
-            <input type="text" id="fileNameInput" />
-            <button onclick="saveProject()">Save</button>
+            <input type="text" id="saveFileNameInput" />
+            <button onclick="saveProject(false)">Save</button>
         </div>
     </div>
 
     <div id="loadModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLoadModal()">&times;</span>
+            <h2>Load File</h2>
             <p>Enter File Name:</p>
             <input type="text" id="loadFileNameInput" />
-            <button onclick="loadProject()">Load</button>
+            <button onclick="loadProject(false)">Load</button>
             <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
+    <!-- Modal for asking the user if they want to override an existing file. -->
+    <div id="yesNoModal" class="modal">
+        <div class="modal-content">
+            <p id="yesNoModalPrompt"></p>
+            <div>
+                <span><button id="btnModalYes" onclick="">Yes</button></span>
+                <span><button id="btnModalNo" onclick="toggleVisibility(['yesNoModal'])">No</button></span>
+            </div>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
@@ -251,6 +266,7 @@
         }
 
         .input-mode-view {
+            margin-top: 10px;
             background: transparent;
             color: white;
             border: none;
@@ -266,6 +282,19 @@
             display: none;
             margin-top: 10px;
         }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
 
         /* START SNACKBAR https://www.w3schools.com/howto/howto_js_snackbar.asp */
         /* The snackbar - position it at the bottom and in the middle of the screen */
@@ -304,6 +333,18 @@
         However, delay the fade out process for 2.5 seconds */
             -webkit-animation: fadein 0.5s, fadeout 0.5s 4.5s;
             animation: fadein 0.5s, fadeout 0.5s 4.5s;
+        }
+
+        .delete-icon {
+            color: red;
+            font-size: 18px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .delete-icon:hover {
+            text-shadow: 0 2px 10px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+            cursor: pointer;
         }
 
         /* Animations to fade the snackbar in and out */
@@ -414,30 +455,6 @@
          * Fetches and displays the class list.
          * Sends a request to the server to get the list of classes.
          */
-        // function getClassList() {
-        //     fetch('/classlist')
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             table = document.getElementById("Data");
-        //             table.innerHTML = "";
-        //             Object.keys(data).forEach(element => {
-        //                 let row = table.insertRow();
-        //                 let cell = row.insertCell(0);
-        //                 let button = document.createElement("button");
-        //                 button.innerHTML = element;
-        //                 button.className = "class-button";
-        //                 button.onclick = function () {
-        //                     displayClassDetails(element);
-        //                 };
-        //                 cell.appendChild(button);
-        //             });
-        //             // Add a row with a plus sign at the bottom
-        //             let plusRow = table.insertRow();
-        //             let plusCell = plusRow.insertCell(0);
-        //             plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'class\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Class</button>';
-        //         });
-        // }
-
         function getClassList() {
             fetch('/classlist')
                 .then(response => response.json())
@@ -486,11 +503,11 @@
             //     });
 
             fetch("/relationList")
-            .then(res => res.json())
-            .then(data => {
-                container = document.getElementById("RelationTable");
-                container.innerHTML = data.html;
-            })
+                .then(res => res.json())
+                .then(data => {
+                    container = document.getElementById("RelationTable");
+                    container.innerHTML = data.html;
+                })
         }
 
         /**
@@ -501,7 +518,6 @@
             fetch(`/classdetails?name=${className}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     let detailsDiv = document.getElementById("ClassDetails");
                     detailsDiv.innerHTML = data.html;
                     detailsDiv.style.display = "block";
@@ -547,7 +563,7 @@
          * Shows the new project modal.
          */
         function showNewModal() {
-            document.getElementById("fileNameInput").value = ".json"
+            // document.getElementById("newFileNameInput").value = ".json"
             newModal.style.display = "block";
         }
 
@@ -562,7 +578,7 @@
          * Shows the save modal.
          */
         function showSaveModal() {
-            document.getElementById("fileNameInput")
+            // document.getElementById("fileNameInput")
             saveModal.style.display = "block";
         }
 
@@ -632,22 +648,59 @@
                         classname: elem.value
                     })
                 })
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        } else {
+                            getClassList();
+                            getRelationList();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                        snackbar(data.error);
+                    })
+                    .catch(error => console.log(error))
+            }
+        }
+
+        function deleteClass(classname, override) {
+            fetch("/deleteclass", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: classname,
+                    override: override
+                })
+            })
                 .then(resp => {
                     if (resp.status >= 400) {
-                        elem.value = "";
                         return resp.json();
                     } else {
                         getClassList();
                         getRelationList();
                     }
+
                 })
                 .then(data => {
-                    console.log(data);
-                    snackbar(data.error);
+                    if (data.action) {
+                        yes_callback = () => deleteClass(classname, true);
+                        no_callback = () => {
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
                 })
                 .catch(error => console.log(error))
-            }
         }
+
 
         /**
          * Adds a new relation.
@@ -688,7 +741,7 @@
             }
         }
 
-        function addField2(event, elem) {
+        function addField2(event, elem, className) {
             if (event.key === "Enter") {
                 fetch("/addField", {
                     method: "POST",
@@ -697,20 +750,45 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fieldname: elem.value
+                        fieldname: elem.value,
+                        classname: className
                     })
                 })
                     .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        }
-                        console.log(resp);
-                        displayClassDetails("");
+                        return resp.json();
                     })
-                    .then(data => snackbar(data.error))
-                    .catch(error => console.log(error))
+                    .then(data => {
+                        if (data.error) {
+                            snackbar(data.error);
+                        } else {
+                            displayClassDetails(className);
+                        }
+                    })
             }
+        }
+
+        function deleteField(className, fieldName) {
+            fetch("/deleteField", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fieldname: fieldName,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         /**
@@ -729,8 +807,82 @@
             modal.style.display = "none";
         }
 
-        function newProject(elem) {
-            elem = document.getElementById("fileNameInput")
+        function addMethod2(event, elem) {
+            if (event.key === "Enter") {
+                fetch("/addMethod", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        methodname: elem.value
+                    })
+                })
+                    .then(resp => {
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
+                        }
+                        console.log(resp);
+                        displayClassDetails("");
+                    })
+                    .then(data => snackbar(data.error))
+                    .catch(error => console.log(error))
+            }
+        }
+
+        function addMethodParam(event, target, methodname, arity) {
+            fetch("/addMethodParam", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodname,
+                    paramname: target.value,
+                    arity: arity
+                })
+            })
+                .then(res => {
+                    if (res.status >= 400) {
+                        target.value = "";
+                        return res.json();
+                    } else {
+                        displayClassDetails("");
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(err => console.log(err))
+        }
+        
+        function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
+            switch(action) {
+                case "showModal":
+                    modal = document.getElementById(tagId);
+                    e_text = document.getElementById("yesNoModalPrompt");
+                    e_text.innerText = error_text;
+                    btn_yes = document.getElementById("btnModalYes");
+                    btn_no = document.getElementById("btnModalNo");
+                    if (btn_yes) {
+                        btn_yes.onclick = () => {
+                            toggleVisibility([tagId]);
+                            yes_callback();
+                        }
+                    }
+                    if (btn_no) {
+                        btn_no.onclick = () => {
+                            toggleVisibility([tagId]);
+                            no_callback();
+                        };
+                    }
+                    toggleVisibility([tagId]);
+            }
+        }
+
+        function newProject(override) {
+            elem = document.getElementById("newFileNameInput")
             fetch("/newproject", {
                 method: "Post",
                 headers: {
@@ -738,63 +890,117 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    filename: elem.value
+                    filename: elem.value,
+                    override_file: override
                 })
             }).then(resp => {
-                return resp.json().then(data => {
-                    if (resp.status >= 400) {
-                        elem.value = "";
-                    } else {
-                        closeNewModal();
-                    }
-                    return data;
-                });
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    document.getElementById("saveFileNameInput").value = fileName;
+                    closeNewModal();
+                    getClassList();
+                    getRelationList();
+                }
             })
-                .then(data => {
-                    if (data.error) {
-                        snackbar(data.error);
-                    }
-                })
-                .catch(error => console.log(error))
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => newProject(true);
+                    no_callback = () => {
+                        document.getElementById("newFileNameInput").value = "";
+                    };
+
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
+            .catch(error => console.log(error))
         }
 
         /**
          * Saves the project with the given file name.
          * Prompts the user to enter a file name and saves the project.
          */
-        function saveProject() {
-            fileName = document.getElementById("fileNameInput").value;
+        function saveProject(override) {
+            elem = document.getElementById("saveFileNameInput");
 
-            fetch(`/saveproject?filename=${fileName}`, { method: "POST" })
-                .catch(error => {
-                    console.error("Error saving project:", error);
-                });
-
-            console.log("Save project as:", fileName);
-            closeSaveModal();
+            fetch(`/saveproject`,
+                {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: elem.value,
+                        override: override
+                    })
+                }
+            )
+            .then(resp => {
+                if (resp.status >= 400) {
+                    return resp.json()
+                } else {
+                    fileName = elem.value;
+                    closeSaveModal();
+                }
+            })
+            .then(data => {
+                if (data.action) {
+                    yes_callback = () => saveProject(true);
+                    no_callback = () => {
+                        document.getElementById("saveFileNameInput").value = "";
+                    };
+                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                }
+                else if (data.error) {
+                    snackbar(data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error saving project:", error);
+            });
         }
 
-        function loadProject() {
+        function loadProject(override) {
             fileName = document.getElementById("loadFileNameInput").value;
-            let loadError = document.getElementById("loadError");
+            // let loadError = document.getElementById("loadError");
 
-            if (!fileName.endsWith(".json")) {
-                loadError.style.display = "block";
-                return;
-            }
+            // if (!fileName.endsWith(".json")) {
+            //     loadError.style.display = "block";
+            //     return;
+            // }
 
-            fetch(`/loadfile?filename=${fileName}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("File not found");
-                    }
+            fetch(`/loadfile?filename=${fileName}&override=${override}`)
+                .then(resp => {
+                    // if (!response.ok) {
+                    //     throw new Error("File not found");
+                    // }
                     // return response.json();
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        closeLoadModal();
+                        document.getElementById("saveFileNameInput").value = fileName;
+                        getClassList();
+                        getRelationList();
+                    }
                 })
                 .then(data => {
-                    // Handle the loaded project content
-                    closeLoadModal();
-                    document.getElementById("fileNameInput").value = fileName;
-                    getClassList();
+                    if (data.action) {
+                        yes_callback = () => loadProject(true);
+                        no_callback = () => {
+                            document.getElementById("loadFileNameInput").value = "";
+                        };
+
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
                 })
                 .catch(error => {
                     // loadError.style.display = "block";
@@ -811,14 +1017,14 @@
             document.getElementById("loadError").style.display = "none";
         }
 
-        function renameField(target, className, fieldName) {
+        function renameField(target, elem, className, fieldName) {
             newname = target.value;
+            oldname = elem.value
             if (fieldName === newname) {
                 return;
             }
-
             fetch("/renameField", {
-                method: "POST",
+                method: "post",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -830,8 +1036,47 @@
                 })
             }
             )
-                .then(res => console.log(res))
-                .catch(reason => target.value = fieldName);
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        elem.value = fieldName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
+        function renameMethod(target, elem, className, methodName) {
+            const newname = target.value;
+            if (methodName === newname) {
+                return;
+            }
+
+            fetch("/renameMethod", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: className,
+                    oldname: methodName,
+                    newname: newname
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = methodName;
+                        return resp.json();
+                    }
+                    console.log(resp);
+                    displayClassDetails("");
+                })
+                .then(data => snackbar(data.error))
+                .catch(error => console.log(error));
         }
 
         function renameClass(target, classname) {
@@ -851,16 +1096,16 @@
                 })
             }
             )
-            .then(res => {
-                if (res.ok) {
-                    getClassList();
-                    getRelationList();
-                } else {
-                    return res.json();
-                }
-            })
-            .then(data => snackbar(data.error))
-            .catch(reason => target.value = classname);
+                .then(res => {
+                    if (res.ok) {
+                        getClassList();
+                        getRelationList();
+                    } else {
+                        return res.json();
+                    }
+                })
+                .then(data => snackbar(data.error))
+                .catch(reason => target.value = classname);
 
             displayClassDetails("");
         }
@@ -880,6 +1125,69 @@
                     .catch(error => console.log(error))
 
             }
+        }
+
+        function addRelation() {
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value;
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
+
+            toggleVisibility(['cntrAddRelationship']);
+        }
+
+        function deleteRelation(source, destination) {
+            console.log(source, destination);
+            fetch("/deleteRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination
+                })
+            })
+                .then(resp => {
+                    console.log(resp);
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
         }
     </script>
 </body>

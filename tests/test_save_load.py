@@ -108,17 +108,17 @@ def test_new_old_file_exists():
     try:
         # app = UmlApplication()
         app = UmlController(UmlCliView())
-        app.new_project("test.json")
+        app.new_project("test.json", True)
         #another app to check file state
         # app2 = UmlApplication()
         app2 = UmlController(UmlCliView())
-        app2.load_project("test.json")
+        app2.load_project("test.json", True)
         #assert class remains
         assert "temp" in app2.model.classes
         # app-level save prompts user, so until prints are handled by
         # tests - a view-implementation-solvable issue, use project save
         app.model.save()
-        app2.load_project("test.json")
+        app2.load_project("test.json", True)
         assert "temp" not in app2.model.classes
     except Exception as e:
         var = 1
