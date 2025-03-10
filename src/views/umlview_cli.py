@@ -35,7 +35,6 @@ class UmlCliView(UmlView):
                 True: if user responded "Y"
                 False: if user responded "N" or invalid
         """
-        print("[cli::prompt_user]", callback)
         _prompt = prompt + " Y/N: "
         user_response = self.get_user_input(_prompt)
         if user_response.lower() != 'y':
