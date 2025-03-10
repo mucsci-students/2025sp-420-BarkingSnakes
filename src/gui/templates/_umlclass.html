@@ -19,7 +19,7 @@
                 class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
         <div id="cntrAddField" style="width: 100%; display:none;">
             <label for="newFieldName">Field Name:</label>
-            <input class="input-mode-view" id="newFieldName" type="text" onkeydown="addField2(event, this)"
+            <input class="input-mode-view" id="newFieldName" type="text" onkeydown="addField2(event, this,'{{dto.name}}')"
                 onblur="inputBlur(event, () => toggleVisibility(['btnAddField', 'cntrAddField']))">
             <!-- <input class="input-mode-view" id="newClassName" type="text" onblur="addUmlClass(event.target.value)"> -->
         </div>

@@ -143,11 +143,24 @@ def rename_umlclass():
 def add_field():
     data = request.get_json()
     fieldname = data.get("fieldname")
+    classname = data.get("classname")
     if fieldname:
+        app.controller.execute_command(["class", classname])
         app.controller.execute_command(["field", "add", fieldname])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Field added successfully"}), 202
+    return jsonify({"error": "Missing field"}), 406
 
+@app.post("/deleteField")
+@handle_umlexception
+def delete_field():
+    data = request.get_json()
+    fieldname = data.get("fieldname")
+    classname = data.get("classname")
+    if fieldname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["field", "delete", fieldname])
+        return jsonify({"message": "Field deleted successfully"}), 200
+    return jsonify({"error": "Missing field or class name"}), 406
 
 @app.post("/renameField")
 @handle_umlexception
@@ -159,17 +172,17 @@ def rename_field():
     if class_name and oldname and newname:
         app.controller.execute_command(["class", class_name])
         app.controller.execute_command(["field", "rename", oldname, newname])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Field renamed successfully"}), 200
+    return jsonify({"error": "Field rename failed"}), 406
 
 
 @app.post("/addMethod")
 @handle_umlexception
 def add_method():
     data = request.get_json()
-    fieldname = data.get("methodname")
-    if fieldname:
-        app.controller.execute_command(["method", "add", fieldname])
+    methodname = data.get("methodname")
+    if methodname:
+        app.controller.execute_command(["method", "add", methodname])
         return Response(status=202)
     return Response(status=406)
 

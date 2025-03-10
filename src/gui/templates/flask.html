@@ -528,7 +528,6 @@
             fetch(`/classdetails?name=${className}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     let detailsDiv = document.getElementById("ClassDetails");
                     detailsDiv.innerHTML = data.html;
                     detailsDiv.style.display = "block";
@@ -741,7 +740,7 @@
             }
         }
 
-        function addField2(event, elem) {
+        function addField2(event, elem, className) {
             if (event.key === "Enter") {
                 fetch("/addField", {
                     method: "POST",
@@ -750,20 +749,45 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fieldname: elem.value
+                        fieldname: elem.value,
+                        classname: className
                     })
                 })
                     .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        }
-                        console.log(resp);
-                        displayClassDetails("");
+                        return resp.json();
                     })
-                    .then(data => snackbar(data.error))
-                    .catch(error => console.log(error))
+                    .then(data => {
+                        if (data.error) {
+                            snackbar(data.error);
+                        } else {
+                            displayClassDetails(className);
+                        }
+                    })
             }
+        }
+
+        function deleteField(className, fieldName) {
+            fetch("/deleteField", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fieldname: fieldName,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         /**
@@ -937,7 +961,6 @@
             if (fieldName === newname) {
                 return;
             }
-
             fetch("/renameField", {
                 method: "post",
                 headers: {
@@ -952,15 +975,16 @@
             }
             )
                 .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = fieldName;
-                        return resp.json();
-                    }
-                    console.log(resp);
-                    displayClassDetails("");
+                    return resp.json();
                 })
-                .then(data => snackbar(data.error))
-                .catch(error => console.log(error))
+                .then(data => {
+                    if (data.error) {
+                        elem.value = fieldName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         function renameMethod(target, elem, className, methodName) {
@@ -1042,67 +1066,67 @@
         }
 
         function addRelation() {
-        let sourceClass = document.getElementById("newRelationSource").value;
-        let targetClass = document.getElementById("newRelationDestination").value;
-        let relationType = document.getElementById("newRelationType").value;
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value;
 
-        fetch("/addRelation", {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                source: sourceClass,
-                destination: targetClass,
-                type: relationType
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
             })
-        })
-        .then(resp => {
-            if (resp.status >= 400) {
-                return resp.json();
-            } else {
-                getRelationList();
-            }
-        })
-        .then(data => {
-            if (data && data.error) {
-                snackbar(data.error);
-            }
-        })
-        .catch(error => console.log(error));
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
 
-        toggleVisibility(['cntrAddRelationship']);
-    }
+            toggleVisibility(['cntrAddRelationship']);
+        }
 
-    function deleteRelation(source, destination) {
-        console.log(source, destination);
-        fetch("/deleteRelation", {
-            method: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                source: source,
-                destination: destination
+        function deleteRelation(source, destination) {
+            console.log(source, destination);
+            fetch("/deleteRelation", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination
+                })
             })
-        })
-        .then(resp => {
-            console.log(resp);
-            if (resp.status >= 400) {
-                return resp.json();
-            } else {
-                getRelationList();
-            }
-        })
-        .then(data => {
-            if (data && data.error) {
-                snackbar(data.error);
-            }
-        })
-        .catch(error => console.log(error));
-    }
+                .then(resp => {
+                    console.log(resp);
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        getRelationList();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error));
+        }
     </script>
 </body>
 
