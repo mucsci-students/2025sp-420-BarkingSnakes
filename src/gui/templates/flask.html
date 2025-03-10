@@ -677,14 +677,14 @@
                     override: override
                 })
             })
-                .then(resp => resp.json())
-                .then(data => {
-                    if (data.error) {
-                        snackbar(data.error);
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
                     } else {
                         getClassList();
                         getRelationList();
                     }
+
                 })
                 .then(data => {
                     if (data.action) {
