@@ -107,6 +107,7 @@ class UmlCommands:
             id = r"parameter rename"
             regex = r"^parameter rename ([A-Za-z][A-Za-z0-9_]*) ([A-Za-z][A-Za-z0-9_]*)$"
             usage = "parameter rename <name> <new name>"
+            # usage = "parameter replace <name> <new name> <new type>"
         
         class DeleteParameter(UmlCommand):
             id = r"parameter delete"
@@ -118,12 +119,22 @@ class UmlCommands:
             regex = r"^parameter list$"
             usage = "parameter list"
         
+        class ClearParameter(UmlCommand):
+            id = r"parameter clear all"
+            regex = r"^parameter clear all$"
+            usage = "parameter clear all"
+        
+        class ReplaceParameter(UmlCommand):
+            id = r"parameter replace all"
+            regex = r"^parameter replace all(\s[A-Za-z][A-Za-z0-9_]*)+$"
+            usage = "parameter replace all <param list>"
+        
         class HelpParameter(UmlCommand):
             id = r"parameter"
             regex = r"^parameter (help){0,1}$"
             usage = "parameter commands:\n"
         
-        Commands:list[UmlCommand] = [AddParameter, RenameParameter, DeleteParameter, ListParameter, HelpParameter]
+        Commands:list[UmlCommand] = [AddParameter, RenameParameter, DeleteParameter, ListParameter, ClearParameter, ReplaceParameter, HelpParameter]
         Usage:str = HelpParameter.usage + "\n".join([c.usage for c in Commands[:-1]])
 
 class UmlController:
@@ -707,6 +718,13 @@ class UmlController:
                 if m.name == active_method and len(m.params) == arity:
                     self.view.render_umlmethod(m)
                     break
+        elif umlcommand == UmlCommands.UmlParameterCommands.ClearParameter:
+            self.model.clear_all_parameters(active_class, active_method, arity)
+            self.set_active_method(active_method, 0)
+        elif umlcommand == UmlCommands.UmlParameterCommands.ReplaceParameter:
+            parameters = args[3:]
+            self.model.replace_all_parameters(active_class, active_method, arity, parameters)
+            self.set_active_method(active_method, len(parameters))
         elif umlcommand == UmlCommands.UmlParameterCommands.HelpParameter:
             self.view.handle_exceptions(UmlCommands.UmlParameterCommands.Usage)
 
