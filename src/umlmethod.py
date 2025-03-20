@@ -113,6 +113,21 @@ class UmlMethod:
         """
         self.params.clear()
 
+    def replace_parameters(self, parameters:list[str]):
+        """Replaces all UmlParameter from the UmlMethod.
+        Params:
+            parameters: a list of parameter names to replace existing parameters with.
+        Returns:
+            0 if the parameter was successfully added  
+            a number corresponding to an error in the errors class
+            if a parameter was not removed form the class
+        Exceptions:
+            
+        """
+
+        self.clear_parameters()
+        self.add_parameters(parameters)
+
     def to_dict(self):
         return {
             'name': self.name,

@@ -450,6 +450,39 @@ class UmlProject:
         uml_class.rename_parameter(methodname, arity, oldname, newname)
 
     @_has_changed
+    def clear_all_parameters(self, classname:str, methodname:str, arity:int):
+        """Clears all parameters from a method overload.
+
+        Params:
+            classname: current name of the class
+            methodname: name of the method
+            arity: method overload to operate on
+        Returns:
+            0: if successful
+        Exceptions:
+            None
+        """
+        uml_class = self.get_umlclass(classname)
+        uml_class.remove_all_parameters(methodname, arity)
+    
+    @_has_changed
+    def replace_all_parameters(self, classname:str, methodname:str, arity:int, parameters:list[str]):
+        """Replace all parameters from a method overload with a new parameter list.
+
+        Params:
+            classname: current name of the class
+            methodname: name of the method
+            arity: method overload to operate on
+            parameters: new list of parameter names
+        Returns:
+            0: if successful
+        Exceptions:
+            None
+        """
+        uml_class = self.get_umlclass(classname)
+        uml_class.replace_all_parameters(methodname, arity, parameters)
+
+    @_has_changed
     def delete_parameter(self, classname:str, methodname:str, arity:int, parameter:str):
         uml_class = self.get_umlclass(classname)
         uml_class.remove_parameter(methodname, arity, parameter)
