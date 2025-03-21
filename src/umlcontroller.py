@@ -152,7 +152,7 @@ class UmlController:
         """Decorator to prompt for unsaved changes."""
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
-            print("[controller::_handle_unsaved_changes]", kwargs, args)
+            #print("[controller::_handle_unsaved_changes]", kwargs, args)
             try:
                 override = args[1]
             except:
@@ -259,7 +259,7 @@ class UmlController:
             if self.model._save_path != filename and self.model._filepath_exists(filename) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
-                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                prompt = "A file with that name already exists. Do you want to override it?\
                     \nWARNING: this will erase the old file's contents. "
                 if not self.view.prompt_user(prompt, None):
                     return
@@ -288,7 +288,7 @@ class UmlController:
             if self.model._filepath_exists(filepath) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
-                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                prompt = "A file with that name already exists. Do you want to override it?\
                     \nWARNING: this will erase the old file's contents. "
                 if not self.view.prompt_user(prompt, None):
                     return
@@ -372,7 +372,7 @@ class UmlController:
         elif cmd == 'save':
             # if no filename specified and current save path exists,
             # then call without filepath
-            print("[execute_command(save)]", args)
+            #print("[execute_command(save)]", args)
             if len(args) == 1 and self.model._save_path:
                 args.append(None)
             else:
@@ -412,7 +412,7 @@ class UmlController:
         Displays help menu.
         """
         with open(self.HELP_PATH, "r") as f:
-            print(f.read())
+            self.view.handle_exceptions(f.read())
 
     def command_back(self) -> None:
         """Brings terminal out of class context"""
@@ -436,8 +436,8 @@ class UmlController:
         temp_class = self.model.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
-            if self.view.prompt_user(prompt):
+            prompt = "that class does not yet exist. Do you want to create it?"
+            if self.view.prompt_user(prompt,None):
                 self.command_add_umlclass(name)
         else:
             self.view.set_active_class(temp_class.class_name)
