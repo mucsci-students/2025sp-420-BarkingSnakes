@@ -74,7 +74,7 @@ class UmlMethod:
             self.add_parameter(parameter_name, parameter_type)
         return 0
 
-    def remove_parameter(self, parameter:str) -> int:
+    def remove_parameter(self, parameter_name:str) -> int:
         """Removes an UmlParameter from the UmlMethod.
         Params:
             name: name of the parameter to remove
@@ -85,14 +85,13 @@ class UmlMethod:
         Exceptions:
             NoSuchParameterException
         """
-        #TODO refactor
-        if parameter not in self.params:
-            raise errors.NoSuchParameterExcept()
-        self.params.pop(parameter)
-
-        return 0
-    
-    def rename_parameter(self, parameter:str, newname:str) -> int:
+        for i in range(len(self.params)):
+            if self.params[i].name == parameter_name:
+                self.params.pop(i)
+                return 0
+        raise errors.NoSuchParameterException()
+            
+    def rename_parameter(self, oldname:str, newname:str) -> int:
         """Renames an UmlParameter from the UmlMethod.
         Params:
             name: name of the parameter to rename
@@ -105,14 +104,13 @@ class UmlMethod:
             InvalidNameError
             NoSuchParameterException
         """
-        #TODO refactor
-        if parameter not in self.params:
-            raise errors.NoSuchParameterExcept()
         errors.valid_name(newname)
 
-        self.params.pop(parameter)
-        self.add_parameter(newname)
-        return 0
+        for i in range(len(self.params)):
+            if self.params[i].name == oldname:
+                self.params[i].name = newname
+                return 0
+        raise errors.NoSuchParameterException()
     
     def clear_parameters(self):
         """Removes all UmlParameter from the UmlMethod.
