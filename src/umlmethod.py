@@ -21,45 +21,57 @@ import errors
 class UmlMethod:
     """"""
     name:str
-    params:dict[str, UmlParameter] = field(default_factory= lambda: dict())
+    params:list[UmlParameter]
+    return_type:str
+    
+    #@property
+    #def arity(self) -> int:
+    #    """The number of parameters a method has."""
+    #    return len(self.params)
     
     @property
-    def arity(self) -> int:
-        """The number of parameters a method has."""
-        return len(self.params)
+    def overloadID(self) -> str:
+        """Produces a string to be used to distinguish overloads.
+        Returns:
+            The string of all the types of parameters in the parameter list
+            in order, space separated.
+        """
+        return " ".join([param.umltype for param in self.params])
 
-    def add_parameter(self, parameter:str) -> int:
+    def add_parameter(self, parameter_name:str, parameter_type:str) -> int:
         """Adds an UmlParameter the UmlMethod.
         Params:
             name: name of the parameter to add
         Returns:
             0 if the parameter was successfully added  
             a number corresponding to an error in the errors class
-            if a parameter was not removed fromm the class
+            if a parameter was not added to the class
         Exceptions:
             InvalidNameError
             DuplicateParameterError
         """
-        errors.valid_name(parameter)
+        errors.valid_name(parameter_name)
+        errors.valid_name(parameter_type)
 
-        if parameter in self.params:
+        if parameter_name in [param.name for param in self.params]:
             raise errors.DuplicateParameterException()
-        self.params[parameter] = UmlParameter(parameter)
+        self.params.append(UmlParameter(parameter_name, parameter_type))
         return 0
     
-    def add_parameters(self, parameters:list[str]) -> int:
+    def add_parameters(self, parameters:list[tuple[str, str]]) -> int:
         """Adds an UmlParameter the UmlMethod.
         Params:
             name: name of the parameter to add
         Returns:
             0 if the parameter was successfully added  
             a number corresponding to an error in the errors class
-            if a parameter was not removed form the class
+            if a parameter from the list was not added
         Exceptions:
-
+            InvalidNameError
+            DuplicateParameterError
         """
-        for param in parameters:
-            self.add_parameter(param)
+        for (parameter_name, parameter_type) in parameters:
+            self.add_parameter(parameter_name, parameter_type)
         return 0
 
     def remove_parameter(self, parameter:str) -> int:
@@ -73,6 +85,7 @@ class UmlMethod:
         Exceptions:
             NoSuchParameterException
         """
+        #TODO refactor
         if parameter not in self.params:
             raise errors.NoSuchParameterExcept()
         self.params.pop(parameter)
@@ -92,6 +105,7 @@ class UmlMethod:
             InvalidNameError
             NoSuchParameterException
         """
+        #TODO refactor
         if parameter not in self.params:
             raise errors.NoSuchParameterExcept()
         errors.valid_name(newname)
@@ -113,7 +127,7 @@ class UmlMethod:
         """
         self.params.clear()
 
-    def replace_parameters(self, parameters:list[str]):
+    def replace_parameters(self, parameters:list[tuple[str, str]]):
         """Replaces all UmlParameter from the UmlMethod.
         Params:
             parameters: a list of parameter names to replace existing parameters with.
@@ -129,6 +143,7 @@ class UmlMethod:
         self.add_parameters(parameters)
 
     def to_dict(self):
+        #TODO refactor
         return {
             'name': self.name,
             'params': [p.to_dict() for p in self.params.values()]
