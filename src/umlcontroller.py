@@ -12,7 +12,7 @@ import re
 
 import umlmodel
 from umlmodel import UmlProject
-from umlclass import UmlClass, UmlField
+from umlclass import UmlClass, UmlField, FieldType
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
 from gui.renderables import UmlClassListRenderable, UmlClassRenderable
@@ -498,14 +498,14 @@ class UmlController:
         cmd = args[1].lower()
         
         if cmd == 'add':
-            self.command_add_field(args[2])
+            self.command_add_field(args[2], args[3])
         elif cmd == 'delete':
             self.command_delete_field(args[2])
         elif cmd == 'rename':
             self.command_rename_field(args[2], args[3])
 
     @_requires_active_class
-    def command_add_field(self, name:str) -> None:
+    def command_add_field(self, name:str, type:str) -> None:
         """Adds an field to the UmlClass in current context.
         
         Exceptions:
@@ -513,7 +513,7 @@ class UmlController:
         """
         #active class is currently a string so get the reference from project
         # self.model.get_umlclass(self.view.active_class).add_field(name)
-        self.model.add_field(self.view.active_class, name)
+        self.model.add_field(self.view.active_class, name, type)
 
     @_requires_active_class
     def command_delete_field(self, name:str) -> None:
@@ -1223,7 +1223,7 @@ class UmlApplication:
         cmd = args[1].lower()
         
         if cmd == 'add':
-            return lambda: self.command_add_field(args[2])
+            return lambda: self.command_add_field(args[2], args[3])
         elif cmd == 'delete':
             return lambda: self.command_delete_field(args[2])
         elif cmd == 'rename':
@@ -1232,14 +1232,14 @@ class UmlApplication:
         return lambda: self.inform_invalid_command(" ".join(args))
 
     @_requires_active_class
-    def command_add_field(self, name:str) -> None:
+    def command_add_field(self, name:str, type:str) -> None:
         """Adds an field to the UmlClass in current context.
         
         Exceptions:
             NoActiveClassException
         """
         #active class is currently a string so get the reference from project
-        self.project.get_umlclass(self.active_class).add_field(name)
+        self.project.get_umlclass(self.active_class).add_field(name, type)
         #self.active_class.add_field(name)
 
     @_requires_active_class

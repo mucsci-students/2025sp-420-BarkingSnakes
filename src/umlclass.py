@@ -4,7 +4,7 @@
 # Description: umlclass methods
 import logging
 from dataclasses import dataclass, field
-from umlfield import UmlField
+from umlfield import UmlField, FieldType
 from umlmethod import UmlMethod
 import errors
 
@@ -18,23 +18,24 @@ class UmlClass:
     """
     class_methods:dict[str, dict[int, UmlMethod]] = field(default_factory= lambda: {})
 
-    def add_field(self,name:str) -> int:
+    def add_field(self, UmlField:field) -> int:
         """
-        Adds an field to the UmlClass
+        Adds a field to the UmlClass
             Returns:
                 0: if field added to the class
             Exceptions:
                 DuplicateFieldError: if name exists
                 InvalidNameError: if name invalid
         """ 
-        if name in self.class_fields.keys():
+        if field.name in self.class_fields.keys():
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
-        errors.valid_name(name)
-        self.class_fields[name] = UmlField(name)
+        errors.valid_name(field.name)
+        self.class_fields[field.name] = field
         return 0
+    
 
-    def remove_field(self,name:str) -> int:
+    def remove_field(self,name:str, type:int) -> int:
         """Removes an field from the UmlClass
         Params:
             name: name of the field to remove
