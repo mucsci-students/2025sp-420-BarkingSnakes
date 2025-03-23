@@ -106,6 +106,9 @@ class UmlMethod:
         """
         errors.valid_name(newname)
 
+        if newname in [param.name for param in self.params]:
+            raise errors.DuplicateParameterException()
+
         for i in range(len(self.params)):
             if self.params[i].name == oldname:
                 self.params[i].name = newname
@@ -148,4 +151,5 @@ class UmlMethod:
         }
     
     def __eq__(self, other:UmlMethod):
-        return self.name == other.name and self.arity == other.arity
+        # Is this appropriate? Should __eq__ be used as a proxy for overload validity? :thinking:
+        return self.name == other.name and self.overloadID == other.overloadID
