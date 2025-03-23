@@ -67,7 +67,7 @@ class UmlCommands:
         class AddMethod(UmlCommand):
             id = r"method add"
             regex = r"^method add ([A-Za-z][A-Za-z0-9_]*)(\s[A-Za-z][A-Za-z0-9_]*)*$"
-            usage = "method add <name> [<param list>]"
+            usage = "method add <name> returns <type> params [<param list>]"
         
         class RenameMethod(UmlCommand):
             id = r"method rename"

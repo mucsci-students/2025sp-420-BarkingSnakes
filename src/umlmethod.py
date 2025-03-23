@@ -5,7 +5,7 @@
 #          Kyle Kalbach
 #          Juliana Vinluan
 #          Spencer Hoover
-# Date: 2025-02-25
+# Date: 2025-03-23
 # Description: Encapsulation of a method on a UML Class.
 
 from __future__ import annotations
@@ -21,13 +21,8 @@ import errors
 class UmlMethod:
     """"""
     name:str
-    params:list[UmlParameter]
     return_type:str
-    
-    #@property
-    #def arity(self) -> int:
-    #    """The number of parameters a method has."""
-    #    return len(self.params)
+    params:list[UmlParameter]
     
     @property
     def overloadID(self) -> str:
@@ -150,6 +145,15 @@ class UmlMethod:
             'params': [p.to_dict() for p in self.params.values()]
         }
     
-    def __eq__(self, other:UmlMethod):
-        # Is this appropriate? Should __eq__ be used as a proxy for overload validity? :thinking:
-        return self.name == other.name and self.overloadID == other.overloadID
+# deprecated to enforce use of _overload_exists
+#
+#    def __eq__(self, other:UmlMethod):
+#        """Proxy for overload collision. 
+#            If two methods are not allowed to simultaneously exist (same name and parameter types with same order), returns True.
+#        """
+#        return self.name == other.name and self.overloadID == other.overloadID
+#    
+#    def __hash__(self):
+#        """Hash consistent with __eq__ as a proxy for overload collision.
+#        """
+#        return hash(self.name) + 3 * hash(self.overloadID)
