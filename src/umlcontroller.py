@@ -12,7 +12,7 @@ import re
 
 import umlmodel
 from umlmodel import UmlProject
-from umlclass import UmlClass, UmlField, FieldType
+from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
 from gui.renderables import UmlClassListRenderable, UmlClassRenderable
@@ -735,7 +735,7 @@ class UmlController:
 
     def _get_class_data_object(self, umlclass:UmlClass) -> UmlClassData:
         def get_field_data_object(umlfield:UmlField) -> UmlFieldData:
-            return UmlFieldData(umlfield.name)
+            return UmlFieldData(umlfield.name, umlfield.type)
         
         def get_method_data_object(umlmethod:UmlMethod) -> UmlMethodData:
             def get_param_data_model(umlparam:UmlParameter) -> UmlMethodParamData:
