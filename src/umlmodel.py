@@ -14,7 +14,7 @@ import jsonschema
 import jsonschema.exceptions
 
 import errors
-from umlclass import UmlClass, UmlField
+from umlclass import UmlClass, UmlField, FieldType
 from umlmethod import UmlParameter, UmlMethod
 from umlrelationship import UmlRelationship, RelationshipType
 
@@ -383,7 +383,7 @@ class UmlProject:
 
     # @_regex_pattern(count=2)
     @_has_changed
-    def add_field(self, classname:str, field_name:str)  -> int:
+    def add_field(self, classname:str, field_name:str, field_type:str)  -> int:
         """Adds an field to the UmlClass with classname.
 
         Params:
@@ -394,9 +394,33 @@ class UmlProject:
         Exceptions:
             None
         """
+
+        #build the field first
+        addend = UmlField(self.field_name, self._field_type_from_str(field_type))
+
+
+        #check if class exists
         if self.classes.get(classname):
-            self.classes.get(classname).add_field(field_name)
-            # self.classes.get(classname).add_field(UmlField(field_name))
+            self.classes.get(classname).add_field(field_name,self._field_type_from_str(field_type))
+
+        #add field to class
+        self.classes.get(classname).add_field(addend)
+
+
+    def _field_type_from_str(self, field_str:str)->FieldType:
+        """Retrieves the relevant value from the FieldType Enum based on a string of that value's name or number.
+        
+        Params:
+            field_str: the name of the FieldType (case-insensitive) or the number of the type as a string.
+        
+        """
+        try:
+            return FieldType[field_str.upper()] # Try to retrieve the type from a name like "STRING"
+        except KeyError:
+            try:
+                return FieldType(int(field_str)) # Try to retrieve the type from a number string like "0"
+            except ValueError:
+                raise errors.InvalidFieldTypeException()
 
     @_has_changed
     def rename_field(self, classname:str, oldname:str, newname:str) -> int:
