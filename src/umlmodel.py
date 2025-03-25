@@ -190,7 +190,7 @@ class UmlProject:
                 None
             """
             if data:
-                field = UmlField(data.get("name"))
+                field = UmlField(data.get("name"), data.get("type"))
                 return field
 
             return None
@@ -383,7 +383,7 @@ class UmlProject:
 
     # @_regex_pattern(count=2)
     @_has_changed
-    def add_field(self, classname:str, field_name:str)  -> int:
+    def add_field(self, classname:str, field_name:str, field_type:str)  -> int:
         """Adds an field to the UmlClass with classname.
 
         Params:
@@ -394,9 +394,13 @@ class UmlProject:
         Exceptions:
             None
         """
-        if self.classes.get(classname):
-            self.classes.get(classname).add_field(field_name)
-            # self.classes.get(classname).add_field(UmlField(field_name))
+        #check if class exists, if so, throw and error
+        if self.classes.get(classname).class_fields.get(field_name):
+            DuplicateFieldException = errors.DuplicateFieldException()
+        #create the field
+        self.classes.get(classname).add_field(field_name, field_type)
+
+        return 0
 
     @_has_changed
     def rename_field(self, classname:str, oldname:str, newname:str) -> int:

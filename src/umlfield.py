@@ -9,6 +9,7 @@ import errors
 @dataclass
 class UmlField:
     name:str
+    type:str
 
     def rename_field(self,name:str) -> int:
          """ Renames the Field
@@ -25,5 +26,6 @@ class UmlField:
     
     def to_dict(self) -> dict:
         return {
-            'name': self.name
+            'name': self.name,
+            'type': self.type
         }

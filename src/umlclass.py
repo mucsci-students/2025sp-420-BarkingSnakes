@@ -18,9 +18,9 @@ class UmlClass:
     """
     class_methods:dict[str, dict[int, UmlMethod]] = field(default_factory= lambda: {})
 
-    def add_field(self,name:str) -> int:
+    def add_field(self, name:str, type:str) -> int:
         """
-        Adds an field to the UmlClass
+        Adds a field to the UmlClass
             Returns:
                 0: if field added to the class
             Exceptions:
@@ -31,8 +31,9 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
         errors.valid_name(name)
-        self.class_fields[name] = UmlField(name)
+        self.class_fields[name] = UmlField(name, type)
         return 0
+    
 
     def remove_field(self,name:str) -> int:
         """Removes an field from the UmlClass

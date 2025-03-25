@@ -10,6 +10,7 @@ import errors
 
 class UmlFieldData(NamedTuple):
     name:str
+    type:str
 
 class UmlMethodParamData(NamedTuple):
     name:str

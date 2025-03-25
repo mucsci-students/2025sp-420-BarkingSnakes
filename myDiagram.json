@@ -1,0 +1,31 @@
+{
+    "classes": [
+        {
+            "name": "Grocery",
+            "fields": [
+                {
+                    "name": "aisles",
+                    "type": "int"
+                },
+                {
+                    "name": "fruits",
+                    "type": "color"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "shop",
+                    "params": [
+                        {
+                            "name": "cart"
+                        },
+                        {
+                            "name": "bag"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "relationships": []
+}
