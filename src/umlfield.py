@@ -5,28 +5,11 @@
 
 from dataclasses import dataclass
 import errors
-from enum import Enum
-
-class FieldType(Enum):
-    STRING = 0
-    INTEGER = 1
-    FLOAT = 2
-    COMPLEX = 3
-    LIST = 4
-    TUPLE = 5
-    RANGE = 6
-    DICT = 7
-    SET = 8
-    FROZENSET = 9
-    BOOLEAN = 10
-    NONE = 11
-    OTHER = 12
-
 
 @dataclass
 class UmlField:
     name:str
-    type:FieldType
+    type:str
 
     def rename_field(self,name:str) -> int:
          """ Renames the Field
@@ -43,20 +26,6 @@ class UmlField:
     
     def to_dict(self) -> dict:
         return {
-            'name': self.name
+            'name': self.name,
+            'type': self.type
         }
-    
-    def __eq__(self, other):
-        """
-        Checks equality between UmlFields.
-        """
-        if self.type == other.type:
-            return True
-        return False
-    
-    def __hash__(self):
-        """
-        Produces a hashed value such that UmlFields considered equal by __eq__ will produce the same hash value.
-        """
-        return hash((id(self.name)) * 3 + self.type * 5)
-    
