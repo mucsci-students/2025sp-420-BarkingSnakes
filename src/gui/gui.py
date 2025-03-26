@@ -88,21 +88,18 @@ def classdetails():
             app.controller.execute_command(["class", class_name])
         elif not class_name and app.controller.view.active_class:
             class_name = app.controller.view.active_class
-        # class_info = app.controller.model.classes
         model = app.controller.model
         umlclass = model.get_umlclass(class_name)
-        # details = class_info.get(class_name, {"fields": [], "methods": []})
+        if not umlclass:
+            raise errors.NoSuchObjectException(f"Class '{class_name}' does not exist.")
         dto = app.controller._get_class_data_object(umlclass)
-        # dto = {
-        #     'name':_dto.name,
-        #     'fields': [f.name for f in _dto.fields],
-        #     'methods':[{'name':m.name, 'params':[p.name for p in m.params]} for m in _dto.methods]
-        # }
         data = {"html": render_template("/_umlclass.html", dto=dto)}
         return jsonify(data)
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return app.view.response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.post("/addClass")
@@ -133,10 +130,15 @@ def rename_umlclass():
         data = request.get_json()
         oldname = data.get("oldname")
         newname = data.get("newname")
+        app.controller.execute_command(["class", oldname])
         app.controller.execute_command(["rename", newname])
+        app.controller.view.set_active_class(newname)
+        return jsonify({"message": "Class renamed successfully"}), 200
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return app.view.response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.post("/addField")
@@ -182,10 +184,12 @@ def rename_field():
 def add_method():
     data = request.get_json()
     methodname = data.get("methodname")
-    if methodname:
+    classname = data.get("classname")
+    if methodname and classname:
+        app.controller.execute_command(["class", classname])
         app.controller.execute_command(["method", "add", methodname])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Method added successfully"}), 202
+    return jsonify({"error": "Missing method name or class name"}), 406
 
 
 @app.post("/renameMethod")

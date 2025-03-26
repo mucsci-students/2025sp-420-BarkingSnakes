@@ -180,9 +180,40 @@
             text-align: center;
         }
 
+        .draggable-bar {
+            width: 100%;
+            height: 18px;
+            background-color: #04AA6D;
+            cursor: move;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
         #ClassDetails {
             position: fixed;
             /* Changed from absolute to fixed */
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px;
+            background-color: #333;
+            color: white;
+            border-radius: 10px;
+            width: 20%;
+            text-align: center;
+            display: none;
+        }
+
+        .ClassDetails {
+            position: fixed;
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -510,19 +541,6 @@
                 })
         }
 
-        /**
-         * Fetches and displays the details of a class.
-         * @param {string} className - The name of the class.
-         */
-        function displayClassDetails(className) {
-            fetch(`/classdetails?name=${className}`)
-                .then(response => response.json())
-                .then(data => {
-                    let detailsDiv = document.getElementById("ClassDetails");
-                    detailsDiv.innerHTML = data.html;
-                    detailsDiv.style.display = "block";
-                });
-        }
 
         // Get the modal
         var modal = document.getElementById("myModal");
@@ -592,8 +610,11 @@
         /**
          * Closes the class details.
          */
-        function closeClassDetails() {
-            document.getElementById("ClassDetails").style.display = "none";
+        function closeClassDetails(className) {
+            let detailsDiv = document.getElementById(`ClassDetails-${className}`);
+            if (detailsDiv) {
+                detailsDiv.style.display = "none";
+            }
         }
 
         // When the user clicks on <span> (x), close the modal
@@ -755,15 +776,18 @@
                     })
                 })
                     .then(resp => {
-                        return resp.json();
-                    })
-                    .then(data => {
-                        if (data.error) {
-                            snackbar(data.error);
+                        if (resp.status >= 400) {
+                            elem.value = "";
+                            return resp.json();
                         } else {
                             displayClassDetails(className);
                         }
                     })
+                    .then(data => {
+                        console.log(data);
+                        snackbar(data.error);
+                    })
+                    .catch(error => console.log(error))
             }
         }
 
@@ -807,7 +831,7 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event, elem) {
+        function addMethod2(event, elem, className) {
             if (event.key === "Enter") {
                 fetch("/addMethod", {
                     method: "POST",
@@ -816,18 +840,23 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        methodname: elem.value
+                        methodname: elem.value,
+                        classname: className
                     })
                 })
                     .then(resp => {
                         if (resp.status >= 400) {
                             elem.value = "";
                             return resp.json();
+                        } else {
+                            displayClassDetails(className);
                         }
-                        console.log(resp);
-                        displayClassDetails("");
                     })
-                    .then(data => snackbar(data.error))
+                    .then(data => {
+                        if (data && data.error) {
+                            snackbar(data.error);
+                        }
+                    })
                     .catch(error => console.log(error))
             }
         }
@@ -856,9 +885,9 @@
                 .then(data => snackbar(data.error))
                 .catch(err => console.log(err))
         }
-        
+
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
-            switch(action) {
+            switch (action) {
                 case "showModal":
                     modal = document.getElementById(tagId);
                     e_text = document.getElementById("yesNoModalPrompt");
@@ -904,20 +933,20 @@
                     getRelationList();
                 }
             })
-            .then(data => {
-                if (data.action) {
-                    yes_callback = () => newProject(true);
-                    no_callback = () => {
-                        document.getElementById("newFileNameInput").value = "";
-                    };
+                .then(data => {
+                    if (data.action) {
+                        yes_callback = () => newProject(true);
+                        no_callback = () => {
+                            document.getElementById("newFileNameInput").value = "";
+                        };
 
-                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
-                }
-                else if (data.error) {
-                    snackbar(data.error);
-                }
-            })
-            .catch(error => console.log(error))
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error))
         }
 
         /**
@@ -940,29 +969,29 @@
                     })
                 }
             )
-            .then(resp => {
-                if (resp.status >= 400) {
-                    return resp.json()
-                } else {
-                    fileName = elem.value;
-                    closeSaveModal();
-                }
-            })
-            .then(data => {
-                if (data.action) {
-                    yes_callback = () => saveProject(true);
-                    no_callback = () => {
-                        document.getElementById("saveFileNameInput").value = "";
-                    };
-                    handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
-                }
-                else if (data.error) {
-                    snackbar(data.error);
-                }
-            })
-            .catch(error => {
-                console.error("Error saving project:", error);
-            });
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json()
+                    } else {
+                        fileName = elem.value;
+                        closeSaveModal();
+                    }
+                })
+                .then(data => {
+                    if (data.action) {
+                        yes_callback = () => saveProject(true);
+                        no_callback = () => {
+                            document.getElementById("saveFileNameInput").value = "";
+                        };
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                    else if (data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error saving project:", error);
+                });
         }
 
         function loadProject(override) {
@@ -1018,11 +1047,11 @@
         }
 
         function renameField(target, elem, className, fieldName) {
-            newname = target.value;
-            oldname = elem.value
+            const newname = target.value;
             if (fieldName === newname) {
                 return;
             }
+
             fetch("/renameField", {
                 method: "post",
                 headers: {
@@ -1034,8 +1063,7 @@
                     oldname: fieldName,
                     newname: newname
                 })
-            }
-            )
+            })
                 .then(resp => {
                     return resp.json();
                 })
@@ -1068,19 +1096,20 @@
                 })
             })
                 .then(resp => {
-                    if (resp.status >= 400) {
-                        elem.value = methodName;
-                        return resp.json();
-                    }
-                    console.log(resp);
-                    displayClassDetails("");
+                    return resp.json();
                 })
-                .then(data => snackbar(data.error))
-                .catch(error => console.log(error));
+                .then(data => {
+                    if (data.error) {
+                        elem.value = methodName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         function renameClass(target, classname) {
-            newname = target.value;
+            const newname = target.value;
             if (classname === newname) {
                 return;
             }
@@ -1092,22 +1121,29 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    oldname: classname,
                     newname: newname
                 })
-            }
-            )
+            })
                 .then(res => {
                     if (res.ok) {
+                        let existingDetailsDiv = document.getElementById(`ClassDetails-${classname}`);
+                        if (existingDetailsDiv) {
+                            existingDetailsDiv.id = `ClassDetails-${newname}`;
+                            displayClassDetails(newname);
+                        }
                         getClassList();
                         getRelationList();
                     } else {
                         return res.json();
                     }
                 })
-                .then(data => snackbar(data.error))
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
                 .catch(reason => target.value = classname);
-
-            displayClassDetails("");
         }
 
         function inputBlur(event, func) {
@@ -1188,6 +1224,62 @@
                     }
                 })
                 .catch(error => console.log(error));
+        }
+
+        function makeElementDraggable(elementId, handleId) {
+            const element = document.getElementById(elementId);
+            const handle = document.getElementById(handleId);
+            let offsetX = 0, offsetY = 0, initialX = 0, initialY = 0;
+
+            handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                initialX = e.clientX;
+                initialY = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                offsetX = initialX - e.clientX;
+                offsetY = initialY - e.clientY;
+                initialX = e.clientX;
+                initialY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        /**
+         * Fetches and displays the details of a class.
+         * @param {string} className - The name of the class.
+         */
+        function displayClassDetails(className) {
+            fetch(`/classdetails?name=${className}`)
+                .then(response => response.json())
+                .then(data => {
+                    let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
+                    if (existingDetailsDiv) {
+                        existingDetailsDiv.innerHTML = data.html;
+                        existingDetailsDiv.style.display = "block";
+                        makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
+                    } else {
+                        let detailsDiv = document.createElement("div");
+                        detailsDiv.id = `ClassDetails-${className}`;
+                        detailsDiv.className = "ClassDetails";
+                        detailsDiv.innerHTML = data.html;
+                        document.body.appendChild(detailsDiv);
+                        detailsDiv.style.display = "block";
+                        makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
+                    }
+                });
         }
     </script>
 </body>
