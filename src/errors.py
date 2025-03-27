@@ -56,7 +56,7 @@ class UMLException(Exception):
     def equals(self, other:UMLException):
         """checks if self and other have the same error num"""
         return self.error_num == other.error_num
-    
+
     def __eq__(self,other:UMLException):
         """checks if self and other have the same error num, using =="""
         return self.error_num == other.error_num
@@ -73,7 +73,7 @@ class UMLException(Exception):
         #raise error if error not in list
         else:
             raise UMLException("NoSuchErrorError")
-    
+
     def get_name(self) -> str:
         """
         Gets name of the error
