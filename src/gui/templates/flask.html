@@ -861,7 +861,7 @@
             }
         }
 
-        function addMethodParam(event, target, methodname, arity) {
+        function addMethodParam(event, target, methodname, arity, className) {
             fetch("/addMethodParam", {
                 method: "POST",
                 headers: {
@@ -879,11 +879,11 @@
                         target.value = "";
                         return res.json();
                     } else {
-                        displayClassDetails("");
+                        displayClassDetails(className); // Pass the correct class name here
                     }
                 })
                 .then(data => snackbar(data.error))
-                .catch(err => console.log(err))
+                .catch(err => console.log(err));
         }
 
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
