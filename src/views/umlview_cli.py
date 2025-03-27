@@ -112,7 +112,7 @@ class UmlCliView(UmlView):
 
     def render_umlfield(self, umlfield:UmlFieldData):
         """"""
-        print(f"  -{umlfield.name}")
+        print(f"  -{umlfield.name} ({umlfield.type})")
 
     def render_umlmethod(self, umlmethod:UmlMethodData):
         """"""

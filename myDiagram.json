@@ -2,8 +2,29 @@
     "classes": [
         {
             "name": "Grocery",
-            "fields": [],
-            "methods": []
+            "fields": [
+                {
+                    "name": "aisles",
+                    "type": "int"
+                },
+                {
+                    "name": "fruits",
+                    "type": "color"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "shop",
+                    "params": [
+                        {
+                            "name": "cart"
+                        },
+                        {
+                            "name": "bag"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "relationships": []

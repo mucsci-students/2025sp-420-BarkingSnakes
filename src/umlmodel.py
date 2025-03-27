@@ -14,7 +14,7 @@ import jsonschema
 import jsonschema.exceptions
 
 import errors
-from umlclass import UmlClass, UmlField, FieldType
+from umlclass import UmlClass, UmlField
 from umlmethod import UmlParameter, UmlMethod
 from umlrelationship import UmlRelationship, RelationshipType
 
@@ -190,7 +190,7 @@ class UmlProject:
                 None
             """
             if data:
-                field = UmlField(data.get("name"))
+                field = UmlField(data.get("name"), data.get("type"))
                 return field
 
             return None
@@ -394,33 +394,13 @@ class UmlProject:
         Exceptions:
             None
         """
+        #check if class exists, if so, throw and error
+        if self.classes.get(classname).class_fields.get(field_name):
+            DuplicateFieldException = errors.DuplicateFieldException()
+        #create the field
+        self.classes.get(classname).add_field(field_name, field_type)
 
-        #build the field first
-        addend = UmlField(self.field_name, self._field_type_from_str(field_type))
-
-
-        #check if class exists
-        if self.classes.get(classname):
-            self.classes.get(classname).add_field(field_name,self._field_type_from_str(field_type))
-
-        #add field to class
-        self.classes.get(classname).add_field(addend)
-
-
-    def _field_type_from_str(self, field_str:str)->FieldType:
-        """Retrieves the relevant value from the FieldType Enum based on a string of that value's name or number.
-        
-        Params:
-            field_str: the name of the FieldType (case-insensitive) or the number of the type as a string.
-        
-        """
-        try:
-            return FieldType[field_str.upper()] # Try to retrieve the type from a name like "STRING"
-        except KeyError:
-            try:
-                return FieldType(int(field_str)) # Try to retrieve the type from a number string like "0"
-            except ValueError:
-                raise errors.InvalidFieldTypeException()
+        return 0
 
     @_has_changed
     def rename_field(self, classname:str, oldname:str, newname:str) -> int:
