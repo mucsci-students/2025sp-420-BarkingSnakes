@@ -50,7 +50,7 @@ def test_add_field_valid():
     test_field_name = "MaxSpeed"
 
     try:
-        test_class.add_field(test_field_name)
+        test_class.add_field(test_field_name,"speed")
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert "MaxSpeed" in test_class.class_fields
@@ -62,7 +62,7 @@ def test_add_field_invalid():
     test_field_name = "exit"
 
     try:
-        test_class.add_field(test_field_name)
+        test_class.add_field(test_field_name,"speed")
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert len(test_class.class_fields) == 0
@@ -71,7 +71,7 @@ def test_add_field_invalid():
 def test_remove_field_valid():
     """"""
     #change later to avoid direct assignment of fields
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     assert len(test_class.class_fields) == 1
@@ -86,7 +86,7 @@ def test_remove_field_valid():
 # Remove a nonexisting Field
 def test_remove_field_not_found():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     assert len(test_class.class_fields) == 1
@@ -101,7 +101,7 @@ def test_remove_field_not_found():
 # Rename an field
 def test_rename_field_valid():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
@@ -113,7 +113,7 @@ def test_rename_field_valid():
 # Rename an field to an invalid name
 def test_rename_field_invalid():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
@@ -125,7 +125,7 @@ def test_rename_field_invalid():
 # Rename a field to an existing field
 def test_rename_field_existing():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     try:
