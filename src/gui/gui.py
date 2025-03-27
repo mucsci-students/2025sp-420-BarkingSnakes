@@ -269,7 +269,9 @@ def add_method_param():
     methodname = data.get('methodname')
     paramname = data.get('paramname')
     arity = data.get('arity')
-    
+    classname = data.get('classname')
+
+    app.controller.execute_command(["class", classname])
     app.controller.execute_command(["method", methodname, "arity", str(arity)])
     app.controller.execute_command(["parameter", "add", paramname])
     return Response(status=200)

@@ -861,7 +861,7 @@
             }
         }
 
-        function addMethodParam(event, target, methodname, arity, className) {
+        function addMethodParam(event, target, methodname, arity, classname) {
             fetch("/addMethodParam", {
                 method: "POST",
                 headers: {
@@ -871,7 +871,8 @@
                 body: JSON.stringify({
                     methodname: methodname,
                     paramname: target.value,
-                    arity: arity
+                    arity: arity,
+                    classname: classname
                 })
             })
                 .then(res => {
@@ -879,7 +880,7 @@
                         target.value = "";
                         return res.json();
                     } else {
-                        displayClassDetails(className); // Pass the correct class name here
+                        displayClassDetails(classname);
                     }
                 })
                 .then(data => snackbar(data.error))
