@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "workflow/continuous-integration" ]
+    branches: [ "develop" ]
   pull_request:
     branches: [ "develop" ]
 
