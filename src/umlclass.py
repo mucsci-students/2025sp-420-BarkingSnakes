@@ -72,8 +72,8 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
         
-        self.class_fields.pop(oldname)
-        self.add_field(newname)
+        field_type = self.class_fields.pop(oldname).type
+        self.add_field(newname,field_type)
         return 0
 
     def rename_umlclass(self,name:str) -> int:

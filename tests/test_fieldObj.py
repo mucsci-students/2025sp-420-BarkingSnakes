@@ -21,7 +21,7 @@ if os.path.abspath('.') not in sys.path:
 # Rename an field
 def test_rename_field_valid():
     """"""
-    test_field = UmlField("OriginalName")
+    test_field = UmlField("OriginalName","speed")
     assert test_field.name == "OriginalName"
 
     try:
