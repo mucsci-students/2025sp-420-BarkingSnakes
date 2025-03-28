@@ -1,6 +1,6 @@
 # Filename: unit_tests.py
-# Authors: Kyle Kalbach, John Hershey
-# Creation Date: 02-06-2025, Last Edit Date: 02-12-2025
+# Authors: Kyle Kalbach, John Hershey, Juliana Vinluan
+# Creation Date: 02-06-2025, Last Edit Date: 03-28-2025
 # Description: Unit Tests for umlclass.py
 import os
 import sys

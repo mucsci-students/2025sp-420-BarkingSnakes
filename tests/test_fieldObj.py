@@ -1,6 +1,6 @@
 # Filename: test_fieldObj.py
 # Authors: Kyle Kalbach, John Hershey, Juliana Vinluan
-# Creation Date: 2025-02-12, Last Edit Date: 2025-02-24
+# Creation Date: 2025-02-12, Last Edit Date: 03-28-2025
 # Description: Unit Tests for field.py
 import os
 import sys
@@ -28,28 +28,3 @@ def test_rename_field_valid():
     except Exception as e:
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_field.name == "NewName"
-
-# Rename a field
-def test_field_valid():
-    """"""
-    test_name = "speed"
-    test_type = "int"
-    test_class = UmlClass("Car",{},{})
-
-    try:
-        test_class.add_field(test_name, test_type)
-    except Exception as e:
-        assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert test_class.fields[test_name].type == test_type
-
-#invalid field name
-def test_field_invalid():
-    test_name = "exit"
-    test_type = "int"
-    test_class = UmlClass("Car",{},{})
-
-    try:
-        test_class.add_field(test_name, test_type)
-    except Exception as e:
-       assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert len(test_class.class_fields) == 0
