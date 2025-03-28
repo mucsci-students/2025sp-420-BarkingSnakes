@@ -147,9 +147,10 @@ def add_field():
     data = request.get_json()
     fieldname = data.get("fieldname")
     classname = data.get("classname")
+    type = data.get("type")
     if fieldname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["field", "add", fieldname])
+        app.controller.execute_command(["field", "add", fieldname, type])
         return jsonify({"message": "Field added successfully"}), 202
     return jsonify({"error": "Missing field"}), 406
 
