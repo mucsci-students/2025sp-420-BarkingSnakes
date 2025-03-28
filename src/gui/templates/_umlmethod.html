@@ -9,10 +9,13 @@
 </div>
 <br>
 <div style="text-align: center;">
-    <button style="display: block;" id="btnAddParam-{{ m.name }}-{{ m.params|length }}" class="add-button" onclick="toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}'])"><span class="glyphicon glyphicon-plus-sign"></span> Add Param</button>
+    <button style="display: block;" id="btnAddParam-{{ m.name }}-{{ m.params|length }}" class="add-button"
+        onclick="toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}'])"><span
+            class="glyphicon glyphicon-plus-sign"></span> Add Param</button>
     <div id="cntrAddParam-{{ m.name }}-{{ m.params|length }}" style="width: 100%; display:none;">
         <label for="newParamName-{{ m.name }}-{{ m.params|length }}">Param Name:</label>
-        <input class="input-mode-view" id="newParamName-{{ m.name }}-{{ m.params|length }}" type="text" onkeydown="onkeydown_enter(event, () => addMethodParam(event, this, '{{ m.name|string }}', {{ m.params|length }}))" onblur="inputBlur(event, () => toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}']))">
-        <!-- <input class="input-mode-view" id="newClassName" type="text" onblur="addUmlClass(event.target.value)"> -->
+        <input class="input-mode-view" id="newParamName-{{ m.name }}-{{ m.params|length }}" type="text"
+        onkeydown="onkeydown_enter(event, () => addMethodParam(event, this, '{{ m.name|string }}', {{ m.params|length }}, '{{ dto.name }}'))"
+        onblur="inputBlur(event, () => toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}']))">
     </div>
 </div>
