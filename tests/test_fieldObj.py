@@ -44,8 +44,8 @@ def test_field_valid():
 
 #invalid field name
 def test_field_invalid():
-    test_name = "speed"
-    test_type = "exit"
+    test_name = "exit"
+    test_type = "int"
     test_class = UmlClass("Car",{},{})
 
     try:
