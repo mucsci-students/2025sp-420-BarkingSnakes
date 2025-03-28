@@ -34,7 +34,7 @@ def test_field_valid():
     """"""
     test_name = "speed"
     test_type = "int"
-    test_class = UmlClass("Car")
+    test_class = UmlClass("Car",{},{})
 
     try:
         test_class.add_field(test_name, test_type)
