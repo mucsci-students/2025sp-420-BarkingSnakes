@@ -41,3 +41,15 @@ def test_field_valid():
     except Exception as e:
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_class.fields[test_name].type == test_type
+
+#invalid field name
+def test_field_invalid():
+    test_name = "speed"
+    test_type = "exit"
+    test_class = UmlClass("Car",{},{})
+
+    try:
+        test_class.add_field(test_name, test_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_fields) == 0
