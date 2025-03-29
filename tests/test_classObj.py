@@ -133,7 +133,7 @@ def test_rename_field_existing():
         test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         assert e.get_num() == errors.error_list["DuplicateFieldError"]
-    assert "MinSpeed" in test_class.class_fields
+    assert "MaxSpeed" in test_class.class_fields
 
 # test adding method
 def test_add_method_invalid_name():
