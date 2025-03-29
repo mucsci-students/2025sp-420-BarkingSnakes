@@ -771,7 +771,7 @@
             }
         }
 
-        function addField2(event, elem, className) {
+        function addField2(event, elem1,elem2, className) {
             if (event.key === "Enter") {
                 fetch("/addField", {
                     method: "POST",
@@ -780,8 +780,9 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fieldname: elem.value,
-                        classname: className
+                        fieldname: elem1,
+                        classname: className,
+                        type: elem2
                     })
                 })
                     .then(resp => {
