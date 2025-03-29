@@ -31,6 +31,14 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
         errors.valid_name(name)
+
+        try:
+            # check the type is valid
+            errors.valid_name(type)
+        except Exception as e:
+            if e.get_num() == errors.error_list["InvalidNameError"]:
+                raise errors.InvalidTypeNameException()
+            
         self.class_fields[name] = UmlField(name, type)
         return 0
     

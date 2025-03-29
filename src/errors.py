@@ -260,3 +260,7 @@ class FileHasUnsavedChangesException(UMLException):
 class UmlClassDeletionErrorException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(20), *args)
+
+class InvalidTypeNameException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(21),*args)

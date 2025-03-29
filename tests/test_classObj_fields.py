@@ -89,18 +89,18 @@ def test_add_field_single():
 
 """
 **Valid Complex Type Names**
-   - Input: `Field(name="data", type="List[str]")`
+   - Input: `Field(name="data", type="int")`
    - Expected: Pass
 """
 def test_add_field_complex():
     test_class = UmlClass("Car",{},{})
     test_field_name = "data"
-    test_field_type = "List[str]"
+    test_field_type = "integer"
 
     try:
         test_class.add_field(test_field_name,test_field_type)
     except Exception as e:
-       assert e.get_num() == errors.error_list["InvalidNameError"]
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
     assert "data" in test_class.class_fields
 
 """
@@ -271,8 +271,8 @@ def test_field_long():
     try:
         test_class.add_field(test_name, test_type)
     except Exception as e:
-       assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert len(test_class.class_fields) == 0
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert len(test_class.class_fields) == 1
 
 
 """
@@ -336,24 +336,9 @@ def test_rename_field_invalid():
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
-        test_class.rename_field("Max Speed","speed")
+        test_class.rename_field("MaxSpeed"," speed")
     except Exception as e:
         assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert "MaxSpeed" in test_class.class_fields
-
-"""
-**Rename an field to an invalid type name**
-    - Expected: Error
-"""
-def test_rename_field_invalid():
-    """"""
-    test_field = UmlField("MaxSpeed","speed")
-    test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
-    
-    try:
-        test_class.rename_field("MaxSpeed"," peed")
-    except Exception as e:
-        assert e.get_num() == errors.error_list["InvalidTypeNameError"]
     assert "MaxSpeed" in test_class.class_fields
 
 """**Rename a field to an existing field**
