@@ -38,7 +38,8 @@ error_list = {
     "InvalidRelationshipTypeError":17,
     "FileAlreadyExistsError": 18,
     "FileHasUnsavedChangesError": 19,
-    "UmlClassDeletionError": 20
+    "UmlClassDeletionError": 20,
+    "InvalidTypeNameError": 21
 }
 ## class definitions
 class UMLException(Exception):
