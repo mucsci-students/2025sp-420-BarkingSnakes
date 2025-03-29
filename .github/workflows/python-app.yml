@@ -37,4 +37,5 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest --cov=src tests/
+        pytest --cov=src --cov-omit="src/views/umlview_gui.py" tests/
+#        pytest --cov=src tests/
