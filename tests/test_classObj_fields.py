@@ -361,8 +361,8 @@ def test_rename_field_invalid():
 """
 def test_rename_field_existing():
     """"""
-    test_field1 = UmlField("MaxSpeed","speed")
-    test_field2 = UmlField("MinSpeed","speed")
+    test_field1 = UmlField("MaxSpeed","top_speed")
+    test_field2 = UmlField("MinSpeed","slow_speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field1},{"MinSpeed":test_field2})
 
     try:
