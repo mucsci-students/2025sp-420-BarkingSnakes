@@ -22,31 +22,264 @@ if os.path.abspath('.') not in sys.path:
     sys.path.append(os.path.abspath('.'))
 # errors can be imported once the path has been added  
     
-# Add a valid Field
+"""   
+**Valid Field**
+    - Input: `Field(name="speed", type="int")`
+    - Expected: Pass
+""" 
 def test_add_field_valid():
     """"""
     test_class = UmlClass("Car",{},{})
-    test_field_name = "MaxSpeed"
+    test_field_name = "speed"
+    test_field_type = "int"
 
     try:
-        test_class.add_field(test_field_name,"speed")
+        test_class.add_field(test_field_name,test_field_type)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert "MaxSpeed" in test_class.class_fields
 
-# Add an invalid Field
-def test_add_field_invalid():
-    """"""
+"""
+**CamelCase Field Name**
+   - Input: `Field(name="MaxSpeed", type="float")`
+   - Expected: Pass
+"""
+def test_add_field_camelcase():
     test_class = UmlClass("Car",{},{})
-    test_field_name = "exit"
+    test_field_name = "MaxSpeed"
+    test_field_type = "float"
 
     try:
-        test_class.add_field(test_field_name,"speed")
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "MaxSpeed" in test_class.class_fields
+
+"""
+**Underscore Naming Convention**
+   - Input: `Field(name="max_speed", type="int")`
+   - Expected: Pass
+"""
+def test_add_field_underscore():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "max_speed"
+    test_field_type = "double"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "max_speed" in test_class.class_fields
+
+"""
+**Single Character Field Name**
+   - Input: `Field(name="x", type="int")`
+   - Expected: Pass
+"""
+def test_add_field_single():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "x"
+    test_field_type = "int"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "x" in test_class.class_fields
+
+"""
+**Valid Complex Type Names**
+   - Input: `Field(name="data", type="List[str]")`
+   - Expected: Pass
+"""
+def test_add_field_complex():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "data"
+    test_field_type = "List[str]"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert "data" in test_class.class_fields
+
+"""
+**Empty String as Name**
+   - Input: `Field(name="", type="int")`
+   - Expected: Error
+"""
+def test_add_field_empty():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = ""
+    test_field_type = "int"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert len(test_class.class_fields) == 0
 
-# Remove an existing Field
+"""
+**Empty String as Type**
+    - Input: `Field(name="speed", type="")`
+    - Expected: Error
+"""
+def test_add_field_empty_type():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "speed"
+    test_field_type = ""
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert len(test_class.class_fields) == 0
+
+
+
+"""
+**Name Contains Spaces**
+   - Input: `Field(name="max speed", type="int")`
+   - Expected: Error
+"""
+def test_add_field_spaces():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "max speed"
+    test_field_type = "int"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_fields) == 0
+
+"""
+**Type Contains Spaces**
+    - Input: `Field(name="speed", type="int value")`
+    - Expected: Error
+"""
+def test_add_field_spaces_type():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "speed"
+    test_field_type = "int value"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert len(test_class.class_fields) == 0
+
+
+"""
+**Name Starts with a Number**
+   - Input: `Field(name="123field", type="int")`
+   - Expected: Error
+"""
+def test_add_field_number():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "123field"
+    test_field_type = "int"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_fields) == 0
+
+"""
+**Numeric Type as String**
+    - Input: `Field(name="speed", type="123")`
+    - Expected: Error
+"""
+def test_add_field_numeric():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "speed"
+    test_field_type = "123"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert len(test_class.class_fields) == 0
+
+"""
+**Adding Field to Class with Duplicate Names**
+    - Input:
+      ```python
+      my_class = Class(name="Car")
+      my_class.add_field(Field(name="speed", type="int"))
+      my_class.add_field(Field(name="speed", type="float"))
+      ```
+    - Expected: Error
+"""
+def test_add_field_duplicate():
+    test_class = UmlClass("Car",{},{})
+    test_field_name = "speed"
+    test_field_type1 = "int"
+    test_field_type2 = "float"
+
+    try:
+        test_class.add_field(test_field_name,test_field_type1)
+        test_class.add_field(test_field_name,test_field_type2)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["DuplicateFieldError"]
+    assert len(test_class.class_fields) == 1
+
+"""
+**Reserved Keywords as Name**
+    - Input: `Field(name="exit", type="int")`
+    - Expected: Error
+"""
+def test_field_invalid():
+    test_name = "exit"
+    test_type = "int"
+    test_class = UmlClass("Car",{},{})
+
+    try:
+        test_class.add_field(test_name, test_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_fields) == 0
+
+"""
+**Reserved Keywords as Name**
+    - Input: `Field(name="speed", type="class")`
+    - Expected: Error
+"""
+def test_field_invalid():
+    test_name = "speed"
+    test_type = "class"
+    test_class = UmlClass("Car",{},{})
+
+    try:
+        test_class.add_field(test_name, test_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert len(test_class.class_fields) == 0
+
+"""
+**Very Long Field Name or Type**
+    - Input:
+      name="this_is_a_very_long_field_name_exceeding_limits"
+      type="super_complex_custom_data_type_123")
+    - Expected: Enforce length restrictions if necessary
+"""
+def test_field_long():
+    test_name = "this_is_a_very_long_field_name_exceeding_limits"
+    test_type = "super_complex_custom_data_type_123"
+    test_class = UmlClass("Car",{},{})
+
+    try:
+        test_class.add_field(test_name, test_type)
+    except Exception as e:
+       assert e.get_num() == errors.error_list["InvalidNameError"]
+    assert len(test_class.class_fields) == 0
+
+
+"""
+**Remove Field**
+    - Expected: Pass
+"""
 def test_remove_field_valid():
     """"""
     #change later to avoid direct assignment of fields
@@ -62,7 +295,10 @@ def test_remove_field_valid():
        assert e.get_num() == errors.error_list["NoSuchObjectError"]
     assert len(test_class.class_fields) == 0
 
-# Remove a nonexisting Field
+"""
+**Remove non-existing Field**
+    - Expected: Fail
+"""
 def test_remove_field_not_found():
     """"""
     test_field = UmlField("MaxSpeed","speed")
@@ -77,7 +313,9 @@ def test_remove_field_not_found():
        assert e.get_num() == errors.error_list["NoSuchObjectError"]
     assert len(test_class.class_fields) == 1
 
-# Rename an field
+"""
+**Rename Field to valid name**
+    - Expected: Pass"""
 def test_rename_field_valid():
     """"""
     test_field = UmlField("MaxSpeed","speed")
@@ -89,148 +327,59 @@ def test_rename_field_valid():
         pass
     assert "MinSpeed" in test_class.class_fields
 
-# Rename an field to an invalid name
+"""
+**Rename an field to an invalid name**
+    - Expected: Error
+"""
 def test_rename_field_invalid():
     """"""
     test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
-        test_class.rename_field("MaxSpeed","relation")
+        test_class.rename_field("Max peed","speed")
     except Exception as e:
         assert e.get_num() == errors.error_list["InvalidNameError"]
     assert "MaxSpeed" in test_class.class_fields
 
-# Rename a field to an existing field
-def test_rename_field_existing():
+"""
+**Rename an field to an invalid type name**
+    - Expected: Error
+"""
+def test_rename_field_invalid():
     """"""
     test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
+    
+    try:
+        test_class.rename_field("MaxSpeed"," peed")
+    except Exception as e:
+        assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+    assert "MaxSpeed" in test_class.class_fields
+
+"""**Rename a field to an existing field**
+    - Expected: Error
+"""
+def test_rename_field_existing():
+    """"""
+    test_field1 = UmlField("MaxSpeed","speed")
+    test_field2 = UmlField("MinSpeed","speed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field1},{"MinSpeed":test_field2})
 
     try:
-        test_class.rename_field("MaxSpeed","MaxSpeed")
+        test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         assert e.get_num() == errors.error_list["DuplicateFieldError"]
     assert "MaxSpeed" in test_class.class_fields
 
-def test_field_valid():
-    """"""
-    test_name = "speed"
-    test_type = "int"
-    test_class = UmlClass("Car",{},{})
+"""
 
-    try:
-        test_class.add_field(test_name, test_type)
-    except Exception as e:
-        assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert test_class.class_fields[test_name].type == test_type
-
-#invalid field name
-def test_field_invalid():
-    test_name = "exit"
-    test_type = "int"
-    test_class = UmlClass("Car",{},{})
-
-    try:
-        test_class.add_field(test_name, test_type)
-    except Exception as e:
-       assert e.get_num() == errors.error_list["InvalidNameError"]
-    assert len(test_class.class_fields) == 0
-
-"""1. **Valid Field**
-   - Input: `Field(name="speed", type="int")`
-   - Expected: Pass
-
-2. **CamelCase Field Name**
-   - Input: `Field(name="MaxSpeed", type="float")`
-   - Expected: Pass
-
-3. **Underscore Naming Convention**
-   - Input: `Field(name="max_speed", type="int")`
-   - Expected: Pass
-
-4. **Single Character Field Name**
-   - Input: `Field(name="x", type="int")`
-   - Expected: Pass
-
-5. **Valid Complex Type Names**
-   - Input: `Field(name="data", type="List[str]")`
-   - Expected: Pass
-
-6. **Empty String as Name**
-   - Input: `Field(name="", type="int")`
-   - Expected: Error
-
-7. **Name Contains Spaces**
-   - Input: `Field(name="max speed", type="int")`
-   - Expected: Error
-
-8. **Name Starts with a Number**
-   - Input: `Field(name="123field", type="int")`
-   - Expected: Error
-
-9. **Name Contains Special Characters**
-   - Input: `Field(name="field@", type="int")`
-   - Expected: Error
-
-10. **Reserved Keywords as Name**
-    - Input: `Field(name="class", type="int")`
-    - Expected: Error
-
-11. **Empty String as Type**
-    - Input: `Field(name="speed", type="")`
-    - Expected: Error
-
-12. **Type Contains Spaces**
-    - Input: `Field(name="speed", type="int value")`
-    - Expected: Error
-
-13. **Invalid Data Type Name**
-    - Input: `Field(name="speed", type="xyz")`
-    - Expected: Error
-
-14. **Numeric Type as String**
-    - Input: `Field(name="speed", type="123")`
-    - Expected: Error
-
-15. **Null Type**
-    - Input: `Field(name="speed", type=None)`
-    - Expected: Error
-
-16. **Adding Field to Class with Duplicate Names**
-    - Input:
-      ```python
-      my_class = Class(name="Car")
-      my_class.add_field(Field(name="speed", type="int"))
-      my_class.add_field(Field(name="speed", type="float"))
-      ```
-    - Expected: Error
-
-17. **Handling Case Sensitivity**
-    - Input:
-      ```python
-      my_class.add_field(Field(name="speed", type="int"))
-      my_class.add_field(Field(name="Speed", type="float"))
-      ```
-    - Expected: Define behavior (case-sensitive or not)
-
-18. **Field Name Same as Method Name**
+**Field Name Same as Method Name**
     - Input:
       ```python
       my_class.add_field(Field(name="calculate_speed", type="int"))
       my_class.add_method(Method(name="calculate_speed", return_type="int"))
       ```
     - Expected: Error
-
-19. **Large Number of Fields in Class**
-    - Input: Add 10,000 fields to a class
-    - Expected: Should handle efficiently
-
-20. **Very Long Field Name or Type**
-    - Input:
-      ```python
-      Field(name="this_is_a_very_long_field_name_exceeding_limits", type="super_complex_custom_data_type_123")
-      ```
-    - Expected: Enforce length restrictions if necessary
 
 """
