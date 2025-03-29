@@ -125,12 +125,12 @@ def test_rename_field_invalid():
 # Rename a field to an existing field
 def test_rename_field_existing():
     """"""
-    test_field = UmlField("MaxSpeed","speed")
+    test_field = UmlField("MaxSpeed","top_speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     try:
-        test_class.add_field("MinSpeed","num")
-        test_class.rename_field("MinSpeed","MaxSpeed")
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         assert e.get_num() == errors.error_list["DuplicateFieldError"]
     assert "MinSpeed" in test_class.class_fields
