@@ -15,16 +15,42 @@
         </table>
         <br>
         <div style="text-align: center;">
-            <button style="display: block;" id="btnAddField-{{ dto.name }}" class="add-button"
-                onclick="toggleVisibility(['btnAddField-{{ dto.name }}', 'cntrAddField-{{ dto.name }}'])"><span
-                    class="glyphicon glyphicon-plus-sign"></span> Add Field</button>
-            <div id="cntrAddField-{{ dto.name }}" style="width: 100%; display:none;">
-                <label for="newFieldName-{{ dto.name }}">Field Name:</label>
-                <input class="input-mode-view" id="newFieldName-{{ dto.name }}" type="text"
-                    onkeydown="addField2(event, this, '{{ dto.name }}')"
-                    onblur="inputBlur(event, () => toggleVisibility(['btnAddField-{{ dto.name }}', 'cntrAddField-{{ dto.name }}']))">
+            <button style="display: block;" id="btnAddField" class="add-button"
+                onclick="toggleVisibility(['btnAddField', 'fieldinpts'])">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Field
+            </button>
+            <div id="fieldinpts" style="width: 100%; display:none;">
+                <!-- Field Name Label and Input -->
+                <div id="fieldinpts" style="margin-bottom: 10px; text-align: left;">
+                    <label for="newFieldName" style="display: block; margin-bottom: 5px;">Field Name:</label>
+                    <input class="input-mode-view" id="newFieldName" type="text"
+                        style="width: 85%; padding: 5px;background-color: #04AA6D">
+                </div>
+                <!-- Field Type Label and Input -->
+                <div style="text-align: left;">
+                    <label for="fieldtype" style="display: block; margin-bottom: 5px;">Field Type:</label>
+                    <input class="input-mode-view" id="fieldtype" type="text"
+                        style="width: 85%; padding: 5px;background-color: #04AA6D">
+                </div>
+
+                <div style="padding-top: 10px;">
+                    <!-- Submit btn -->
+                    <i class="fa-solid fa-circle-check"
+                        style="color: white; font-size: 18px; transition: all 0.2s ease-in-out;"
+                        onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
+                        onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
+                        onclick="addField2({key:'Enter'},document.getElementById('newFieldName').value,document.getElementById('fieldtype').value,'{{ dto.name }}');"></i>
+                    <!-- Cancel btn -->
+                    <i class="fa-solid fa-circle-xmark"
+                        style="color: red; font-size: 18px; transition: all 0.2s ease-in-out; cursor: pointer;"
+                        onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)';"
+                        onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
+                        onclick="toggleVisibility(['btnAddField','fieldinpts']); document.getElementById('newFieldName').value='';document.getElementById('fieldtype').value='';">
+                    </i>
+                </div>
             </div>
         </div>
+
     </div>
     <hr>
     <h3>Methods</h3>

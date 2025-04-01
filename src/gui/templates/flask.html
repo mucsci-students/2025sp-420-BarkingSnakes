@@ -796,7 +796,7 @@
             }
         }
 
-        function addField2(event, elem, className) {
+        function addField2(event, elem1,elem2, className) {
             if (event.key === "Enter") {
                 const fieldType = "string"; // Defaulted to string for temp fix
                 fetch("/addField", {
@@ -806,6 +806,9 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        fieldname: elem1,
+                        classname: className,
+                        type: elem2
                         fieldname: elem.value,
                         classname: className,
                         fieldtype: fieldType

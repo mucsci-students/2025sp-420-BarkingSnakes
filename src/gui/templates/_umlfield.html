@@ -1,8 +1,9 @@
 <tr>
     <td>
-        <div>- <input class="input-mode-view" type="text" id="umlfield-{{ f.name }}" value="{{ f.name }}"
+        <div>- <input class="input-mode-view" style="text-align: left; width: 50%;" type="text" id="umlfield-{{ f.name }}" value="{{ f.name }}"
                 onblur="renameField(event.target,this ,'{{ dto.name }}', '{{ f.name }}')"
                 onkeydown="onkeydown_enter(event, () => this.blur())" />
+                <span class="input-mode-view" style="width: 50%;" id="fieldtype-{{ f.name }}">({{ f.type }})</span>
         </div>
     </td>
     <td>
