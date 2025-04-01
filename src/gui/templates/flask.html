@@ -796,7 +796,7 @@
             }
         }
 
-        function addField2(event, elem1,elem2, className) {
+        function addField2(event, elem, className) {
             if (event.key === "Enter") {
                 const fieldType = "string"; // Defaulted to string for temp fix
                 fetch("/addField", {
@@ -809,9 +809,6 @@
                         fieldname: elem1,
                         classname: className,
                         type: elem2
-                        fieldname: elem.value,
-                        classname: className,
-                        fieldtype: fieldType
                     })
                 })
                     .then(resp => {
