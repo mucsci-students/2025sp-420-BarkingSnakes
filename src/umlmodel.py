@@ -657,56 +657,54 @@ class UmlProject:
         self.relationships.remove(match)
 
     def save_memento(self) -> Memento:
-        """ """
-        # todo
+        """Returns a Concrete Memento that captures the current state."""
+        return ConcereteMemento(self._save_object)
 
     def restore_memento(self, memento: Memento) -> None:
-        """ """
-        # todo
+        """Sets the current state to the State captured in the memento."""
+        self._parse_uml_data(memento.get_state())
 
 
 class Memento(ABC):
-    """ """
+    """Encapsulating interface that only allows access to the creation date of the memento."""
 
     @abstractmethod
     def get_date(self) -> datetime:
-        """ """
+        """Returns the creation date and time of the memento."""
 
 
 class ConcereteMemento(Memento):
-    """ """
+    """Implementation of the memento interface that stores a state accessible to the originator object."""
 
-    def __init__(self, state) -> None:
+    def __init__(self, state: dict) -> None:
         self._state = state
-        # state should be some sort of dict
         self._date = datetime.now()
 
-    def get_state(self):
-        """ """
+    def get_state(self) -> dict:
+        """Returns the state of the Concrete Memento"""
         return self._state
 
     def get_date(self):
-        """ """
+        """returns the creation date and time of the Concrete Memento"""
         return self._date
 
 
 class Caretaker:
-    """ """
+    """Class for keeping track of mementos and the redo stack and the originator."""
 
     def __init__(self, originator: UmlProject) -> None:
-        """ """
         self._mementos = []
         self._redo_stack = []
         self._originator = originator
 
     def backup(self) -> None:
-        """ """
+        """Requests the originator to save the current state and stores the returned memento wiping the redo stack."""
         print("\nCaretaker: Saving Originator's state...")
         self._mementos.append(self._originator.save_memento())
         self._redo_stack = []
 
     def undo(self) -> None:
-        """ """
+        """Returns the origintor to the previous state."""
         if len(self._mementos):
             memento = self._mementos.pop()
             print("Caretaker: Restoring state")
@@ -719,7 +717,7 @@ class Caretaker:
                 self.undo()
 
     def redo(self) -> None:
-        """ """
+        """Returns the state to a previously undon state."""
         if len(self._redo_stack):
             # Checks redo stack is not empty
             memento = self._redo_stack.pop()
