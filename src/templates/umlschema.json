@@ -28,7 +28,8 @@
               "required": [
                 "name",
                 "type"
-              ]
+              ],
+              "additionalProperties": false
             }
           },
           "methods": {
@@ -61,7 +62,8 @@
                     "required": [
                       "name",
                       "type"
-                    ]
+                    ],
+                    "additionalProperties": false
                   }
                 }
               },
@@ -69,7 +71,8 @@
                 "name",
                 "return_type",
                 "params"
-              ]
+              ],
+              "additionalProperties": false
             }
           },
           "position": {
@@ -85,14 +88,16 @@
             "required": [
               "x",
               "y"
-            ]
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
           "name",
           "fields",
           "methods"
-        ]
+        ],
+        "additionalProperties": false
       }
     },
     "relationships": {
@@ -117,12 +122,14 @@
           "source",
           "destination",
           "type"
-        ]
+        ],
+        "additionalProperties": false
       }
     }
   },
   "required": [
     "classes",
     "relationships"
-  ]
+  ],
+  "additionalProperties": false
 }
