@@ -83,11 +83,13 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        
-        with open(filepath, "r") as f:
-            data =  json.load(f)
-            self.validate_json_schema(data)
-            self._parse_uml_data(data)
+        try:
+            with open(filepath, "r") as f:
+                data =  json.load(f)
+                self.validate_json_schema(data)
+                self._parse_uml_data(data)
+        except:
+            raise errors.InvalidJsonSchemaException()
         #use when saving later
         self._save_path = filepath
 
@@ -119,12 +121,12 @@ class UmlProject:
             schema = json.load(f)
         
         try:
-            jsonschema.validate(instance=data, schema=schema)
+            validator = jsonschema.Draft7Validator(schema)
+            validator.validate(instance=data)
         except jsonschema.exceptions.ValidationError:
             raise errors.InvalidJsonSchemaException()
         except jsonschema.exceptions.SchemaError:
             raise errors.InvalidJsonSchemaException()
-
         return True
 
     def is_json_file(self, filepath:str) -> bool:
