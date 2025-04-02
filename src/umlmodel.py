@@ -656,11 +656,11 @@ class UmlProject:
 
         self.relationships.remove(match)
 
-    def save_memento(self) -> Memento:
+    def _save_memento(self) -> Memento:
         """Returns a Concrete Memento that captures the current state."""
-        return ConcereteMemento(self._save_object)
+        return ConcreteMemento(self._save_object)
 
-    def restore_memento(self, memento: Memento) -> None:
+    def _restore_memento(self, memento: Memento) -> None:
         """Sets the current state to the State captured in the memento."""
         self._parse_uml_data(memento.get_state())
 
@@ -673,7 +673,7 @@ class Memento(ABC):
         """Returns the creation date and time of the memento."""
 
 
-class ConcereteMemento(Memento):
+class ConcreteMemento(Memento):
     """Implementation of the memento interface that stores a state accessible to the originator object."""
 
     def __init__(self, state: dict) -> None:
@@ -701,7 +701,7 @@ class Caretaker:
         """Requests the originator to save the current state and stores the returned memento wiping the redo stack."""
         # TODO remove print
         print("\nCaretaker: Saving Originator's state...")
-        self._mementos.append(self._originator.save_memento())
+        self._mementos.append(self._originator._save_memento())
         self._redo_stack = []
 
     def undo(self) -> None:
@@ -711,7 +711,7 @@ class Caretaker:
             print("Caretaker: Restoring state")
 
             try:
-                self._originator.restore_memento(memento)
+                self._originator._restore_memento(memento)
                 self._redo_stack.append(memento)
             except Exception as e:
                 # Passes through invalid states
@@ -726,7 +726,7 @@ class Caretaker:
             print("Caretaker: Restoring state")
 
             try:
-                self._originator.restore_memento(memento)
+                self._originator._restore_memento(memento)
                 self._mementos.append(memento)
             except Exception as e:
                 # Passes through invalid states
