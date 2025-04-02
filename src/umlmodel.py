@@ -161,9 +161,11 @@ class UmlProject:
         """
         uml_classes: list[dict] = data.get("classes")
 
-        if uml_classes is None or not any(uml_classes):
-            return -1
-
+        # if uml_classes is None or not any(uml_classes):
+        #     print(uml_classes)
+        #     return -1
+        # Commented out while working on Mememnto!
+        
         self.classes = {
             c.class_name: c for c in map(self._parse_uml_class, uml_classes)
         }
@@ -664,6 +666,10 @@ class UmlProject:
         """Sets the current state to the State captured in the memento."""
         self._parse_uml_data(memento.get_state())
 
+    def _validate_memento(self, memento: Memento) -> bool:
+        """Returns True if a memento has a valid state."""
+        return self.validate_json_schema(memento.get_state())
+
 
 class Memento(ABC):
     """Encapsulating interface that only allows access to the creation date of the memento."""
@@ -678,6 +684,7 @@ class ConcreteMemento(Memento):
 
     def __init__(self, state: dict) -> None:
         self._state = state
+        print(state)
         self._date = datetime.now()
 
     def get_state(self) -> dict:
