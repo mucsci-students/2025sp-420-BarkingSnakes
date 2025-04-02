@@ -159,8 +159,7 @@ class UmlProject:
 
         if uml_classes is None or not any(uml_classes):
             return -1
-        nameList = [umlclass["name"] for umlclass in uml_classes]
-        if len(set(nameList)) != len(uml_classes):
+        if self._has_duplicate_objects(uml_classes):
             raise errors.InvalidJsonSchemaException()
             #raise errors.DuplicateClassException()
         
@@ -254,6 +253,23 @@ class UmlProject:
         """
         return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
+    def _has_duplicate_objects(self, data:list[dict]) -> bool:
+        """checks if the given list of dicts has any duplicate names
+        
+        Params: 
+            data: list of dicts to check for dupes
+        Returns:
+            False: if no duplicates were in list
+            True: if a duplicate name was detected
+        Exceptions:
+            None
+        """
+        # make a list of every "name" in each dict in the list
+        nameList = [obj["name"] for obj in data]
+        # convert the name list to a set to remove duplicate names 
+        # and compare lengths: if different then a dupe was removed
+        return len(set(nameList)) != len(data)
+    
     @property
     def _save_object(self) -> dict:
         """Converts the project into a dict in order to save to .json file."""
