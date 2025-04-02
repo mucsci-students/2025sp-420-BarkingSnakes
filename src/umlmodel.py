@@ -699,6 +699,7 @@ class Caretaker:
 
     def backup(self) -> None:
         """Requests the originator to save the current state and stores the returned memento wiping the redo stack."""
+        # TODO remove print
         print("\nCaretaker: Saving Originator's state...")
         self._mementos.append(self._originator.save_memento())
         self._redo_stack = []
@@ -721,6 +722,7 @@ class Caretaker:
         if len(self._redo_stack):
             # Checks redo stack is not empty
             memento = self._redo_stack.pop()
+            # TODO remove print
             print("Caretaker: Restoring state")
 
             try:
