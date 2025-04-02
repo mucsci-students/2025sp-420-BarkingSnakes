@@ -223,11 +223,17 @@ class UmlProject:
         uml_fields:list[UmlField] = []
         if data.get("fields"):
             uml_fields.extend(list(map(_parse_uml_fields, data.get("fields"))))
-
+            #check for dupes
+            if self._has_duplicate_objects(data.get("fields")):
+                raise errors.InvalidJsonSchemaException()
+        
         uml_methods:list[UmlMethod] = []
         if data.get("methods"):
             uml_methods.extend(list(map(_parse_uml_method, data.get("methods"))))
-
+            #check for dupes
+            if self._has_duplicate_objects(data.get("methods")):
+                raise errors.InvalidJsonSchemaException()
+        
         methods = {}
         for method in uml_methods:
             if method.name not in methods:
