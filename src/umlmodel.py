@@ -83,13 +83,14 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        try:
-            with open(filepath, "r") as f:
+        with open(filepath, "r") as f:
+            # if file invalid raise catch error and raise schema one
+            try:
                 data =  json.load(f)
-                self.validate_json_schema(data)
-                self._parse_uml_data(data)
-        except:
-            raise errors.InvalidJsonSchemaException()
+            except:
+                raise errors.InvalidJsonSchemaException()
+            self.validate_json_schema(data)
+            self._parse_uml_data(data)
         #use when saving later
         self._save_path = filepath
 
@@ -158,6 +159,10 @@ class UmlProject:
 
         if uml_classes is None or not any(uml_classes):
             return -1
+        nameList = [umlclass["name"] for umlclass in uml_classes]
+        if len(set(nameList)) != len(uml_classes):
+            raise errors.InvalidJsonSchemaException()
+            #raise errors.DuplicateClassException()
         
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
 
@@ -169,7 +174,8 @@ class UmlProject:
             new_relation = self._parse_uml_relationship(relation_data)
             for existing_relation in self.relationships:
                 if new_relation.source_class == existing_relation.source_class and new_relation.destination_class == existing_relation.destination_class:
-                    raise errors.DuplicateRelationshipException()
+                    raise errors.InvalidJsonSchemaException()
+                    #raise errors.DuplicateRelationshipException()
             self.relationships.add(new_relation)
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
