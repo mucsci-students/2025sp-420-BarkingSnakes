@@ -1,7 +1,7 @@
-# Filename: uml.py
-# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
-# Date: 2025-02-14
-# Description: Entry point for UML editor program.
+# Filename: umlmodel.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
+# Date: 2025-04-02
+# Description: Model for the Uml editor program.
 
 from __future__ import annotations
 
