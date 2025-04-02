@@ -18,6 +18,7 @@ from umlclass import UmlClass, UmlField
 from umlmethod import UmlParameter, UmlMethod
 from umlrelationship import UmlRelationship, RelationshipType
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 # project directory path
 __DIR__ = os.path.dirname(os.path.abspath(__file__))
@@ -662,6 +663,31 @@ class UmlProject:
     def restore_memento(self, memento: Memento) -> None:
         """ """
         # todo
+
+
+class Memento(ABC):
+    """ """
+
+    @abstractmethod
+    def get_date(self) -> datetime:
+        """ """
+
+
+class ConcereteMemento(Memento):
+    """ """
+
+    def __init__(self, state) -> None:
+        self._state = state
+        # state should be some sort of dict
+        self._date = datetime.now()
+
+    def get_state(self):
+        """ """
+        return self._state
+
+    def get_date(self):
+        """ """
+        return self._date
 
 
 class Caretaker:
