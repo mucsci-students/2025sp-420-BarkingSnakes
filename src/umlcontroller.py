@@ -328,7 +328,7 @@ class UmlController:
 
         elif cmd == 'field':
             # TODO - Align this to prompt for additional input.
-            if args[1].lower() == 'rename' and len(args) < 4:
+            if args[1].lower() in ['add','rename'] and len(args) < 4:
                 self.view.handle_exceptions(error_text)
             elif len(args) < 3:
                 self.view.handle_exceptions(error_text)
