@@ -5,7 +5,7 @@ name: Python application for Tests
 
 on:
   push:
-    branches: [ "develop", "tests/fields" ]
+    branches: [ "develop"]
   pull_request:
     branches: [ "develop" ]
 
