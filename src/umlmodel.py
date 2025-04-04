@@ -1,5 +1,10 @@
 # Filename: uml.py
-# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
+# Authors: Steven Barnes
+#          Evan Magill
+#          John Hershey
+#          Kyle Kalbach
+#          Juliana Vinluan
+#          Spencer Hoover
 # Date: 2025-02-14
 # Description: Entry point for UML editor program.
 

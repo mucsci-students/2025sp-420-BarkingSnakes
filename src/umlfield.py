@@ -1,5 +1,5 @@
 # Filename: field.py
-# Authors: Kyle Kalbach, Steven Barnes, Evan Magill, Juliana , Spencer
+# Authors: Kyle Kalbach, Steven Barnes, Evan Magill, Juliana Vinluan , Spencer Hoover
 # Date: 2025-02-24
 # Description: Field class and methods
 

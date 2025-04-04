@@ -1,6 +1,6 @@
 # Filename: unit_tests.py
-# Authors: Kyle Kalbach, John Hershey
-# Creation Date: 02-06-2025, Last Edit Date: 02-12-2025
+# Authors: Kyle Kalbach, John Hershey, Juliana Vinluan
+# Creation Date: 02-06-2025, Last Edit Date: 03-28-2025
 # Description: Unit Tests for umlclass.py
 import os
 import sys
@@ -125,14 +125,16 @@ def test_rename_field_invalid():
 # Rename a field to an existing field
 def test_rename_field_existing():
     """"""
-    test_field = UmlField("MaxSpeed","speed")
+    test_field = UmlField("MaxSpeed","top_speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     try:
-        test_class.rename_field("MaxSpeed","MaxSpeed")
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         assert e.get_num() == errors.error_list["DuplicateFieldError"]
     assert "MaxSpeed" in test_class.class_fields
+    assert "MinSpeed" in test_class.class_fields
 
 # test adding method
 def test_add_method_invalid_name():
