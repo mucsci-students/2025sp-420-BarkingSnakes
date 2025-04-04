@@ -1,98 +1,135 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema",
-    "title": "UML Schema Sprint 2",
-    "type": "object",
-    "properties": {
-      "classes": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "fields": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
-                  }
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "UML Schema Sprints 3+4",
+  "type": "object",
+  "properties": {
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
                 },
-                "required": [
-                  "name"
-                ]
-              }
-            },
-            "methods": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
-                  },
-                  "params": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
-                        }
+                "type": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+                },
+                "return_type": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+                },
+                "params": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
                       },
-                      "required": [
-                        "name"
-                      ]
-                    }
+                      "type": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type"
+                    ],
+                    "additionalProperties": false
                   }
-                },
-                "required": [
-                  "name",
-                  "params"
-                ]
+                }
+              },
+              "required": [
+                "name",
+                "return_type",
+                "params"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
               }
-            }
-          },
-          "required": [
-            "name",
-            "fields",
-            "methods"
-          ]
-        }
-      },
-      "relationships": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "source": {
-              "type": "string",
-              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
             },
-            "destination": {
-              "type": "string",
-              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
-            },
-            "type": {
-              "type": "string",
-              "enum": ["Aggregation", "Composition", "Inheritance", "Realization"]
-            }
-          },
-          "required": [
-            "source",
-            "destination",
-            "type"
-          ]
-        }
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "fields",
+          "methods"
+        ],
+        "additionalProperties": false
       }
     },
-    "required": [
-      "classes",
-      "relationships"
-    ]
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["Aggregation", "Composition", "Inheritance", "Realization"]
+          }
+        },
+        "required": [
+          "source",
+          "destination",
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "classes",
+    "relationships"
+  ],
+  "additionalProperties": false
 }

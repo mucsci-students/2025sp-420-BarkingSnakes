@@ -289,7 +289,7 @@ class UmlController:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
                 prompt = "A file with that name already exists. Do you want to override it?\
-                    \nWARNING: this will erase the old file's contents. "
+                    \nWARNING: this will erase the old file's contents when saving. "
                 if not self.view.prompt_user(prompt, None):
                     return
 
