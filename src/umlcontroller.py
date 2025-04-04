@@ -11,7 +11,7 @@ from typing import Protocol, Callable
 import re
 
 import umlmodel
-from umlmodel import UmlProject
+from umlmodel import UmlProject,Caretaker
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
@@ -144,8 +144,8 @@ class UmlController:
         self.view = view
 
         self.model:UmlProject = UmlProject()
+        self.caretaker:Caretaker = Caretaker(self.model)
         self.active_class:str = None
-        # self.model.load("test_json.json")
         self.is_running = False
     
     def _handle_unsaved_changes(func):
@@ -289,7 +289,7 @@ class UmlController:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
                 prompt = "A file with that name already exists. Do you want to override it?\
-                    \nWARNING: this will erase the old file's contents. "
+                    \nWARNING: this will erase the old file's contents when saving. "
                 if not self.view.prompt_user(prompt, None):
                     return
 
@@ -328,7 +328,7 @@ class UmlController:
 
         elif cmd == 'field':
             # TODO - Align this to prompt for additional input.
-            if args[1].lower() == 'rename' and len(args) < 4:
+            if args[1].lower() in ['add','rename'] and len(args) < 4:
                 self.view.handle_exceptions(error_text)
             elif len(args) < 3:
                 self.view.handle_exceptions(error_text)
