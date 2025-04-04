@@ -69,5 +69,62 @@ def test_caretaker_undo_correct_history():
     assert len(caretaker._undo_stack) == 0
     assert len(caretaker._redo_stack) == 1
 
+def test_caretaker_redo_correct_history():
+    """Tests the caretaker can return to a future state"""
+    test_proj = UmlProject()
+    caretaker = Caretaker(test_proj)
 
+    test_proj.add_umlclass("testclass")
+    caretaker.backup()
 
+    assert len(caretaker._undo_stack) == 1
+    assert len(caretaker._redo_stack) == 0
+
+    caretaker.undo()
+
+    assert len(caretaker._undo_stack) == 0
+    assert len(caretaker._redo_stack) == 1
+
+    caretaker.redo()
+
+    assert len(caretaker._undo_stack) == 1
+    assert len(caretaker._redo_stack) == 0
+
+def test_caretaker_redo_undo_complex():
+    """Tests the caretaker can return to a future state"""
+    test_proj = UmlProject()
+    caretaker = Caretaker(test_proj)
+
+    test_proj.add_umlclass("testclass")
+    caretaker.backup()
+
+    assert len(caretaker._undo_stack) == 1
+    assert len(caretaker._redo_stack) == 0
+
+    test_proj.add_umlclass("hatclass")
+    caretaker.backup()
+
+    assert len(caretaker._undo_stack) == 2
+    assert len(caretaker._redo_stack) == 0
+
+    caretaker.undo()
+
+    assert len(caretaker._undo_stack) == 1
+    assert len(caretaker._redo_stack) == 1
+
+    caretaker.undo()
+
+    assert len(caretaker._undo_stack) == 0
+    assert len(caretaker._redo_stack) == 2
+
+    caretaker.redo()
+
+    assert len(caretaker._undo_stack) == 1
+    assert len(caretaker._redo_stack) == 1
+
+    
+    test_proj.add_umlclass("helmetclass")
+    caretaker.backup()
+
+    assert len(caretaker._undo_stack) == 2
+    assert len(caretaker._redo_stack) == 0
