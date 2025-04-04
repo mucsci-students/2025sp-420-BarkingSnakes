@@ -96,6 +96,11 @@ Shows list of existing relationships by displaying type, source class, and targe
   `test_classObj.py`  
   `test_save_load.py`  
   `test_user_input.py`  
+  `test_relation.py`
+  `test_fieldObj.py`
+- To check code coverage and print to terminal
+   Windows: `pytest --cov --cov-report term`
+   Linux: `pytest --cov --cov-report term`
 
 ## Using BS-uml program
 - Type the `help` commmand to see a list of possible commands and their use
