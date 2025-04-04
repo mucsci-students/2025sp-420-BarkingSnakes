@@ -422,11 +422,11 @@ class UmlProject:
         Returns:
             0: if successful
         Exceptions:
-            None
+            DuplicateFieldException
         """
         #check if class exists, if so, throw and error
         if self.classes.get(classname).class_fields.get(field_name):
-            DuplicateFieldException = errors.DuplicateFieldException()
+            raise errors.DuplicateFieldException()
         #create the field
         self.classes.get(classname).add_field(field_name, field_type)
 
