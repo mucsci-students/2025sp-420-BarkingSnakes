@@ -28,20 +28,23 @@ def test_caretaker_backup():
     """Tests the backup method properly saves a valid memento"""
     test_proj = UmlProject()
     caretaker = Caretaker(test_proj)
+    # This creates a memento for the current state.
 
     caretaker.backup()
+    # Takes the previous memento and puts it in the undostack
+    # updates the current memento.
 
-    assert len(caretaker._mementos) == 1
-    assert test_proj._validate_memento(caretaker._mementos[0])
+    assert len(caretaker._undo_stack) == 1
+    # One element on the undo stack.
+    assert test_proj._validate_memento(caretaker._undo_stack[0])
 
 def test_caretaker_undo_restores_correct_state():
     """Tests the caretaker can return to the previous state"""
     test_proj = UmlProject()
     caretaker = Caretaker(test_proj)
 
-    caretaker.backup()
-
     test_proj.add_umlclass("testclass")
+    caretaker.backup()
 
     assert len(test_proj.classes) == 1
 
@@ -55,18 +58,15 @@ def test_caretaker_undo_correct_history():
     test_proj = UmlProject()
     caretaker = Caretaker(test_proj)
 
-    caretaker.backup()
-
     test_proj.add_umlclass("testclass")
-
     caretaker.backup()
 
-    assert len(caretaker._mementos) == 2
+    assert len(caretaker._undo_stack) == 1
     assert len(caretaker._redo_stack) == 0
 
     caretaker.undo()
 
-    assert len(caretaker._mementos) == 1
+    assert len(caretaker._undo_stack) == 0
     assert len(caretaker._redo_stack) == 1
 
 
