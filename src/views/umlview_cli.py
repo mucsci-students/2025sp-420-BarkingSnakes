@@ -156,6 +156,8 @@ class UmlCliView(UmlView):
             self.handle_exceptions("Failed: Not in a method context. Use: method help")
         except errors.DuplicateMethodOverloadException:
             self.handle_exceptions("Failed: An arity level already exists for the target method.")
+        except errors.MethodNameNotExistsException:
+            self.handle_exceptions("Failed: a method with that name and arity does not exist in this class")
         except errors.FileAlreadyExistsException:
             prompt = "Warning: A file with that name already exists.  Would you like to override the file?"
             print(self.callback)

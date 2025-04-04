@@ -1,0 +1,16 @@
+[run]
+source = src  # Ensures coverage is only measured in src/
+
+omit =
+    src/views/umlview_gui.py
+    src/errors.py
+
+include =
+    src/uml.py
+    src/umlcontroller.py
+    src/umlclass.py
+    src/umlfield.py
+    src/umlmethod.py
+    src/umlmodel.py
+    src/umlparameter.py
+    src/umlrelationship.py
