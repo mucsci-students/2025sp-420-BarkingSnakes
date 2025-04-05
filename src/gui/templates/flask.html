@@ -1193,22 +1193,18 @@
                 })
         }
 
-        function renameMethod(target, elem, className, methodName) {
-            const newname = target.value;
-            if (methodName === newname) {
-                return;
-            }
-
+        function renameMethod(oldname,newname,arity,className) {
             fetch("/renameMethod", {
-                method: "POST",
+                method: "PUT",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    classname: className,
-                    oldname: methodName,
-                    newname: newname
+                    oldname: oldname,
+                    newname: newname,
+                    arity:arity,
+                    classname: className
                 })
             })
                 .then(resp => {
