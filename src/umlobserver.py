@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from umlcommands.base_commands import UmlCommand
 
 class UmlSubject(ABC):
     """Interface for implementing the Observer pattern.  The subject is the thing
@@ -40,3 +41,12 @@ class UmlObserver(ABC):
     @abstractmethod
     def update(self, subject:UmlSubject):
         """"""
+
+class CommandSubject(BaseSubject):
+    """This is the glue that combines Command and Observer pattern together."""
+    def __init__(self, cmd:UmlCommand):
+        super().__init__()
+        self.cmd = cmd
+
+    def attach_many(self, observers:list[UmlObserver]):
+        self._observers.extend(observers)
