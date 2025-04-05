@@ -948,6 +948,32 @@
                 .catch(err => console.log(err));
         }
 
+        function deleteMethodParameter(methodName,arity,parametername,className) {
+            fetch("/deleteMethodParam", {
+                method: "DELETE",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodName,
+                    arity: arity,
+                    parametername:parametername,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
             switch (action) {
                 case "showModal":
