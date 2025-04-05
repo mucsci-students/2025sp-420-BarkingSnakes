@@ -796,7 +796,7 @@
             }
         }
 
-        function addField2(event, elem, className) {
+        function addField2(event, elem1,elem2, className) {
             if (event.key === "Enter") {
                 const fieldType = "string"; // Defaulted to string for temp fix
                 fetch("/addField", {
@@ -895,6 +895,31 @@
                     })
                     .catch(error => console.log(error))
             }
+        }
+
+        function deleteMethod(methodName,arity,className) {
+            fetch("/deleteMethod", {
+                method: "DELETE",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodName,
+                    arity: arity,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         function addMethodParam(event, target, methodname, arity, classname) {
