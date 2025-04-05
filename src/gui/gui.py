@@ -277,6 +277,21 @@ def add_method_param():
     app.controller.execute_command(["parameter", "add", paramname])
     return Response(status=200)
 
+@app.delete("/deleteMethodParam")
+@handle_umlexception
+def delete_param():
+    data = request.get_json()
+    methodname = data.get("methodname")
+    arity = data.get("arity")
+    parametername = data.get("parametername")
+    classname = data.get("classname")
+    if methodname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname , "arity" ,arity])
+        app.controller.execute_command(["parameter","delete",parametername])
+        return jsonify({"message": "Parameter deleted successfully"}), 200
+    return jsonify({"error": "Missing method name or arity or parameter name"}), 406
+
 @app.delete("/deleteMethod")
 @handle_umlexception
 def delete_method():
