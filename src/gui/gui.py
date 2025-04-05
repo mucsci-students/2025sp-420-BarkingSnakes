@@ -193,18 +193,17 @@ def add_method():
     return jsonify({"error": "Missing method name or class name"}), 406
 
 
-@app.post("/renameMethod")
+@app.put("/renameMethod")
 @handle_umlexception
 def rename_method():
     data = request.get_json()
     class_name = data.get("classname")
     oldname = data.get("oldname")
     newname = data.get("newname")
+    arity = data.get("arity")
     if class_name and oldname and newname:
         app.controller.execute_command(["class", class_name])
-        app.controller.execute_command(
-            ["method", "rename", oldname, newname, "arity", "0"]
-        )
+        app.controller.execute_command(["method", "rename", oldname, newname, "arity", arity])
         return Response(status=202)
     return Response(status=406)
 
