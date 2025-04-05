@@ -1,13 +1,11 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, TypeVar, Generic
 
 from errors import UMLException
-from umlcontroller import UmlController
-from views.umlview_cli import UmlCliView as UmlCli
-from views.umlview_gui import UmlGuiView as UmlGui
 
+T = TypeVar("T")
 
 class CommandOutcome(Enum):
     FAILED = -1
@@ -52,7 +50,7 @@ class BaseCommand(UmlCommand):
     """The base command with implementations of the UmlCommand interface."""
     def __init__(self, *args, **kwargs):
         self._args = args
-        self.kwargs = kwargs
+        self._kwargs = kwargs
         self._result:CommandResult = None
     
     def get_result(self) -> CommandResult:
@@ -64,33 +62,21 @@ class BaseCommand(UmlCommand):
         result = CommandResult(self, outcome, exception)
         self._result = result
 
-class ControllerCommand(BaseCommand):
-    """A command specific for the UmlController.  The controller can either be
-    passed to the constructor or supplied with the set_controller() method."""
-    def __init__(self, *args, controller:UmlController = None):
-        super().__init__(*args)
-        self.controller = controller
+class TypedCommand(BaseCommand, Generic[T]):
+    __DRIVER_TYPE = None
+    def __init__(self, driver:T = None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._driver = driver
+
+    def set_driver(self, driver:T):
+        self._driver = driver
     
-    def set_controller(self, controller:UmlController):
-        self.controller = controller
+    def get_driver(self) -> T:
+        return self._driver
 
-class CliCommand(UmlCommand):
-    """A command specific for the UmlCliView.  The UmlCliView can either be
-    passed to the constructor or supplied with the set_cli() method."""
-    def __init__(self, cli:UmlCli = None):
-        self.cli = cli
-
-    def set_cli(self, cli:UmlCli):
-        self.cli = cli
-
-class GuiCommand(UmlCommand):
-    """A command specific for the UmlGuiView.  The UmlGuiView can either be
-    passed to the constructor or supplied with the set_gui() method."""
-    def __init__(self, gui:UmlGui = None):
-        self.gui = gui
-
-    def set_gui(self, gui:UmlGui):
-        self.gui = gui
+    @property
+    def driver(self) -> T:
+        return self.get_driver()
 
 class StrategicCommand(UmlCommand):
     def execute(self):
