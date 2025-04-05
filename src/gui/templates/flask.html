@@ -974,6 +974,34 @@
                 })
         }
 
+        function renameMethodParam(oldname,newname,methodname,arity,classname) {
+            fetch("/renameMethodParam", {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    oldname: oldname,
+                    newname: newname,
+                    methodname:methodname,
+                    arity:arity,
+                    classname: classname
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        elem.value = methodName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
             switch (action) {
                 case "showModal":
