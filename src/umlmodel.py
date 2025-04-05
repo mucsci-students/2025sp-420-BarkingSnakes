@@ -1,5 +1,10 @@
 # Filename: uml.py
-# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
+# Authors: Steven Barnes
+#          Evan Magill
+#          John Hershey
+#          Kyle Kalbach
+#          Juliana Vinluan
+#          Spencer Hoover
 # Date: 2025-02-14
 # Description: Entry point for UML editor program.
 
@@ -83,9 +88,12 @@ class UmlProject:
         #if not 0 errors should be called in validate
         if self._validate_filepath(filepath):
             raise errors.InvalidFileException()
-        
         with open(filepath, "r") as f:
-            data =  json.load(f)
+            # if file invalid raise catch error and raise schema one
+            try:
+                data =  json.load(f)
+            except:
+                raise errors.InvalidJsonSchemaException()
             self.validate_json_schema(data)
             self._parse_uml_data(data)
         #use when saving later
@@ -119,12 +127,12 @@ class UmlProject:
             schema = json.load(f)
         
         try:
-            jsonschema.validate(instance=data, schema=schema)
+            validator = jsonschema.Draft7Validator(schema)
+            validator.validate(instance=data)
         except jsonschema.exceptions.ValidationError:
             raise errors.InvalidJsonSchemaException()
         except jsonschema.exceptions.SchemaError:
             raise errors.InvalidJsonSchemaException()
-
         return True
 
     def is_json_file(self, filepath:str) -> bool:
@@ -156,6 +164,9 @@ class UmlProject:
 
         if uml_classes is None or not any(uml_classes):
             return -1
+        if self._has_duplicate_objects(uml_classes):
+            raise errors.InvalidJsonSchemaException()
+            #raise errors.DuplicateClassException()
         
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
 
@@ -167,7 +178,8 @@ class UmlProject:
             new_relation = self._parse_uml_relationship(relation_data)
             for existing_relation in self.relationships:
                 if new_relation.source_class == existing_relation.source_class and new_relation.destination_class == existing_relation.destination_class:
-                    raise errors.DuplicateRelationshipException()
+                    raise errors.InvalidJsonSchemaException()
+                    #raise errors.DuplicateRelationshipException()
             self.relationships.add(new_relation)
 
     def _parse_uml_class(self, data:dict) -> UmlClass:
@@ -190,7 +202,7 @@ class UmlProject:
                 None
             """
             if data:
-                field = UmlField(data.get("name"))
+                field = UmlField(data.get("name"), data.get("type"))
                 return field
 
             return None
@@ -216,11 +228,17 @@ class UmlProject:
         uml_fields:list[UmlField] = []
         if data.get("fields"):
             uml_fields.extend(list(map(_parse_uml_fields, data.get("fields"))))
-
+            #check for dupes
+            if self._has_duplicate_objects(data.get("fields")):
+                raise errors.InvalidJsonSchemaException()
+        
         uml_methods:list[UmlMethod] = []
         if data.get("methods"):
             uml_methods.extend(list(map(_parse_uml_method, data.get("methods"))))
-
+            #check for dupes
+            if self._has_duplicate_objects(data.get("methods")):
+                raise errors.InvalidJsonSchemaException()
+        
         methods = {}
         for method in uml_methods:
             if method.name not in methods:
@@ -246,6 +264,23 @@ class UmlProject:
         """
         return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
 
+    def _has_duplicate_objects(self, data:list[dict]) -> bool:
+        """checks if the given list of dicts has any duplicate names
+        
+        Params: 
+            data: list of dicts to check for dupes
+        Returns:
+            False: if no duplicates were in list
+            True: if a duplicate name was detected
+        Exceptions:
+            None
+        """
+        # make a list of every "name" in each dict in the list
+        nameList = [obj["name"] for obj in data]
+        # convert the name list to a set to remove duplicate names 
+        # and compare lengths: if different then a dupe was removed
+        return len(set(nameList)) != len(data)
+    
     @property
     def _save_object(self) -> dict:
         """Converts the project into a dict in order to save to .json file."""
@@ -383,7 +418,7 @@ class UmlProject:
 
     # @_regex_pattern(count=2)
     @_has_changed
-    def add_field(self, classname:str, field_name:str)  -> int:
+    def add_field(self, classname:str, field_name:str, field_type:str)  -> int:
         """Adds an field to the UmlClass with classname.
 
         Params:
@@ -392,11 +427,15 @@ class UmlProject:
         Returns:
             0: if successful
         Exceptions:
-            None
+            DuplicateFieldException
         """
-        if self.classes.get(classname):
-            self.classes.get(classname).add_field(field_name)
-            # self.classes.get(classname).add_field(UmlField(field_name))
+        #check if class exists, if so, throw and error
+        if self.classes.get(classname).class_fields.get(field_name):
+            raise errors.DuplicateFieldException()
+        #create the field
+        self.classes.get(classname).add_field(field_name, field_type)
+
+        return 0
 
     @_has_changed
     def rename_field(self, classname:str, oldname:str, newname:str) -> int:

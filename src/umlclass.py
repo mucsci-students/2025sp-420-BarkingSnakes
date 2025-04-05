@@ -18,9 +18,9 @@ class UmlClass:
     """
     class_methods:dict[str, dict[str, UmlMethod]] = field(default_factory= lambda: {})
 
-    def add_field(self,name:str) -> int:
+    def add_field(self, name:str, type:str) -> int:
         """
-        Adds an field to the UmlClass
+        Adds a field to the UmlClass
             Returns:
                 0: if field added to the class
             Exceptions:
@@ -31,8 +31,17 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
         errors.valid_name(name)
-        self.class_fields[name] = UmlField(name)
+
+        try:
+            # check the type is valid
+            errors.valid_name(type)
+        except Exception as e:
+            if e.get_num() == errors.error_list["InvalidNameError"]:
+                raise errors.InvalidTypeNameException()
+            
+        self.class_fields[name] = UmlField(name, type)
         return 0
+    
 
     def remove_field(self,name:str) -> int:
         """Removes an field from the UmlClass
@@ -71,8 +80,8 @@ class UmlClass:
             #return error code or handle existing key
             raise errors.DuplicateFieldException()
         
-        self.class_fields.pop(oldname)
-        self.add_field(newname)
+        field_type = self.class_fields.pop(oldname).type
+        self.add_field(newname,field_type)
         return 0
 
     def rename_umlclass(self,name:str) -> int:

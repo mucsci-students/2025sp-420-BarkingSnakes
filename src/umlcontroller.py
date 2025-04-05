@@ -152,7 +152,7 @@ class UmlController:
         """Decorator to prompt for unsaved changes."""
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
-            print("[controller::_handle_unsaved_changes]", kwargs, args)
+            #print("[controller::_handle_unsaved_changes]", kwargs, args)
             try:
                 override = args[1]
             except:
@@ -259,7 +259,7 @@ class UmlController:
             if self.model._save_path != filename and self.model._filepath_exists(filename) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
-                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
+                prompt = "A file with that name already exists. Do you want to override it?\
                     \nWARNING: this will erase the old file's contents. "
                 if not self.view.prompt_user(prompt, None):
                     return
@@ -288,8 +288,8 @@ class UmlController:
             if self.model._filepath_exists(filepath) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
-                prompt = "A file with that name already exists. Do you want to override it? Y/N.\
-                    \nWARNING: this will erase the old file's contents. "
+                prompt = "A file with that name already exists. Do you want to override it?\
+                    \nWARNING: this will erase the old file's contents when saving. "
                 if not self.view.prompt_user(prompt, None):
                     return
 
@@ -328,7 +328,7 @@ class UmlController:
 
         elif cmd == 'field':
             # TODO - Align this to prompt for additional input.
-            if args[1].lower() == 'rename' and len(args) < 4:
+            if args[1].lower() in ['add','rename'] and len(args) < 4:
                 self.view.handle_exceptions(error_text)
             elif len(args) < 3:
                 self.view.handle_exceptions(error_text)
@@ -372,7 +372,7 @@ class UmlController:
         elif cmd == 'save':
             # if no filename specified and current save path exists,
             # then call without filepath
-            print("[execute_command(save)]", args)
+            #print("[execute_command(save)]", args)
             if len(args) == 1 and self.model._save_path:
                 args.append(None)
             else:
@@ -412,7 +412,7 @@ class UmlController:
         Displays help menu.
         """
         with open(self.HELP_PATH, "r") as f:
-            print(f.read())
+            self.view.handle_exceptions(f.read())
 
     def command_back(self) -> None:
         """Brings terminal out of class context"""
@@ -436,8 +436,8 @@ class UmlController:
         temp_class = self.model.get_umlclass(name)
         if not temp_class:
             #ask user if they want to create a new class, if it doesn't already exist
-            prompt = "that class does not yet exist. Do you want to create it? Y/N. "
-            if self.view.prompt_user(prompt):
+            prompt = "that class does not yet exist. Do you want to create it?"
+            if self.view.prompt_user(prompt,None):
                 self.command_add_umlclass(name)
         else:
             self.view.set_active_class(temp_class.class_name)
@@ -498,14 +498,14 @@ class UmlController:
         cmd = args[1].lower()
         
         if cmd == 'add':
-            self.command_add_field(args[2])
+            self.command_add_field(args[2], args[3])
         elif cmd == 'delete':
             self.command_delete_field(args[2])
         elif cmd == 'rename':
             self.command_rename_field(args[2], args[3])
 
     @_requires_active_class
-    def command_add_field(self, name:str) -> None:
+    def command_add_field(self, name:str, type:str) -> None:
         """Adds an field to the UmlClass in current context.
         
         Exceptions:
@@ -513,7 +513,7 @@ class UmlController:
         """
         #active class is currently a string so get the reference from project
         # self.model.get_umlclass(self.view.active_class).add_field(name)
-        self.model.add_field(self.view.active_class, name)
+        self.model.add_field(self.view.active_class, name, type)
 
     @_requires_active_class
     def command_delete_field(self, name:str) -> None:
@@ -735,7 +735,7 @@ class UmlController:
 
     def _get_class_data_object(self, umlclass:UmlClass) -> UmlClassData:
         def get_field_data_object(umlfield:UmlField) -> UmlFieldData:
-            return UmlFieldData(umlfield.name)
+            return UmlFieldData(umlfield.name, umlfield.type)
         
         def get_method_data_object(umlmethod:UmlMethod) -> UmlMethodData:
             def get_param_data_model(umlparam:UmlParameter) -> UmlMethodParamData:
@@ -1223,7 +1223,7 @@ class UmlApplication:
         cmd = args[1].lower()
         
         if cmd == 'add':
-            return lambda: self.command_add_field(args[2])
+            return lambda: self.command_add_field(args[2], args[3])
         elif cmd == 'delete':
             return lambda: self.command_delete_field(args[2])
         elif cmd == 'rename':
@@ -1232,14 +1232,14 @@ class UmlApplication:
         return lambda: self.inform_invalid_command(" ".join(args))
 
     @_requires_active_class
-    def command_add_field(self, name:str) -> None:
+    def command_add_field(self, name:str, type:str) -> None:
         """Adds an field to the UmlClass in current context.
         
         Exceptions:
             NoActiveClassException
         """
         #active class is currently a string so get the reference from project
-        self.project.get_umlclass(self.active_class).add_field(name)
+        self.project.get_umlclass(self.active_class).add_field(name, type)
         #self.active_class.add_field(name)
 
     @_requires_active_class

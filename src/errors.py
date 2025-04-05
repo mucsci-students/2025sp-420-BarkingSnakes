@@ -38,7 +38,8 @@ error_list = {
     "InvalidRelationshipTypeError":17,
     "FileAlreadyExistsError": 18,
     "FileHasUnsavedChangesError": 19,
-    "UmlClassDeletionError": 20
+    "UmlClassDeletionError": 20,
+    "InvalidTypeNameError": 21
 }
 ## class definitions
 class UMLException(Exception):
@@ -56,7 +57,7 @@ class UMLException(Exception):
     def equals(self, other:UMLException):
         """checks if self and other have the same error num"""
         return self.error_num == other.error_num
-    
+
     def __eq__(self,other:UMLException):
         """checks if self and other have the same error num, using =="""
         return self.error_num == other.error_num
@@ -73,7 +74,7 @@ class UMLException(Exception):
         #raise error if error not in list
         else:
             raise UMLException("NoSuchErrorError")
-    
+
     def get_name(self) -> str:
         """
         Gets name of the error
@@ -259,3 +260,7 @@ class FileHasUnsavedChangesException(UMLException):
 class UmlClassDeletionErrorException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(20), *args)
+
+class InvalidTypeNameException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(21),*args)
