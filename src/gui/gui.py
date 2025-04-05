@@ -152,7 +152,7 @@ def add_field():
         app.controller.execute_command(["class", classname])
         app.controller.execute_command(["field", "add", fieldname, type])
         return jsonify({"message": "Field added successfully"}), 202
-    return jsonify({"error": "Missing field"}), 406
+    return jsonify({"error": "Missing field name, class name, or field type"}), 406
 
 @app.post("/deleteField")
 @handle_umlexception
@@ -283,7 +283,18 @@ def relation_list():
     project_dto = app.controller._get_model_as_data_object()
     relation_types = list(filter(lambda n: n != "DEFAULT", RelationshipType._member_names_))
 
-    data = {'html': render_template("_umlrelationshiplist.html", model = project_dto, relation_types = relation_types)}
+    data = {
+        'html': render_template("_umlrelationshiplist.html", model=project_dto, relation_types=relation_types),
+        'model': {
+            'relationships': [
+                {
+                    'source': r.source,
+                    'destination': r.destination,
+                    'relation_type': r.relation_type
+                } for r in project_dto.relationships
+            ]
+        }
+    }
 
     return jsonify(data)
 
