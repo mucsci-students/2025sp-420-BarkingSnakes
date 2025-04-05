@@ -1,7 +1,7 @@
 <tr>
     <td>
         + <input class="input-mode-view" style="text-align: left; width: 50%;" type="text" id="umlmethod-{{ m.name }}"
-            value="{{ m.name }}" onblur="renameMethod(event.target,this ,'{{ dto.name }}', '{{ m.name }}')"
+            value="{{ m.name }}" onblur="renameMethod('{{ m.name }}',this.value ,'{{ m.params|length }}', '{{ dto.name }}')"
             onkeydown="onkeydown_enter(event, () => this.blur())" />
     </td>
     <td>

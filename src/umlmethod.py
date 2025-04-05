@@ -93,7 +93,7 @@ class UmlMethod:
             NoSuchParameterException
         """
         if parameter not in self.params:
-            raise errors.NoSuchParameterExcept()
+            raise errors.NoSuchParameterException()
         errors.valid_name(newname)
 
         self.params.pop(parameter)

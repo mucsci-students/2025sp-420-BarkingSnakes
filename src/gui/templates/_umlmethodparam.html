@@ -1,17 +1,20 @@
 <tr>
     <td>
-            <input class="input-mode-view" style="padding-left: 30px;width: 50%" type="text" id="umlmethod-{{ m.name }}-param-{{ p.name }}" value="- {{ p.name }}"/>
-    </td>
-    <td>
-        <a href="#" onclick="deleteMethodParameter('{{ m.name}}','{{ m.params|length }}','{{ p.name }}','{{ dto.name }}')"
-            title="Delete Parameter">
+        <div style="margin-left: 30px;">
+            - <input class="input-mode-view" style=" width: 50%" type="text"
+                id="umlmethod-{{ m.name }}-param-{{ p.name }}" value="{{ p.name }}"
+                onblur="renameMethodParam('{{ p.name }}' ,this.value,'{{m.name}}', '{{ m.params|length }}','{{dto.name}}')"
+                onkeydown="onkeydown_enter(event, () => this.blur())""/>
+                <td>
+                    <a href=" #"
+                onclick="deleteMethodParameter('{{ m.name}}','{{ m.params|length }}','{{ p.name }}','{{ dto.name }}')"
+                title="Delete Parameter">
             <i class="fa-solid fa-delete-left" style="color: red; font-size: 18px; transition: all 0.2s ease-in-out;"
                 onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
                 onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';">
             </i>
-        </a>
+            </a>
     </td>
-    <td>
-
+    </div>
     </td>
 </tr>

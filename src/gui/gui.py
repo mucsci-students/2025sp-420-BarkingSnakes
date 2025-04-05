@@ -193,18 +193,17 @@ def add_method():
     return jsonify({"error": "Missing method name or class name"}), 406
 
 
-@app.post("/renameMethod")
+@app.put("/renameMethod")
 @handle_umlexception
 def rename_method():
     data = request.get_json()
     class_name = data.get("classname")
     oldname = data.get("oldname")
     newname = data.get("newname")
+    arity = data.get("arity")
     if class_name and oldname and newname:
         app.controller.execute_command(["class", class_name])
-        app.controller.execute_command(
-            ["method", "rename", oldname, newname, "arity", "0"]
-        )
+        app.controller.execute_command(["method", "rename", oldname, newname, "arity", arity])
         return Response(status=202)
     return Response(status=406)
 
@@ -272,10 +271,12 @@ def add_method_param():
     arity = data.get('arity')
     classname = data.get('classname')
 
-    app.controller.execute_command(["class", classname])
-    app.controller.execute_command(["method", methodname, "arity", str(arity)])
-    app.controller.execute_command(["parameter", "add", paramname])
-    return Response(status=200)
+    if paramname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname, "arity", str(arity)])
+        app.controller.execute_command(["parameter", "add", paramname])
+        return jsonify({"message": "Parameter added successfully"}), 200
+    return jsonify({"error": "Missing method name or arity or parameter name"}), 406
 
 @app.delete("/deleteMethodParam")
 @handle_umlexception
@@ -290,7 +291,23 @@ def delete_param():
         app.controller.execute_command(["method", methodname , "arity" ,arity])
         app.controller.execute_command(["parameter","delete",parametername])
         return jsonify({"message": "Parameter deleted successfully"}), 200
-    return jsonify({"error": "Missing method name or arity or parameter name"}), 406
+    return jsonify({"error": "Missing parameter name"}), 406
+
+@app.put("/renameMethodParam")
+@handle_umlexception
+def rename_method_param():
+    data = request.get_json()
+    oldname = data.get("oldname")
+    newname = data.get("newname")
+    methodname = data.get("methodname")
+    arity = data.get("arity")
+    classname = data.get("classname")
+    if classname and oldname and newname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname , "arity" ,arity])
+        app.controller.execute_command(["parameter", "rename" , oldname,newname])
+        return Response(status=202)
+    return jsonify({"error": "Invalid rename"}), 406
 
 @app.delete("/deleteMethod")
 @handle_umlexception
