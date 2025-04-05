@@ -1,21 +1,32 @@
-<div>+ <input 
-    class="input-mode-view" 
-    type="text" 
-    id="umlmethod-{{ m.name }}" 
-    value="{{ m.name }}"
-    onblur="renameMethod(event.target,this ,'{{ dto.name }}', '{{ m.name }}')"
-    onkeydown= "onkeydown_enter(event, () => this.blur())"/>
-    {% for p in m.params %} {% include "_umlmethodparam.html" %} {% endfor %}
-</div>
-<br>
-<div style="text-align: center;">
-    <button style="display: block;" id="btnAddParam-{{ m.name }}-{{ m.params|length }}" class="add-button"
-        onclick="toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}'])"><span
-            class="glyphicon glyphicon-plus-sign"></span> Add Param</button>
-    <div id="cntrAddParam-{{ m.name }}-{{ m.params|length }}" style="width: 100%; display:none;">
-        <label for="newParamName-{{ m.name }}-{{ m.params|length }}">Param Name:</label>
-        <input class="input-mode-view" id="newParamName-{{ m.name }}-{{ m.params|length }}" type="text"
-        onkeydown="onkeydown_enter(event, () => addMethodParam(event, this, '{{ m.name|string }}', {{ m.params|length }}, '{{ dto.name }}'))"
-        onblur="inputBlur(event, () => toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}']))">
-    </div>
-</div>
+<tr>
+    <td>
+        + <input class="input-mode-view" style="text-align: left; width: 50%;" type="text" id="umlmethod-{{ m.name }}"
+            value="{{ m.name }}" onblur="renameMethod(event.target,this ,'{{ dto.name }}', '{{ m.name }}')"
+            onkeydown="onkeydown_enter(event, () => this.blur())" />
+    </td>
+    <td>
+        <a href="#" onclick="deleteMethod('{{ m.name}}','{{ m.params|length }}','{{ dto.name }}')"
+            title="Delete Method">
+            <i class="fa-solid fa-delete-left" style="color: red; font-size: 18px; transition: all 0.2s ease-in-out;"
+                onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
+                onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';">
+            </i>
+        </a>
+    </td>
+    <td>
+        {% for p in m.params %} {% include "_umlmethodparam.html" %} {% endfor %}
+    </td>
+    <td>
+        <div style="text-align: center;padding-top: 10px;">
+            <button style="display: block;" id="btnAddParam-{{ m.name }}-{{ m.params|length }}" class="add-button"
+                onclick="toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}'])"><span
+                    class="glyphicon glyphicon-plus-sign"></span> Add Param</button>
+            <div id="cntrAddParam-{{ m.name }}-{{ m.params|length }}" style="width: 100%; display:none;">
+                <label for="newParamName-{{ m.name }}-{{ m.params|length }}">Param Name:</label>
+                <input class="input-mode-view" id="newParamName-{{ m.name }}-{{ m.params|length }}" type="text"
+                    onkeydown="onkeydown_enter(event, () => addMethodParam(event, this, '{{ m.name|string }}', {{ m.params|length }}, '{{ dto.name }}'))"
+                    onblur="inputBlur(event, () => toggleVisibility(['btnAddParam-{{ m.name }}-{{ m.params|length }}', 'cntrAddParam-{{ m.name }}-{{ m.params|length }}']))">
+            </div>
+        </div>
+    </td>
+</tr>
