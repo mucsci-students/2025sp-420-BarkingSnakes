@@ -1,4 +1,4 @@
-from base_commands import UmlCommand, ControllerCommand, Callback
+from base_commands import UmlCommand, ControllerCommand, CallbackCommand
 
 class AddClassCommand(ControllerCommand):
     def execute(self):
@@ -19,9 +19,10 @@ class RenameClassCommand(ControllerCommand):
     
     @property
     def oldname(self) -> str:
+        # TODO - This probably isn't correct.
         return self._args[-2]
 
-class QuitCommand(ControllerCommand, Callback):
+class QuitCommand(ControllerCommand, CallbackCommand):
     def execute(self):
         if self.controller.model.has_unsaved_changes:
             # TODO - Handle prompting for unsaved changes.
@@ -29,5 +30,6 @@ class QuitCommand(ControllerCommand, Callback):
 
 UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^class add ([A-Za-z][A-Za-z0-9_]*)$": AddClassCommand,
+    r"^class rename ([A-Za-z][A-Za-z0-9_]*)$": RenameClassCommand,
     r"^quit$": QuitCommand
 }
