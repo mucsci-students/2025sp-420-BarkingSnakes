@@ -1,5 +1,10 @@
 # Filename: uml.py
-# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach
+# Authors: Steven Barnes
+#          Evan Magill
+#          John Hershey
+#          Kyle Kalbach
+#          Juliana Vinluan
+#          Spencer Hoover
 # Date: 2025-02-14
 # Description: Entry point for UML editor program.
 
@@ -422,11 +427,11 @@ class UmlProject:
         Returns:
             0: if successful
         Exceptions:
-            None
+            DuplicateFieldException
         """
         #check if class exists, if so, throw and error
         if self.classes.get(classname).class_fields.get(field_name):
-            DuplicateFieldException = errors.DuplicateFieldException()
+            raise errors.DuplicateFieldException()
         #create the field
         self.classes.get(classname).add_field(field_name, field_type)
 

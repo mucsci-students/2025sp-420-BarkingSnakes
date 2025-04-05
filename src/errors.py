@@ -38,7 +38,8 @@ error_list = {
     "InvalidRelationshipTypeError":17,
     "FileAlreadyExistsError": 18,
     "FileHasUnsavedChangesError": 19,
-    "UmlClassDeletionError": 20
+    "UmlClassDeletionError": 20,
+    "InvalidTypeNameError": 21
 }
 ## class definitions
 class UMLException(Exception):
@@ -259,3 +260,7 @@ class FileHasUnsavedChangesException(UMLException):
 class UmlClassDeletionErrorException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(20), *args)
+
+class InvalidTypeNameException(UMLException):
+    def __init__(self, *args):
+        super().__init__(get_error_name(21),*args)
