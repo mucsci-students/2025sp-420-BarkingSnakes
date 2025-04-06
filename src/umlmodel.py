@@ -547,13 +547,21 @@ class UmlProject:
             relationship_str: the name of the RelationshipType (case-insensitive) or the number of the type as a string.
         
         """
+        if not relationship_str:
+            raise errors.NullObjectException()
+        relation_type = None
         try:
-            return RelationshipType[relationship_str.upper()] # Try to retrieve the type from a name like "DEFAULT"
+            # Try to retrieve the type from a name like "AGGREGATION"
+            relation_type = RelationshipType[relationship_str.upper()]
         except KeyError:
             try:
-                return RelationshipType(int(relationship_str)) # Try to retrieve the type from a number string like "0"
+                # Try to retrieve the type from a number string like "0"
+                relation_type = RelationshipType(int(relationship_str))
             except ValueError:
                 raise errors.InvalidRelationshipTypeException()
+        if relation_type.value == 0:
+            raise errors.InvalidRelationshipTypeException()
+        return relation_type
 
     def get_relationship(self, source:str, destination:str)->UmlRelationship:
         """Get the relationship between source and destination.
@@ -593,7 +601,7 @@ class UmlProject:
             UMLException:NoSuchObjectError for nonexistent UMLClass names.
             UMLException:ExistingRelationshipError if a relationship  with the specified source and destination already exists
         """
-        if source is None or destination is None:
+        if source is None or destination is None or relationship_type is None:
             raise errors.UMLException("NullObjectError")
         
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
