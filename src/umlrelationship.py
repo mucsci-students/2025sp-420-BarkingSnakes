@@ -58,6 +58,10 @@ class UmlRelationship:
         return self.source_class.class_name + arrow + self.destination_class.class_name"
     """
     def valid_relation_types() -> str:
-        return str(RelationshipType._member_names_)
+        """
+        Returns a list of all valid relation types
+        """
+        #ignores DEFAULT, strips off brackets, and sets to lowercase
+        return str(RelationshipType._member_names_[1:])[1:-1].lower()
     
     

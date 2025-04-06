@@ -584,7 +584,7 @@ class UmlController:
             self.view.handle_exceptions(error_text + " <type>")
             return
         elif len(args) < 5:
-            args.append(self.view.get_user_input("Valid relation types are"\
+            args.append(self.view.get_user_input("Valid relation types are "\
                 + UmlRelationship.valid_relation_types()\
                 + "\nEnter type: "))
         if cmd == 'add':
