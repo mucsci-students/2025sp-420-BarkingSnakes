@@ -722,8 +722,6 @@ class Caretaker:
 
     def backup(self) -> None:
         """Requests the originator to save the current state and stores the returned memento wiping the redo stack."""
-        # TODO remove print
-        print("\nCaretaker: Saving Originator's state...")
         self._undo_stack.append(self._current_memento)
         self._current_memento = self._originator._save_memento()
         self._redo_stack = []
@@ -732,15 +730,10 @@ class Caretaker:
         """Returns the origintor to the previous state."""
         if len(self._undo_stack):
             memento = self._undo_stack.pop()
-            print("Caretaker: Restoring state")
 
-            try:
-                self._originator._restore_memento(memento)
-                self._redo_stack.append(self._current_memento)
-                self._current_memento = memento
-            except Exception as e:
-                # Passes through invalid states
-                self.undo()
+            self._originator._restore_memento(memento)
+            self._redo_stack.append(self._current_memento)
+            self._current_memento = memento
 
     def redo(self) -> None:
         """Returns the state to a previously undon state."""
@@ -748,13 +741,10 @@ class Caretaker:
             # Checks redo stack is not empty
             memento = self._redo_stack.pop()
 
-            try:
-                # Restore to memento from _redo_stack
-                self._originator._restore_memento(memento)
-                # Move current state onto memento stack
-                self._undo_stack.append(self._current_memento)
-                # Set the _current_memento to the new current memento
-                self._current_memento = memento
-            except Exception as e:
-                # Passes through invalid states
-                self.redo()
+            # Restore to memento from _redo_stack
+            self._originator._restore_memento(memento)
+            # Move current state onto memento stack
+            self._undo_stack.append(self._current_memento)
+            # Set the _current_memento to the new current memento
+            self._current_memento = memento
+            
