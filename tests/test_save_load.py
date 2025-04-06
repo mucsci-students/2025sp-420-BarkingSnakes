@@ -8,9 +8,10 @@ import pytest
 
 from src import errors
 from src.umlmodel import UmlProject
-from src.umlcontroller import UmlApplication, UmlController
+from src.umlcontroller import UmlController
 from src.views.umlview_cli import UmlCliView
 
+###loading tests
 def test_load_no_existing_file():
     """tests that an invalid file error is given when loading a fake file"""
     #temp variable for proving exeption
@@ -106,7 +107,6 @@ def test_new_old_file_exists():
     when project with that name is made, only when saved"""
     var = None
     try:
-        # app = UmlApplication()
         app = UmlController(UmlCliView())
         app.new_project("test.json", True)
         #another app to check file state
@@ -124,7 +124,8 @@ def test_new_old_file_exists():
         var = 1
         assert e == None
     assert not var
-    
+### schema validation tests
+
 def test_delete():
     """delete the file after other tests are run"""
     os.remove("test.json")
