@@ -1,7 +1,8 @@
 # Filename: test_save_load.py
 # Authors: Steven Barnes, John Hershey
-# Date: 2025-02-25
-# Description: Unit tests for the save and load module
+# Date: 2025-02-25, Last edit date: 2025-04-06
+# Description: Unit tests for the saving and loading json,
+#   as well as schema validation and json dict parsing
 
 import os
 import json
@@ -124,7 +125,9 @@ def test_new_old_file_exists():
         var = 1
         assert e == None
     assert not var
-    
+
+### parsing tests
+
 
 ### schema validation tests
 

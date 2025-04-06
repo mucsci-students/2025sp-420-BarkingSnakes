@@ -5,7 +5,7 @@
 #          Kyle Kalbach
 #          Juliana Vinluan
 #          Spencer Hoover
-# Date: 2025-02-14
+# Date: 2025-02-14, Last edit date: 2025-04-06
 # Description: Entry point for UML editor program.
 
 from __future__ import annotations
@@ -604,7 +604,16 @@ class UmlProject:
         
     @_has_changed
     def set_type_relationship(self, source:str, destination:str, new_relationship_type:str):
-        """"""
+        """sets the type of an existing relation
+        Params:
+            source: name of UML class for source end of the relationship
+            destination: name of UML class for destination end of the relationship
+            new_relationship_type: the type to change the relation to
+        Returns:
+            None
+        Exceptions:
+            UMLException: 
+        """
         existing_relation = self.get_relationship(source, destination)
         if existing_relation.relationship_type != self._relationship_type_from_str(new_relationship_type):
             self.relationships.remove(existing_relation)
@@ -613,28 +622,27 @@ class UmlProject:
     
     @_has_changed
     def delete_relationship(self, source:str, destination:str):
-        """Deletes a relationship of a specified type between the specified classes.
+        """Deletes a relationship between the specified classes.
         Params:
             source: name of UML class for source end of the relationship
             destination: name of UML class for destination end of the relationship
         Returns:
-            Nothing
+            None
         Exceptions:
             UMLException:NullObjectError for nonexistent objects
             UMLException:NoSuchObjectError for nonexistent relationships or UMLClass names.
-            ValueError if the relationship isn't found during the remove.
         """
         if source is None or destination is None:
-            raise errors.UMLException("NullObjectError")
+            raise errors.NullObjectException()
         
-        if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
-            raise errors.UMLException("NoSuchObjectError")
+        if not self.contains_umlclass(source):
+            raise errors.NoSuchObjectException("class",source)
+        elif not self.contains_umlclass(destination):
+            raise errors.NoSuchObjectException("class",destination)
         
         match = self.get_relationship(source, destination)
-
-        if not match:
-            raise errors.UMLException("NoSuchObjectError") # Note, an error is raised by get_relationship. This should never occur.
-        
+        if match not in self.relationships:
+            raise errors.NoSuchObjectException("relation", "src:" + source, "dst:" + destination)
         self.relationships.remove(match)
 
 class UmlModel():
