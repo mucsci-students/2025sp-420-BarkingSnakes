@@ -56,7 +56,7 @@ class UmlMethod:
     def add_parameters(self, parameters:list[tuple[str, str]]) -> int:
         """Adds an UmlParameter the UmlMethod.
         Params:
-            name: name of the parameter to add
+            parameters: a list of tuples of the form (parameter_name:str, parameter_type:str)
         Returns:
             0 if the parameter was successfully added  
             a number corresponding to an error in the errors class
@@ -110,6 +110,22 @@ class UmlMethod:
                 return 0
         raise errors.NoSuchParameterException()
     
+    def replace_parameter(self, oldname:str, newname:str, newtype:str):
+        """Replace the parameter with the name oldname, with a new parameter with name newname and type newtype"""
+        errors.valid_name(newname)
+        errors.valid_name(newtype)
+
+        if newname != oldname and newname in [param.name for param in self.params]:
+            # the newname is allowed to be the same as the oldname.
+            # The newname must not exist anywhere else in the parameter list.
+            raise errors.DuplicateParameterException()
+        for i in range(len(self.params)):
+            if self.params[i].name == oldname:
+                self.params[i].name = newname
+                self.params[i].umltype = newtype
+                return 0
+        raise errors.NoSuchParameterException()
+
     def clear_parameters(self):
         """Removes all UmlParameter from the UmlMethod.
         Params:
@@ -123,7 +139,7 @@ class UmlMethod:
         """
         self.params.clear()
 
-    def replace_parameters(self, parameters:list[tuple[str, str]]):
+    def replace_all_parameters(self, parameters:list[tuple[str, str]]):
         """Replaces all UmlParameter from the UmlMethod.
         Params:
             parameters: a list of parameter names to replace existing parameters with.
@@ -139,21 +155,30 @@ class UmlMethod:
         self.add_parameters(parameters)
 
     def to_dict(self):
-        #TODO refactor
         return {
             'name': self.name,
+            'return_type': self.return_type,
             'params': [p.to_dict() for p in self.params.values()]
         }
     
-# deprecated to enforce use of _overload_exists
-#
-#    def __eq__(self, other:UmlMethod):
-#        """Proxy for overload collision. 
-#            If two methods are not allowed to simultaneously exist (same name and parameter types with same order), returns True.
-#        """
-#        return self.name == other.name and self.overloadID == other.overloadID
-#    
-#    def __hash__(self):
-#        """Hash consistent with __eq__ as a proxy for overload collision.
-#        """
-#        return hash(self.name) + 3 * hash(self.overloadID)
+
+
+    def __eq__(self, other:UmlMethod):
+        """dataclass default __eq__ is unsuitable due to non-comparable list params.
+        """
+        if self.name != other.name or self.return_type != other.return_type or len(self.params) != len(other.params):
+            return False
+        for i in range(len(self.params)):
+            if self.params[i] != other.params[i]:
+                return False
+        return True
+    
+    def __hash__(self):
+        """dataclass default __hash__ is unsuitable due to non-comparable list params.
+        """
+        result = hash(self.name) + 3 * self.return_type + 5
+        scale = 7
+        for i in range(len(self.params)):
+            result += scale * hash(self.params[i])
+            scale += 2**i
+        return result

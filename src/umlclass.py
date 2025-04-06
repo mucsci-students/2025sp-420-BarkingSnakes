@@ -171,7 +171,7 @@ class UmlClass:
 
             # add_method handles logic of checking in class_method for missing
             # top level keys and handles name validation
-            self.add_method(newname, [p for p in uml_method.params])
+            self.add_method(newname, uml_method.return_type, [(p.name, p.umltype) for p in uml_method.params])
 
             return self.remove_method(name, overloadID)
 
