@@ -568,18 +568,29 @@ class UmlController:
             NoActiveProjectException
         """        
         cmd = args[1].lower()
-
-        if cmd == 'delete':
+        #since delete doesn't need a relation type do separately
+        error_text = "Failed: relation endpoints not specifed\n\
+                    proper format: relation <action> srcname destname"
+        #check for list and delete here since they need less args
+        if cmd == 'list':
+            self.command_list_relation()
+        elif cmd == 'delete':
+            if len(args) < 4 :
+                self.view.handle_exceptions(error_text)
+                return
             self.command_delete_relation(args[2], args[3])
-            return
         #parse for 4th relation arg if not deleting
-        
+        elif len(args) < 4:
+            self.view.handle_exceptions(error_text + " <type>")
+            return
+        elif len(args) < 5:
+            args.append(self.view.get_user_input("Valid relation types are"\
+                + UmlRelationship.valid_relation_types()\
+                + "\nEnter type: "))
         if cmd == 'add':
             self.command_add_relation(args[2], args[3], args[4])
         elif cmd == 'set':
             self.command_set_relation(args[2], args[3], args[4])
-        elif cmd == 'list':
-            self.command_list_relation()
 
     @_requires_active_project
     def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
@@ -802,6 +813,7 @@ class UmlController:
                 self.is_running = False
             except Exception as e:
                 # self.view.handle_exceptions(f"Operation failed:UML Error:{e}")
+                
                 raise e
                 logging.info(f" unknown error occured: {e.args}")
             finally:
