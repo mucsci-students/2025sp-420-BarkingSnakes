@@ -1,6 +1,6 @@
 # Filename: uml.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Date: 2025-02-24
+# Date: 2025-02-25, Last edit date: 2025-04-25
 # Description: Controller for the UML
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from views.umlview import *
 from views.umlview_gui import UmlGuiView
 from views.umlview_cli import UmlCliView
 import errors
-class UmlApplication:()
+#class UmlApplication:()
 
 class UmlCommand(Protocol):
     id:str
@@ -443,7 +443,7 @@ class UmlController:
             self.view.set_active_class(temp_class.class_name)
 
     def command_add_umlclass(self, name:str) -> None:
-        """adds the class the context is in to the project
+        """adds the specified class name to the project
         
         Exceptions:
             DuplicateClassException
