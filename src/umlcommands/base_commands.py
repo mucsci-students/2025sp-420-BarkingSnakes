@@ -34,7 +34,8 @@ class CommandResult(NamedTuple):
     object which triggered it."""
     command:UmlCommand
     outcome:CommandOutcome
-    exception: UMLException
+    exception:UMLException
+    ErrorText:str
 
 class CallbackCommand:
     """Defines a command which can take a callback command."""
@@ -57,16 +58,16 @@ class BaseCommand(UmlCommand):
         """"""
         return self._result
     
-    def set_result(self, outcome:CommandOutcome, exception:UMLException = None):
+    def set_result(self, outcome:CommandOutcome, exception:UMLException = None, error_text:str = ""):
         """"""
-        result = CommandResult(self, outcome, exception)
+        result = CommandResult(self, outcome, exception, error_text)
         self._result = result
 
 class TypedCommand(BaseCommand, Generic[T]):
     __DRIVER_TYPE = None
-    def __init__(self, driver:T = None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._driver = driver
+        self._driver:T = None
 
     def set_driver(self, driver:T):
         self._driver = driver
