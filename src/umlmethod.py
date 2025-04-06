@@ -158,7 +158,7 @@ class UmlMethod:
         return {
             'name': self.name,
             'return_type': self.return_type,
-            'params': [p.to_dict() for p in self.params.values()]
+            'params': [p.to_dict() for p in self.params]
         }
     
 
@@ -176,7 +176,7 @@ class UmlMethod:
     def __hash__(self):
         """dataclass default __hash__ is unsuitable due to non-comparable list params.
         """
-        result = hash(self.name) + 3 * self.return_type + 5
+        result = hash(self.name) + 3 * hash(self.return_type) + 5
         scale = 7
         for i in range(len(self.params)):
             result += scale * hash(self.params[i])
