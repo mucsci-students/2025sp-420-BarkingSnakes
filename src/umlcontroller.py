@@ -240,8 +240,9 @@ class UmlController:
         @functools.wraps(func)
         def wrapper(self:UmlController, *args, **kwargs):
             try:
-                func(self, *args, **kwargs)
+                result = func(self, *args, **kwargs)
                 self.caretaker.backup()
+                return result
             except:
                 raise
         return wrapper
