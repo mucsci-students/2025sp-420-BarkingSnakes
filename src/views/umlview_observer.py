@@ -32,7 +32,10 @@ class UmlViewObserver(BaseSubject, UmlObserver):
         command is ready to execute."""
         if cmd:
             command = CommandSubject(cmd)
-            command.attach_many(self._observers)
+            if isinstance(cmd, TypedCommand) and cmd.__DRIVER_TYPE__ == type(self):
+                command.attach(self)
+            else:
+                command.attach_many(self._observers)
             command.notify()
     
     @abstractmethod
