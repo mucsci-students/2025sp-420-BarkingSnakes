@@ -262,7 +262,11 @@ class UmlProject:
         Exceptions:
             None
         """
-        return UmlRelationship(self._relationship_type_from_str(data.get("type")), self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+        try:
+            return UmlRelationship(self._relationship_type_from_str(data.get("type"))\
+            , self.get_umlclass(data.get("source")), self.get_umlclass(data.get("destination")))
+        except errors.NoSuchObjectException as e:
+            raise errors.InvalidJsonSchemaException()
 
     def _has_duplicate_objects(self, data:list[dict]) -> bool:
         """checks if the given list of dicts has any duplicate names
@@ -363,9 +367,12 @@ class UmlProject:
         Returns:
             UmlClass: The instance of the UmlClass or None.
         Exceptions:
-            None
+            NoSuchClassException
         """
-        return self.classes.get(name)
+        if self.classes.get(name):
+            return self.classes.get(name)
+        #if the class didn't exist raise an error
+        raise errors.NoSuchObjectException()
 
     # @_regex_pattern(2)
     @_has_changed
@@ -553,7 +560,7 @@ class UmlProject:
             NoSuchObjectException
         """
         if source is None or destination is None:
-            raise errors.NoSuchObjectException()
+            raise errors.NullObjectException()
         
         if not self.contains_umlclass(source) or not self.contains_umlclass(destination):
             raise errors.NoSuchObjectException()

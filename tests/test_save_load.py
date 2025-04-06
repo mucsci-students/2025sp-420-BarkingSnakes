@@ -4,12 +4,13 @@
 # Description: Unit tests for the save and load module
 
 import os
-import pytest
+import json
+import jsonschema
 
 from src import errors
 from src.umlmodel import UmlProject
 from src.umlcontroller import UmlController
-from src.views.umlview_cli import UmlCliView
+from src.views.umlview_test import UmlTestView
 
 ###loading tests
 def test_load_no_existing_file():
@@ -41,7 +42,7 @@ def test_make_no_new_file():
     var = None
     try:
         # app = UmlApplication()
-        app = UmlController(UmlCliView())
+        app = UmlController(UmlTestView())
         app.new_project("test.json")
         with open("test.json", "r") as f:
             # make sure file doesn't exists
@@ -81,8 +82,7 @@ def test_save_existing_file():
     """test that a file will be updated when saved"""
     var = 1
     try:
-        # app = UmlApplication()
-        app = UmlController(UmlCliView())
+        app = UmlController(UmlTestView())
         app.load_project("test.json")
         #adds the umlclass with name temp
         # app.active_class = "temp"
@@ -101,17 +101,17 @@ def test_save_existing_file():
         assert e == errors.DuplicateClassException()
     
     assert not var
-    
+
 def test_new_old_file_exists():
     """test an existing file is not overridden 
     when project with that name is made, only when saved"""
     var = None
     try:
-        app = UmlController(UmlCliView())
+        app = UmlController(UmlTestView())
         app.new_project("test.json", True)
         #another app to check file state
         # app2 = UmlApplication()
-        app2 = UmlController(UmlCliView())
+        app2 = UmlController(UmlTestView())
         app2.load_project("test.json", True)
         #assert class remains
         assert "temp" in app2.model.classes
@@ -124,6 +124,8 @@ def test_new_old_file_exists():
         var = 1
         assert e == None
     assert not var
+    
+
 ### schema validation tests
 
 def test_delete():
