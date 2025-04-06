@@ -480,3 +480,21 @@ def test_remove_parameter():
     test_method.remove_parameter("transmission")
     
     assert test_param not in test_method.params
+
+def test_remove_parameter_not_found():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.remove_parameter("nonexistingparam")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchParameterError"]
+    
+    
