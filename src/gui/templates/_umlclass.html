@@ -3,8 +3,8 @@
     <button class="edit-button" id="btnEdit-{{ dto.name }}" onclick="toggleEditMode('{{ dto.name }}')">Edit</button>
     <button class="close" data-classname="{{ dto.name }}" onclick="closeClassDetails('{{ dto.name }}')">&times;</button>
     <div style="text-align: center;">
-        <input class="class-name" value="{{ dto.name }}" onkeydown="onkeydown_enter(event, () => this.blur())"
-            onblur="renameClass(event.target, '{{ dto.name }}')" />
+        <input id="classname-{{dto.name}}" class="class-name" value="{{ dto.name }}" onkeydown="onkeydown_enter(event, () => this.blur())"
+            onblur="renameClass(event.target, '{{ dto.name }}')" readonly/>
     </div>
     <hr>
     <h3>Fields</h3>
@@ -15,7 +15,7 @@
             {% endfor %}
         </table>
         <br>
-        <div style="text-align: center;">
+        <div style="text-align: center;" id="addFieldContainer-{{ dto.name }}" class="hidden">
             <button style="display: block;" id="btnAddField-{{ dto.name }}" class="add-button"
                 onclick="toggleVisibility(['btnAddField-{{ dto.name }}', 'fieldinpts-{{ dto.name }}'])">
                 <span class="glyphicon glyphicon-plus-sign"></span> Add Field
@@ -69,7 +69,8 @@
         <div id="methodinpts-{{ dto.name }}" style="padding-top: 10px; display: none;">
             <!-- Method input -->
             <label for="newMethodName-{{ dto.name }}" style="display: block; margin-bottom: 5px;">Method Name:</label>
-            <input class="input-mode-view" id="newMethodName-{{ dto.name }}" type="text" style="width: 85%; padding: 5px;background-color: #04AA6D">
+            <input class="input-mode-view" id="newMethodName-{{ dto.name }}" type="text"
+                style="width: 85%; padding: 5px;background-color: #04AA6D">
 
             <div style="padding-top: 10px;">
                 <!-- Submit btn -->

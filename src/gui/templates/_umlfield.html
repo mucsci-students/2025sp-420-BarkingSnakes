@@ -1,13 +1,13 @@
 <tr>
     <td>
-        <div>- <input class="input-mode-view" style="text-align: left; width: 50%;" type="text" id="umlfield-{{ f.name }}" value="{{ f.name }}"
+        <div>- <input class="input-mode-view" style="text-align: left; width: 50%;" type="text" id="umlfield-{{ dto.name }}" value="{{ f.name }}"
                 onblur="renameField(event.target,this ,'{{ dto.name }}', '{{ f.name }}')"
-                onkeydown="onkeydown_enter(event, () => this.blur())" />
+                onkeydown="onkeydown_enter(event, () => this.blur())" readonly/>
                 <span class="input-mode-view" style="width: 50%;" id="fieldtype-{{ f.name }}">({{ f.type }})</span>
         </div>
     </td>
     <td>
-        <a href="#" onclick="deleteField('{{ dto.name }}','{{ f.name }}')" title="Delete Field">
+        <a href="#" id="deleteFieldbtn-{{dto.name}}" class="hidden" onclick="deleteField('{{ dto.name }}','{{ f.name }}')" title="Delete Field">
             <i class="fa-solid fa-delete-left" style="color: red; font-size: 18px; transition: all 0.2s ease-in-out;"
                 onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
                 onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';">

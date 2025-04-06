@@ -664,17 +664,56 @@
          */
         function toggleEditMode(className) {
             const addFieldContainer = document.getElementById(`addFieldContainer-${className}`);
+            const deleteFieldbtn = document.getElementById(`deleteFieldbtn-${className}`);
+            const fieldTextInpt = document.getElementById(`umlfield-${className}`);
             const addMethodContainer = document.getElementById(`addMethodContainer-${className}`);
+            const classTextInpt = document.getElementById(`classname-${className}`);
             const isHidden = addFieldContainer.classList.contains('hidden');
+            let editModeState = false;
 
             if (isHidden) {
-                addFieldContainer.classList.remove('hidden');
-                addMethodContainer.classList.remove('hidden');
-                editModeState[className] = true; // Set edit mode to true
+                if(addFieldContainer){
+                    addFieldContainer.classList.remove('hidden');
+                }
+               
+                if(deleteFieldbtn){
+                    deleteFieldbtn.classList.remove('hidden');
+                }
+
+                if(addMethodContainer){
+                    addMethodContainer.classList.remove('hidden'); 
+                }
+                
+                if(fieldTextInpt){
+                    fieldTextInpt.readOnly = false; 
+                }
+
+                if(classTextInpt){
+                    classTextInpt.readOnly = false; 
+                }
+                editModeState = true; // Set edit mode to true
             } else {
-                addFieldContainer.classList.add('hidden');
-                addMethodContainer.classList.add('hidden');
-                editModeState[className] = false; // Set edit mode to false
+                if(addFieldContainer){
+                    addFieldContainer.classList.add('hidden');
+                }
+               
+                if(deleteFieldbtn){
+                    deleteFieldbtn.classList.add('hidden');
+                }
+
+                if(addMethodContainer){
+                    addMethodContainer.classList.add('hidden'); 
+                }
+                
+                if(fieldTextInpt){
+                    fieldTextInpt.readOnly = true; 
+                }
+
+                if(classTextInpt){
+                    classTextInpt.readOnly = true; 
+                }
+                
+                editModeState = false; // Set edit mode to false
             }
 
             setTimeout(drawRelationshipLines, 100);
