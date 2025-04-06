@@ -482,7 +482,6 @@ def test_remove_parameter():
     assert test_param not in test_method.params
 
 def test_remove_parameter_not_found():
-    test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_return_type = "bool"
     test_param = UmlParameter("transmission","Carpart")
@@ -497,4 +496,48 @@ def test_remove_parameter_not_found():
     finally:
         assert test_val_error == errors.error_list["NoSuchParameterError"]
     
+def test_rename_parameter():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_param2 = UmlParameter("engine","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    test_method.rename_parameter("transmission","engine")
+
+    assert test_param2 in test_method.params
+    
+    
+
+def test_rename_parameter_not_found():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.rename_parameter("engine","Carpart")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchParameterError"]
+
+def test_rename_parameter_duplicate():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.rename_parameter("engine","transmission")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateParameterError"]
     
