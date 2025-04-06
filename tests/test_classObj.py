@@ -421,8 +421,6 @@ def test_remove_method_all_overloads():
 
     assert test_class.class_methods == test_val_methods
 
-# TODO - Unit tests replace all method parameters
-
 # test replacing all method parameters
 def test_replace_all_method_parameters():
     test_class = UmlClass("Car", {}, {})
@@ -434,8 +432,21 @@ def test_replace_all_method_parameters():
     test_val_methods = {test_method_name: {"CarPart": test_method}}
 
     test_class.add_method(test_method_name, test_method_return_type, [])
-    test_class.replace_all_parameters(test_params)
+    test_class.replace_all_parameters(test_method_name, "", test_params)
 
     assert test_class.class_methods == test_val_methods
 
 # TODO - Unit tests clear all method parameters
+# test clearing all method parameters
+def test_clear_all_method_parameters():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
+    test_val_methods = {test_method_name: {"": test_method}}
+
+    test_class.add_method(test_method_name, test_method_return_type, [])
+    test_class.add_parameter(test_method_name, "", "transmission", "CarPart")
+    test_class.remove_all_parameters(test_method_name, "CarPart")
+
+    assert test_class.class_methods == test_val_methods

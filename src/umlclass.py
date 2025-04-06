@@ -251,7 +251,8 @@ class UmlClass:
             raise errors.MethodOverloadNotExistsException()
         
         uml_method = self.class_methods.get(methodname).get(overloadID)
-        dummymethod = UmlMethod(uml_method.name, uml_method.return_type, uml_method.params)
+        dummymethod = UmlMethod(uml_method.name, uml_method.return_type, [])
+        dummymethod.add_parameters([(param.name, param.umltype) for param in uml_method.params])
         dummymethod.add_parameter(parameter_name, parameter_type)
 
         if self._overload_exists(dummymethod.name, dummymethod.overloadID):
@@ -261,7 +262,7 @@ class UmlClass:
         uml_method.add_parameter(parameter_name, parameter_type)
 
         self.class_methods.get(methodname).pop(overloadID)
-        self.class_methods.get(uml_method.methodname)[uml_method.overloadID] = uml_method
+        self.class_methods.get(uml_method.name)[uml_method.overloadID] = uml_method
         
     def rename_parameter(self, methodname:str, overloadID:int, oldname:str, newname:str):
         """Rename a parameter on a specific method overload.
@@ -302,7 +303,8 @@ class UmlClass:
             raise errors.MethodOverloadNotExistsException()
         
         uml_method = self.class_methods.get(methodname).get(overloadID)
-        dummymethod = UmlMethod(uml_method.name, uml_method.return_type, uml_method.params)
+        dummymethod = UmlMethod(uml_method.name, uml_method.return_type, [])
+        dummymethod.add_parameters([(param.name, param.umltype) for param in uml_method.params])
         dummymethod.remove_parameter(parameter)
 
         if self._overload_exists(dummymethod.name, dummymethod.overloadID):
@@ -313,7 +315,7 @@ class UmlClass:
         self.class_methods.get(methodname).pop(overloadID)
         self.class_methods.get(uml_method.methodname)[uml_method.overloadID] = uml_method
 
-    def remove_all_parameters(self, methodname:str, arity:int):
+    def remove_all_parameters(self, methodname:str, overloadID:str):
         """Remove all parameters from a specific method overload.
 
         Params:
@@ -325,24 +327,24 @@ class UmlClass:
             MethodOverloadNotExistsException
             DuplicateMethodOverloadException
         """
-        if not self._overload_exists(methodname, arity):
+        if not self._overload_exists(methodname, overloadID):
             raise errors.MethodOverloadNotExistsException()
 
-        if self._overload_exists(methodname, 0):
+        if self._overload_exists(methodname, ""):
             raise errors.DuplicateMethodOverloadException()
 
-        uml_method = self.class_methods.get(methodname).get(arity)
+        uml_method = self.class_methods.get(methodname).get(overloadID)
         uml_method.clear_parameters()
 
-        self.class_methods.get(methodname).pop(arity)
-        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+        self.class_methods.get(methodname).pop(overloadID)
+        self.class_methods.get(methodname)[uml_method.overloadID] = uml_method
 
-    def replace_all_parameters(self, methodname:str, arity:int, parameters:list[str]):
+    def replace_all_parameters(self, methodname:str, overloadID:str, parameters:list[tuple[str, str]]):
         """Replace all parameters from a specific method overload with new parameters.
 
         Params:
             methodname: name of the method
-            arity: the method overload
+            overloadID: the overloadID of the method
             parameters: list of new parameter names
         Returns:
 
@@ -350,17 +352,20 @@ class UmlClass:
             MethodOverloadNotExistsException
             DuplicateMethodOverloadException
         """
-        if not self._overload_exists(methodname, arity):
+        if not self._overload_exists(methodname, overloadID):
             raise errors.MethodOverloadNotExistsException()
+        
+        uml_method = self.class_methods.get(methodname).get(overloadID)
 
-        if self._overload_exists(methodname, len(parameters)):
+        dummy_method = UmlMethod(methodname, uml_method.return_type, [])
+        dummy_method.add_parameters(parameters)
+        if self._overload_exists(methodname, dummy_method.overloadID):
             raise errors.DuplicateMethodOverloadException()
         
-        uml_method = self.class_methods.get(methodname).get(arity)
-        uml_method.replace_parameters(parameters)
+        uml_method.replace_all_parameters(parameters)
 
-        self.class_methods.get(methodname).pop(arity)
-        self.class_methods.get(methodname)[len(uml_method.params)] = uml_method
+        self.class_methods.get(methodname).pop(overloadID)
+        self.class_methods.get(methodname)[uml_method.overloadID] = uml_method
 
 
     def to_dict(self) -> dict:
