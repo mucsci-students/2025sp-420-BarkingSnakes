@@ -313,7 +313,8 @@ class UmlClass:
         uml_method.remove_parameter(parameter)
 
         self.class_methods.get(methodname).pop(overloadID)
-        self.class_methods.get(uml_method.methodname)[uml_method.overloadID] = uml_method
+
+        self.class_methods.get(uml_method.name)[uml_method.overloadID] = uml_method
 
     def remove_all_parameters(self, methodname:str, overloadID:str):
         """Remove all parameters from a specific method overload.
