@@ -12,6 +12,9 @@ from views.umlview_cli import UmlCliView
 from views.umlview_gui import UmlGuiView
 from gui.gui import app
 
+from views.umlview_cli_observer import UmlViewCliObserver
+from umlcontroller_observer import UmlControllerObserver
+
 class GUI_TYPE(Enum):
     CLI = auto()
     GUI = auto()
@@ -20,10 +23,18 @@ def main(gui_type:GUI_TYPE):
     """"""
     view:UmlView = None
     if gui_type == GUI_TYPE.CLI:
-        view = UmlCliView()
-        controller = UmlController(view)
-        view.init()
-        controller.run()
+        # view = UmlCliView()
+        # controller = UmlController(view)
+        # view.init()
+        # controller.run()
+        view = UmlViewCliObserver()
+        controller = UmlControllerObserver()
+
+        view.attach(controller)
+        controller.attach(view)
+
+        view.start()
+
     elif gui_type == GUI_TYPE.GUI:
 
         view = UmlGuiView()
