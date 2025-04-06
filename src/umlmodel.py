@@ -147,9 +147,10 @@ class UmlProject:
         Exceptions:
             None
         """
-        # "not not" serves to resolve to true if file was a .json
-        return not not re.search('\\.json', filepath, flags=re.IGNORECASE)
+        return bool(re.search('\\.json', filepath, flags=re.IGNORECASE))
+    
 
+    # parsing methods
     def _parse_uml_data(self, data:dict) -> int:
         """Parses the .json file and populates the classes and relationships.
 
@@ -268,6 +269,7 @@ class UmlProject:
         except errors.NoSuchObjectException as e:
             raise errors.InvalidJsonSchemaException()
 
+    # schema methods
     def _has_duplicate_objects(self, data:list[dict]) -> bool:
         """checks if the given list of dicts has any duplicate names
         
@@ -327,6 +329,7 @@ class UmlProject:
         """
         return os.path.exists(filepath)
     
+    #class methods
     def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project.
         
@@ -423,6 +426,7 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    #field methods
     # @_regex_pattern(count=2)
     @_has_changed
     def add_field(self, classname:str, field_name:str, field_type:str)  -> int:
@@ -456,6 +460,7 @@ class UmlProject:
 
         uml_class.remove_field(fieldname)
 
+    # method methods
     def get_umlmethod(self, classname:str, methodname:str, overload_id:str) -> UmlMethod:
         uml_class = self.get_umlclass(classname)
 
@@ -485,6 +490,7 @@ class UmlProject:
         if self.classes.get(classname):
             self.classes.get(classname).remove_method(methodname, overload_id)
 
+    # parameter methods
     @_has_changed
     def add_parameter(self, classname:str, methodname:str, overload_id:str, parameter:str, param_type:str):
         uml_class = self.get_umlclass(classname)
@@ -533,6 +539,7 @@ class UmlProject:
         uml_class = self.get_umlclass(classname)
         uml_class.remove_parameter(methodname, overload_id, parameter)
     
+    # relationship methods
     def _relationship_type_from_str(self, relationship_str:str)->RelationshipType:
         """Retrieves the relevant value from the RelationshipType Enum based on a string of that value's name or number.
         
@@ -629,8 +636,8 @@ class UmlProject:
         Returns:
             None
         Exceptions:
-            UMLException:NullObjectError for nonexistent objects
-            UMLException:NoSuchObjectError for nonexistent relationships or UMLClass names.
+            UMLException:NullObjectError if src or dest is None
+            UMLException:NoSuchObjectError for nonexistent relationships or UMLClasses.
         """
         if source is None or destination is None:
             raise errors.NullObjectException()
