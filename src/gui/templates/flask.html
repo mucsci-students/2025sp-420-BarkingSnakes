@@ -855,7 +855,7 @@
             }
         }
 
-        function addField2(event, elem, className) {
+        function addField2(event, elem1,elem2, className) {
             if (event.key === "Enter") {
                 const fieldType = "string"; // Defaulted to string for temp fix
                 fetch("/addField", {
@@ -956,6 +956,31 @@
             }
         }
 
+        function deleteMethod(methodName,arity,className) {
+            fetch("/deleteMethod", {
+                method: "DELETE",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodName,
+                    arity: arity,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
         function addMethodParam(event, target, methodname, arity, classname) {
             fetch("/addMethodParam", {
                 method: "POST",
@@ -980,6 +1005,60 @@
                 })
                 .then(data => snackbar(data.error))
                 .catch(err => console.log(err));
+        }
+
+        function deleteMethodParameter(methodName,arity,parametername,className) {
+            fetch("/deleteMethodParam", {
+                method: "DELETE",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodName,
+                    arity: arity,
+                    parametername:parametername,
+                    classname: className
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+        }
+
+        function renameMethodParam(oldname,newname,methodname,arity,classname) {
+            fetch("/renameMethodParam", {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    oldname: oldname,
+                    newname: newname,
+                    methodname:methodname,
+                    arity:arity,
+                    classname: classname
+                })
+            })
+                .then(resp => {
+                    return resp.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        elem.value = methodName
+                        snackbar(data.error);
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
         }
 
         function handleErrorAction(action, tagId, error_text, yes_callback, no_callback) {
@@ -1173,22 +1252,18 @@
                 })
         }
 
-        function renameMethod(target, elem, className, methodName) {
-            const newname = target.value;
-            if (methodName === newname) {
-                return;
-            }
-
+        function renameMethod(oldname,newname,arity,className) {
             fetch("/renameMethod", {
-                method: "POST",
+                method: "PUT",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    classname: className,
-                    oldname: methodName,
-                    newname: newname
+                    oldname: oldname,
+                    newname: newname,
+                    arity:arity,
+                    classname: className
                 })
             })
                 .then(resp => {
