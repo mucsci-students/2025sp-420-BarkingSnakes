@@ -812,9 +812,8 @@ class UmlController:
             except EOFError:
                 self.is_running = False
             except Exception as e:
-                # self.view.handle_exceptions(f"Operation failed:UML Error:{e}")
-                
-                raise e
+                self.view.handle_exceptions(f"Operation failed:UML Error:{e}")
+                #raise e
                 logging.info(f" unknown error occured: {e.args}")
             finally:
                 self._command = None
