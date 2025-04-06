@@ -1,10 +1,11 @@
 from __future__ import annotations
 import copy
+from typing import Protocol, Literal
 
-from umlcommands.base_commands import UmlCommand, TypedCommand, CallbackCommand, CommandOutcome
+from umlcommands.base_commands import UmlCommand, TypedCommand, CallbackCommand, CommandOutcome, PromptRequester, BinaryPromptCommand, InputPromptCommand
 from umlcontroller_observer import UmlControllerObserver
 from umlclass import UmlClass, UmlMethod
-from umlrelationship import UmlRelationship
+from umlrelationship import UmlRelationship, RelationshipType
 import errors
 
 class ControllerCommand(TypedCommand[UmlControllerObserver]):
@@ -19,6 +20,19 @@ class ControllerCommand(TypedCommand[UmlControllerObserver]):
             error_text = f"The {context} name {name} cannot be used as a {context} name."
             self.set_result(CommandOutcome.FAILED, e, error_text)
             raise e
+
+class RelationCommand(ControllerCommand):
+    def raise_InvalidRelationshipType(self, relation_type:str):
+        relation_types = [
+            RelationshipType.AGGREGATION.name.lower(),
+            RelationshipType.COMPOSITION.name.lower(),
+            RelationshipType.INHERITANCE.name.lower(),
+            RelationshipType.REALIZATION.name.lower()
+        ]
+        if not relation_type.lower() in relation_types:
+            error_text = f"The provided relation type of {relation_type} is not a valid option."
+            self.set_result(CommandOutcome.FAILED, e, error_text)
+            e = errors.InvalidRelationshipTypeException()
 
 class ActiveClassCommand(ControllerCommand):
 
@@ -50,6 +64,14 @@ class ActiveMethodCommand(ActiveClassCommand):
     @property
     def umlmethod(self) -> UmlMethod:
         return self.driver.active_method
+
+class PromptingCommand(ControllerCommand):
+
+    def set_prompt_requester(self, requester:PromptRequester):
+        self._prompt_requester = requester
+
+    def get_prompt_requester(self) -> PromptRequester:
+        return self._prompt_requester
 
 class BackCommand(ControllerCommand):
     def execute(self):
@@ -86,7 +108,6 @@ class ListRelationCommand(ControllerCommand):
     def relationships(self) -> set[UmlRelationship]:
         return self._relationships
         
-
 class GetUmlClassCommand(ControllerCommand):
     from umlclass import UmlClass
     def execute(self):
@@ -433,12 +454,12 @@ class ParameterAddCommand(ActiveMethodCommand):
     @property
     def name(self) -> str:
         prop_index = 2
-        return self._args[prop_index]
+        return self._args[prop_index].split(":")[0]
     
     @property
     def param_type(self) -> str:
-        prop_index = 3
-        return self._args[prop_index]
+        prop_index = 2
+        return self._args[prop_index].split(":")[1]
 
 class ParameterRenameCommand(ActiveMethodCommand):
     def execute(self):
@@ -552,13 +573,46 @@ class ParameterReplaceAllCommand(ActiveMethodCommand):
 
 class ParameterClearCommand(ActiveMethodCommand):
     """"""
-    # TODO - Implement this
-
-class RelationAddCommand(ControllerCommand):
     def execute(self):
         try:
+            self.raise_NoActiveMethod()
+
+            classname = self.umlclass.class_name
+            methodname = self.umlmethod.name
+            overload_id = self.umlmethod.overloadID
+            
+            self.driver.model.clear_all_parameters(classname, methodname, overload_id)
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.NoActiveClassException:
+            return
+        except errors.NoActiveMethodException:
+            return
+        except errors.InvalidNameException:
+            return
+        except errors.DuplicateMethodOverloadException as dmo_e:
+            error_text = f"The resulting method signature already exists on the class {classname}."
+            self.set_result(CommandOutcome.FAILED, dmo_e, error_text)
+        except errors.NoSuchParameterException as nsp_e:
+            error_text = f"No parameter named {self.name} in method {methodname} ({overload_id}) on class {classname} exists."
+            self.set_result(CommandOutcome.FAILED, nsp_e, error_text)
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+class RelationAddCommand(RelationCommand):
+    def execute(self):
+        try:
+            self.raise_InvalidName(self.source, "relation source")
+            self.raise_InvalidName(self.dest, "relation destination")
+            self.raise_InvalidRelationshipType(self.relation_type)
+
             self.driver.model.add_relationship(self.source, self.dest, self.relation_type)
             self.set_result(CommandOutcome.SUCCESS)
+        except errors.InvalidNameException:
+            return
+        except errors.InvalidRelationshipTypeException:
+            return
         except errors.UMLException as uml_e:
             self.set_result(CommandOutcome.FAILED, uml_e)
         except Exception as e:
@@ -579,19 +633,257 @@ class RelationAddCommand(ControllerCommand):
         prop_index = 4
         return self._args[prop_index]
 
-class RelationDeleteCommand(ControllerCommand):
-    """"""
-    # TODO - Implement this
+class RelationDeleteCommand(RelationCommand):
+    def execute(self):
+        try:
+            self.raise_InvalidName(self.source, "relation source")
+            self.raise_InvalidName(self.dest, "relation destination")
+            self.driver.model.delete_relationship(self.source, self.dest)
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.InvalidNameException:
+            return
+        except errors.InvalidRelationshipTypeException:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+    
+    @property
+    def source(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
+    
+    @property
+    def dest(self) -> str:
+        prop_index = 3
+        return self._args[prop_index]
 
-class RelationSetCommand(ControllerCommand):
-    """"""
-    # TODO - Implement this
+class RelationSetCommand(RelationCommand):
+    def execute(self):
+        try:
+            self.raise_InvalidName(self.source, "relation source")
+            self.raise_InvalidName(self.dest, "relation destination")
+            self.raise_InvalidRelationshipType(self.relation_type)
 
-class QuitCommand(ControllerCommand, CallbackCommand):
+            self.driver.model.set_type_relationship(self.source, self.dest, self.relation_type)
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.InvalidNameException:
+            return
+        except errors.InvalidRelationshipTypeException:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+    
+    @property
+    def source(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
+    
+    @property
+    def dest(self) -> str:
+        prop_index = 3
+        return self._args[prop_index]
+
+    @property
+    def relation_type(self) -> str:
+        prop_index = 4
+        return self._args[prop_index]
+
+class SaveCommand(PromptingCommand, CallbackCommand):
+
+    def execute(self):
+        try:
+            if not self.driver.model._save_path:
+                """Prompt for a save path."""
+                filepath = self._get_filepath()
+                if self.driver.model._filepath_exists(filepath):
+                    if not self._ask_overwrite_file():
+                        self.set_result(CommandOutcome.DEFERRED)
+                        return
+                self.driver.model._save_path = filepath
+            self.driver.model.save()
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.FileAlreadyExistsException as fae_e:
+            error_text = "That file already exists."
+            self.set_result(CommandOutcome.FAILED, fae_e, error_text)
+        except errors.InvalidFileException as if_e:
+            error_text = "The file path provided is invalid. Make sure it ends in .json"
+            self.set_result(CommandOutcome.FAILED, if_e, error_text)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    def _get_filepath(self) -> str:
+        requester = self.get_prompt_requester()
+        input_cmd:InputPromptCommand = requester.get_prompt(InputPromptCommand, "Please provide a file name to continue:")
+        input_cmd.execute()
+        result = input_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            filepath = input_cmd.output
+            if not self.driver.model.is_json_file(filepath):
+                raise errors.InvalidFileException()
+            return filepath
+    
+    def _ask_overwrite_file(self) -> bool:
+        requester = self.get_prompt_requester()
+        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "A file already exists at this filepath. Do you want to replace it?")
+        binary_cmd.execute()
+        result = binary_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            return binary_cmd.outcome
+
+class QuitCommand(PromptingCommand, CallbackCommand):
+
     def execute(self):
         if self.driver.model.has_unsaved_changes:
-            # TODO - Handle prompting for unsaved changes.
-            True
+            """"""
+            if self._ask_to_save():
+                save_cmd = SaveCommand()
+                save_cmd.set_driver(self.driver)
+                save_cmd.set_prompt_requester(self.get_prompt_requester())
+                save_cmd.execute()
+                result = save_cmd.get_result()
+
+                if result.outcome == CommandOutcome.FAILED:
+                    self.set_result(result.outcome, result.exception, result.ErrorText)
+                    return
+            
+        self.driver.stop()
+        self.callback()
+        self.set_result(CommandOutcome.SUCCESS)
+
+    
+    def _ask_to_save(self) -> bool:
+        requester = self.get_prompt_requester()
+        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "Do you want to save changes before exiting?")
+        binary_cmd.execute()
+        result = binary_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            return binary_cmd.outcome
+                    
+class LoadCommand(PromptingCommand):
+    def execute(self):
+        try:
+            if self.driver.model.has_unsaved_changes:
+                """"""
+                if self._ask_to_save():
+                    save_cmd = SaveCommand()
+                    save_cmd.set_driver(self.driver)
+                    save_cmd.set_prompt_requester(self.get_prompt_requester())
+                    save_cmd.execute()
+                    result = save_cmd.get_result()
+
+                    if result.outcome == CommandOutcome.FAILED:
+                        self.set_result(result.outcome, result.exception, result.ErrorText)
+                        return
+                
+            filepath = self.filepath
+            if not filepath:
+                filepath = self._get_filepath()
+
+            if self.driver.model._filepath_exists(filepath):
+                self.driver.model.load(filepath)
+            else:
+                if self._ask_to_create_new():
+                    self.driver.model.new()
+                    self.driver.model._save_path = filepath
+                    self.driver.model.save()
+                else:
+                    self.set_result(CommandOutcome.DEFERRED)
+                    return
+            
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.InvalidFileException as if_e:
+            error_text = "The file path provided is invalid. Make sure it ends in .json"
+            self.set_result(CommandOutcome.FAILED, if_e, error_text)
+        except errors.InvalidJsonSchemaException as ijs_e:
+            error_text = "The file provided did not meet the json schema requirements."
+            self.set_result(CommandOutcome.FAILED, ijs_e, error_text)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    
+    def _ask_to_save(self) -> bool:
+        requester = self.get_prompt_requester()
+        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "Do you want to save changes before loading a new file?")
+        binary_cmd.execute()
+        result = binary_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            return binary_cmd.outcome
+    
+    def _get_filepath(self) -> str:
+        requester = self.get_prompt_requester()
+        input_cmd:InputPromptCommand = requester.get_prompt(InputPromptCommand, "Please provide a file name to continue:")
+        input_cmd.execute()
+        result = input_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            filepath = input_cmd.output
+            if not self.driver.model.is_json_file(filepath):
+                raise errors.InvalidFileException()
+            return filepath
+    
+    def _ask_to_create_new(self) -> bool:
+        requester = self.get_prompt_requester()
+        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "The file provided doesn't exist. Would you like to create it now?")
+        binary_cmd.execute()
+        result = binary_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            return binary_cmd.outcome
+
+    @property
+    def filepath(self) -> str:
+        prop_index = 1
+        if len(self._args) == 1:
+            return None
+        return self._args[1]
+
+class NewCommand(PromptingCommand):
+    def execute(self):
+        try:
+            if self.driver.model.has_unsaved_changes:
+                """"""
+                if self._ask_to_save():
+                    save_cmd = SaveCommand()
+                    save_cmd.set_driver(self.driver)
+                    save_cmd.set_prompt_requester(self.get_prompt_requester())
+                    save_cmd.execute()
+                    result = save_cmd.get_result()
+
+                    if result.outcome == CommandOutcome.FAILED:
+                        self.set_result(result.outcome, result.exception, result.ErrorText)
+                        return
+            
+            self.driver.model.new()
+            if self.filepath and self.driver.model.is_json_file(self.filepath):
+                self.driver.model._save_path = self.filepath
+            
+            self.set_result(CommandOutcome.SUCCESS)
+        except errors.InvalidFileException as if_e:
+            error_text = "The file path provided is invalid. Make sure it ends in .json"
+            self.set_result(CommandOutcome.FAILED, if_e, error_text)
+        except errors.InvalidJsonSchemaException as ijs_e:
+            error_text = "The file provided did not meet the json schema requirements."
+            self.set_result(CommandOutcome.FAILED, ijs_e, error_text)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    def _ask_to_save(self) -> bool:
+        requester = self.get_prompt_requester()
+        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "Do you want to save changes before entering a new file?")
+        binary_cmd.execute()
+        result = binary_cmd.get_result()
+        if result.outcome == CommandOutcome.CONTINUE:
+            return binary_cmd.outcome
+        
+    @property
+    def filepath(self) -> str:
+        prop_index = 1
+        if len(self._args) == 1:
+            return None
+        return self._args[1]
+
 
 UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^list$": ListClassesCommand,
@@ -607,12 +899,18 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^method rename ([A-Za-z0-9_]*)": MethodRenameCommand,
     r"^method delete ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodDeleteCommand,
     r"^method ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodContextCommand,
-    r"^parameter add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)$": ParameterAddCommand,
+    r"^parameter add ([A-Za-z0-9_]*):([A-Za-z0-9_]*)$": ParameterAddCommand,
     r"^parameter rename ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)$": ParameterRenameCommand,
     r"^parameter delete ([A-Za-z0-9_]*)$": ParameterDeleteCommand,
     r"^parameter replace all(\s([A-Za-z0-9_]*):([A-Za-z0-9_]*))+$": ParameterReplaceAllCommand,
+    r"^parameter clear all$": ParameterClearCommand,
     r"^relation add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*) ([A-Za-z]*)$": RelationAddCommand,
+    r"^relation delete ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)$": RelationDeleteCommand,
+    r"^relation set ([A-Za-z0-9_]*) ([A-Za-z0-9_]*) ([A-Za-z]*)$": RelationSetCommand,
     r"^relation list$": ListRelationCommand,
+    r"^load(\s.+\..+)*$": LoadCommand,
+    r"^new(\s.+\..+)*$": NewCommand,
     r"^quit$": QuitCommand,
+    r"^save$": SaveCommand,
     r"^controller back$": BackCommand
 }
