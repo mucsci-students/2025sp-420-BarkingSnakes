@@ -31,8 +31,8 @@ class RelationCommand(ControllerCommand):
         ]
         if not relation_type.lower() in relation_types:
             error_text = f"The provided relation type of {relation_type} is not a valid option."
-            self.set_result(CommandOutcome.FAILED, e, error_text)
             e = errors.InvalidRelationshipTypeException()
+            self.set_result(CommandOutcome.FAILED, e, error_text)
 
 class ActiveClassCommand(ControllerCommand):
 
