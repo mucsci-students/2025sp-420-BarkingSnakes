@@ -460,13 +460,13 @@ class UmlProject:
 
         uml_class.remove_field(fieldname)
 
-    def get_umlmethod(self, classname: str, methodname: str, arity: int) -> UmlMethod:
+    def get_umlmethod(self, classname:str, methodname:str, overload_id:str) -> UmlMethod:
         uml_class = self.get_umlclass(classname)
 
         if uml_class and uml_class.class_methods.get(methodname) is None:
             raise errors.MethodNameNotExistsException()
-
-        uml_method = uml_class.class_methods.get(methodname).get(arity)
+        
+        uml_method = uml_class.class_methods.get(methodname).get(overload_id)
 
         if uml_method is None:
             raise errors.MethodOverloadNotExistsException()
@@ -474,36 +474,32 @@ class UmlProject:
         return uml_method
 
     @_has_changed
-    def add_method(self, classname: str, methodname: str, params: list[str]):
+    def add_method(self, classname:str, methodname:str, return_type:str, params:list[tuple[str, str]]):
         if self.classes.get(classname):
-            self.classes.get(classname).add_method(methodname, params)
+            self.classes.get(classname).add_method(methodname, return_type, params)
 
     @_has_changed
-    def rename_method(self, classname: str, oldname: str, newname: str, arity: int):
+    def rename_method(self, classname:str, oldname:str, newname:str, overload_id:str):
         if self.classes.get(classname):
-            self.classes.get(classname).rename_method(oldname, arity, newname)
+            self.classes.get(classname).rename_method(oldname, overload_id, newname)
 
     @_has_changed
-    def delete_method(self, classname: str, methodname: str, arity: int):
+    def delete_method(self, classname:str, methodname:str, overload_id:str):
         if self.classes.get(classname):
-            self.classes.get(classname).remove_method(methodname, arity)
+            self.classes.get(classname).remove_method(methodname, overload_id)
 
     @_has_changed
-    def add_parameter(
-        self, classname: str, methodname: str, arity: int, parameter: str
-    ):
+    def add_parameter(self, classname:str, methodname:str, overload_id:str, parameter:str, param_type:str):
         uml_class = self.get_umlclass(classname)
-        uml_class.add_parameter(methodname, arity, parameter)
+        uml_class.add_parameter(methodname, overload_id, parameter, param_type)
 
     @_has_changed
-    def rename_parameter(
-        self, classname: str, methodname: str, arity: int, oldname: str, newname: str
-    ):
+    def rename_parameter(self, classname:str, methodname:str, overload_id:str, oldname:str, newname:str):
         uml_class = self.get_umlclass(classname)
-        uml_class.rename_parameter(methodname, arity, oldname, newname)
+        uml_class.rename_parameter(methodname, overload_id, oldname, newname)
 
     @_has_changed
-    def clear_all_parameters(self, classname: str, methodname: str, arity: int):
+    def clear_all_parameters(self, classname:str, methodname:str, overload_id:str):
         """Clears all parameters from a method overload.
 
         Params:
@@ -516,12 +512,10 @@ class UmlProject:
             None
         """
         uml_class = self.get_umlclass(classname)
-        uml_class.remove_all_parameters(methodname, arity)
-
+        uml_class.remove_all_parameters(methodname, overload_id)
+    
     @_has_changed
-    def replace_all_parameters(
-        self, classname: str, methodname: str, arity: int, parameters: list[str]
-    ):
+    def replace_all_parameters(self, classname:str, methodname:str, overload_id:str, parameters:list[str]):
         """Replace all parameters from a method overload with a new parameter list.
 
         Params:
@@ -535,16 +529,14 @@ class UmlProject:
             None
         """
         uml_class = self.get_umlclass(classname)
-        uml_class.replace_all_parameters(methodname, arity, parameters)
+        uml_class.replace_all_parameters(methodname, overload_id, parameters)
 
     @_has_changed
-    def delete_parameter(
-        self, classname: str, methodname: str, arity: int, parameter: str
-    ):
+    def delete_parameter(self, classname:str, methodname:str, overload_id:str, parameter:str):
         uml_class = self.get_umlclass(classname)
-        uml_class.remove_parameter(methodname, arity, parameter)
-
-    def _relationship_type_from_str(self, relationship_str: str) -> RelationshipType:
+        uml_class.remove_parameter(methodname, overload_id, parameter)
+    
+    def _relationship_type_from_str(self, relationship_str:str)->RelationshipType:
         """Retrieves the relevant value from the RelationshipType Enum based on a string of that value's name or number.
 
         Params:

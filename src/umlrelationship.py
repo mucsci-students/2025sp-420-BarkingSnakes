@@ -1,6 +1,6 @@
 # Filename: umlrelationship.py
 # Authors: Evan Magill, Steven Barnes, Juliana Vinluan, Kyle Kalbach, John Hershey
-# Date: 2025-03-22
+# Date: 2025-03-22, Last edit date: 2025-04-05
 # Description: Class encapsulating umlrelationships
 import logging
 import errors
@@ -57,3 +57,11 @@ class UmlRelationship:
 
         return self.source_class.class_name + arrow + self.destination_class.class_name"
     """
+    def valid_relation_types() -> str:
+        """
+        Returns a list of all valid relation types
+        """
+        #ignores DEFAULT, strips off brackets, and sets to lowercase
+        return str(RelationshipType._member_names_[1:])[1:-1].lower()
+    
+    
