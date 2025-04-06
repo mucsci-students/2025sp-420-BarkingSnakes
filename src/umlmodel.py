@@ -676,6 +676,7 @@ class UmlProject:
         """Returns a Concrete Memento that captures the current state."""
         return ConcreteMemento(self._save_object)
 
+    @_has_changed
     def _restore_memento(self, memento: Memento) -> None:
         """Sets the current state to the State captured in the memento."""
         self._parse_uml_data(memento.get_state())
