@@ -452,6 +452,17 @@ class UmlController:
         self.view.set_active_class(name)
 
     @_requires_active_class
+    def command_update_umlclass_position(self, position:list[float]):
+        """moves the UmlClass in the current context to the specified position
+        """
+        if len(position) < 2:
+            raise errors.InvalidPositionArgsException()
+        #get class from model
+        umlclass = self.model.get_umlclass(self.view.active_class)
+        #update pos
+        umlclass.set_umlclass_position(position)
+    
+    @_requires_active_class
     def command_delete_umlclass(self, override:bool = False):
         """Removes the UmlClass in the current context from the project.
         Prompts and informs the user to delete relationships.
