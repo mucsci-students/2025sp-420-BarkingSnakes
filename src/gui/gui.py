@@ -139,7 +139,15 @@ def rename_umlclass():
         return app.view.response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
+@app.post("/updateClassPosition")
+@handle_umlexception
+def update_umlclass_position():
+    data = request.get_json()
+    classname = data.get("classname")
+    app.controller.execute_command(["class", classname])
+    app.controller.command_update_umlclass_position([data.get("x_pos"), data.get("y_pos")])
+    return jsonify({"message": "Class position updated successfully"}), 200
 
 @app.post("/addField")
 @handle_umlexception
