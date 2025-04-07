@@ -370,9 +370,10 @@ class UmlClass:
 
 
     def to_dict(self) -> dict:
-        methods = []
-        for method in self.class_methods.values():
-            methods.extend(method.values())
+        methods = set()
+        for k, method in self.class_methods.items():
+            for _, m in method.items():
+                methods.add(m)
         return {
             'name': self.class_name,
             'fields': [f.to_dict() for f in self.class_fields.values()],

@@ -26,3 +26,6 @@ class UmlControllerObserver(BaseSubject, UmlObserver):
         self.running = True
         while self.running:
             time.sleep(0.1)
+    
+    def stop(self):
+        self.running = False

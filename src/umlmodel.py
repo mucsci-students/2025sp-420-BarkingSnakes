@@ -162,21 +162,16 @@ class UmlProject:
         Exceptions:
             None
         """
-        uml_classes: list[dict] = data.get("classes")
+        uml_classes:list[dict] = data.get("classes")
+        uml_relationships:list[dict] = data.get("relationships")
 
-        # if uml_classes is None or not any(uml_classes):
-        #     print(uml_classes)
-        #     return -1
-        # Commented out while working on Mememnto!
+        if uml_classes is None or uml_relationships is None:
+            raise errors.InvalidJsonSchemaException()
+        
         if self._has_duplicate_objects(uml_classes):
             raise errors.InvalidJsonSchemaException()
-            #raise errors.DuplicateClassException()
         
-        self.classes = {
-            c.class_name: c for c in map(self._parse_uml_class, uml_classes)
-        }
-
-        uml_relationships: list[dict] = data.get("relationships")
+        self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
 
         self.relationships = set()
 
@@ -219,7 +214,7 @@ class UmlProject:
 
             def _parse_uml_parameter(data: dict) -> UmlParameter:
                 if data:
-                    param = UmlParameter(data.get("name"))
+                    param = UmlParameter(data.get("name"), data.get("type"))
                     return param
 
                 return None
@@ -227,7 +222,11 @@ class UmlProject:
             params: list[UmlParameter] = []
             if data.get("params"):
                 params.extend(list(map(_parse_uml_parameter, data.get("params"))))
-            return UmlMethod(data.get("name"), {param.name: param for param in params})
+            return UmlMethod(
+                data.get("name"),
+                data.get("return_type"),
+                params
+            )
 
         uml_fields: list[UmlField] = []
         if data.get("fields"):
@@ -247,8 +246,8 @@ class UmlProject:
         for method in uml_methods:
             if method.name not in methods:
                 methods[method.name] = {}
-
-            methods[method.name][method.arity] = method
+            
+            methods[method.name][method.overloadID] = method
 
         return UmlClass(
             data.get("name"), {field.name: field for field in uml_fields}, methods
