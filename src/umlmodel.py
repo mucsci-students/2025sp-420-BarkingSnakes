@@ -162,16 +162,15 @@ class UmlProject:
             None
         """
         uml_classes:list[dict] = data.get("classes")
+        uml_relationships:list[dict] = data.get("relationships")
 
-        if uml_classes is None or not any(uml_classes):
-            return -1
+        if uml_classes is None or uml_relationships is None:
+            raise errors.InvalidJsonSchemaException()
+        
         if self._has_duplicate_objects(uml_classes):
             raise errors.InvalidJsonSchemaException()
-            #raise errors.DuplicateClassException()
         
         self.classes = {c.class_name:c for c in map(self._parse_uml_class, uml_classes)}
-
-        uml_relationships:list[dict] = data.get("relationships")
 
         self.relationships = set()
 
@@ -212,7 +211,7 @@ class UmlProject:
             """"""
             def _parse_uml_parameter(data:dict) -> UmlParameter:
                 if data:
-                    param = UmlParameter(data.get("name"))
+                    param = UmlParameter(data.get("name"), data.get("type"))
                     return param
                 
                 return None
@@ -222,6 +221,7 @@ class UmlProject:
                 params.extend(list(map(_parse_uml_parameter, data.get("params"))))
             return UmlMethod(
                 data.get("name"),
+                data.get("return_type"),
                 {param.name:param for param in params}
             )
 
@@ -245,7 +245,7 @@ class UmlProject:
             if method.name not in methods:
                 methods[method.name] = {}
             
-            methods[method.name][method.arity] = method
+            methods[method.name][method.overloadID] = method
 
         return UmlClass(
             data.get("name"),
