@@ -39,7 +39,8 @@ error_list = {
     "FileAlreadyExistsError": 18,
     "FileHasUnsavedChangesError": 19,
     "UmlClassDeletionError": 20,
-    "InvalidTypeNameError": 21
+    "InvalidTypeNameError": 21,
+    "TestViewPromptError": 22
 }
 ## class definitions
 class UMLException(Exception):
@@ -264,3 +265,14 @@ class UmlClassDeletionErrorException(UMLException):
 class InvalidTypeNameException(UMLException):
     def __init__(self, *args):
         super().__init__(get_error_name(21),*args)
+        
+class TestViewPromptException(UMLException):
+    """
+    Wrapper of UMLException class for testing user input\n\
+        if prompt would normally be given, this error is raised,\n\
+        with the intended prompt given as an arg for the testing file to handle
+    Args:
+        prompt: the intended prompt for the user. This does not need to be included
+    """
+    def __init__(self, *args):
+        super().__init__(get_error_name(22),*args)
