@@ -110,4 +110,6 @@ def test_delete_field():
     test_proj.delete_field("car","MaxSpeed")
 
     assert "MaxSpeed" not in  test_proj.classes.get("car").class_fields
+
+
     
