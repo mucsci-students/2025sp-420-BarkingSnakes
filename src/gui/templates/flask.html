@@ -14,6 +14,7 @@
 
 <body style="background-color: #0e1113;">
     <div id="toolbar">
+        <button onclick="toggleLists()">Lists</button>
         <button onclick="showNewModal()">New</button>
         <button onclick="showSaveModal()">Save</button>
         <button onclick="showLoadModal()">Load</button>
@@ -21,10 +22,6 @@
     </div>
 
     <div id="content">
-        <div id="mySidenav" class="sidenav">
-            <button id="ClassList" onclick="toggleClassList()">ClassList</button>
-            <button id="RelationList" onclick="toggleRelationList()">RelationList</button>
-        </div>
     </div>
 
     <div id="ClassTable" style="display: none;">
@@ -170,13 +167,29 @@
         #ClassTable,
         #RelationTable {
             padding: 15px;
-            margin-left: 10%;
-            margin-right: 80%;
             background-color: #04AA6D;
             color: white;
             margin-bottom: 20px;
-            position: relative;
+            position: fixed;
+            /* Fix the position */
+            left: 0;
+            /* Align to the left wall */
             width: 20%;
+            /* Adjust width as needed */
+        }
+
+        #ClassTable {
+            top: 0px;
+            /* Position below the toolbar */
+            position: relative;
+            /* Allow it to expand dynamically */
+        }
+
+        #RelationTable {
+            margin-top: 20px;
+            /* Add spacing between ClassList and RelationList */
+            position: relative;
+            /* Ensure it moves down as ClassList expands */
         }
 
         .RelationData {
@@ -315,6 +328,29 @@
             background: transparent;
             color: white;
             border: none;
+        }
+
+        .edit-button {
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .edit-button:hover {
+            background-color: #028a5e;
+            transform: scale(1.1);
+        }
+
+        .hidden {
+            display: none;
         }
 
         #cntrAddClass>input {
@@ -469,29 +505,19 @@
 
 
         /**
-         * Toggles the display of the class list.
-         * Fetches class list data from the server and displays it.
+         * Added a "Lists" button to toggle the visibility of the class and relation lists.
          */
-        function toggleClassList() {
+        function toggleLists() {
             let classTable = document.getElementById("ClassTable");
+            let relationTable = document.getElementById("RelationTable");
+
             if (classTable.style.display === "none" || classTable.style.display === "") {
                 classTable.style.display = "block";
-                getClassList();
-            } else {
-                classTable.style.display = "none";
-            }
-        }
-
-        /**
-         * Toggles the display of the relation list.
-         * Fetches relation list data from the server and displays it.
-         */
-        function toggleRelationList() {
-            let relationTable = document.getElementById("RelationTable");
-            if (relationTable.style.display === "none" || relationTable.style.display === "") {
                 relationTable.style.display = "block";
+                getClassList();
                 getRelationList();
             } else {
+                classTable.style.display = "none";
                 relationTable.style.display = "none";
             }
         }
@@ -504,9 +530,21 @@
             fetch('/classlist')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("ClassTable").innerHTML = data.html
-                })
+                    document.getElementById("ClassTable").innerHTML = data.html;
+                    const classButtons = document.querySelectorAll("#ClassTable .class-button");
+                    classButtons.forEach(button => {
+                        const className = button.textContent.trim();
+                        displayClassDetails(className);
+                    });
+                });
         }
+
+        /**
+         * Displays the classes upon startup
+         */
+        document.addEventListener("DOMContentLoaded", () => {
+            getClassList();
+        });
 
         function toggleVisibility(ids) {
             console.log("Toggle: " + ids);
@@ -619,6 +657,66 @@
          */
         function closeSaveModal() {
             saveModal.style.display = "none";
+        }
+
+        /**
+         * Toggles on/off the edit mode on the class details
+         */
+        function toggleEditMode(className) {
+            const addFieldContainer = document.getElementById(`addFieldContainer-${className}`);
+            const deleteFieldbtn = document.getElementById(`deleteFieldbtn-${className}`);
+            const fieldTextInpt = document.getElementById(`umlfield-${className}`);
+            const addMethodContainer = document.getElementById(`addMethodContainer-${className}`);
+            const classTextInpt = document.getElementById(`classname-${className}`);
+            const isHidden = addFieldContainer.classList.contains('hidden');
+            let editModeState = false;
+
+            if (isHidden) {
+                if(addFieldContainer){
+                    addFieldContainer.classList.remove('hidden');
+                }
+               
+                if(deleteFieldbtn){
+                    deleteFieldbtn.classList.remove('hidden');
+                }
+
+                if(addMethodContainer){
+                    addMethodContainer.classList.remove('hidden'); 
+                }
+                
+                if(fieldTextInpt){
+                    fieldTextInpt.readOnly = false; 
+                }
+
+                if(classTextInpt){
+                    classTextInpt.readOnly = false; 
+                }
+                editModeState = true; // Set edit mode to true
+            } else {
+                if(addFieldContainer){
+                    addFieldContainer.classList.add('hidden');
+                }
+               
+                if(deleteFieldbtn){
+                    deleteFieldbtn.classList.add('hidden');
+                }
+
+                if(addMethodContainer){
+                    addMethodContainer.classList.add('hidden'); 
+                }
+                
+                if(fieldTextInpt){
+                    fieldTextInpt.readOnly = true; 
+                }
+
+                if(classTextInpt){
+                    classTextInpt.readOnly = true; 
+                }
+                
+                editModeState = false; // Set edit mode to false
+            }
+
+            setTimeout(drawRelationshipLines, 100);
         }
 
         /**
@@ -1359,10 +1457,41 @@
                 offsetY = initialY - e.clientY;
                 initialX = e.clientX;
                 initialY = e.clientY;
-                element.style.top = (element.offsetTop - offsetY) + "px";
-                element.style.left = (element.offsetLeft - offsetX) + "px";
 
-                //for auto updating lines to make them dynamic
+                // Calculate new position
+                let newTop = element.offsetTop - offsetY;
+                let newLeft = element.offsetLeft - offsetX;
+
+                // Get viewport dimensions
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // Get element dimensions
+                const elementWidth = element.offsetWidth;
+                const elementHeight = element.offsetHeight;
+
+                // Define additional margins for the right and bottom edges
+                const rightMargin = 150; // Increase this value to allow more space on the right
+                const bottomMargin = 120; // Increase this value to allow more space at the bottom
+
+                // Constrain the element within the viewport
+                if (newTop < 190) {
+                    newTop = 190;
+                }
+                if (newTop + elementHeight > viewportHeight + bottomMargin) {
+                    newTop = viewportHeight - elementHeight + bottomMargin;
+                }
+
+                if (newLeft < 150) {
+                    newLeft = 150;
+                }
+                if (newLeft + elementWidth > viewportWidth + rightMargin) {
+                    newLeft = viewportWidth - elementWidth + rightMargin;
+                }
+
+                element.style.top = `${newTop}px`;
+                element.style.left = `${newLeft}px`;
+
                 lines.forEach(line => line.position());
             }
 
