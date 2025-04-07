@@ -103,13 +103,13 @@ Shows list of existing relationships by displaying type, source class, and targe
    Linux: `pytest --cov --cov-report term`
 
 ## Design Patterns 
--Command
+- Command
     - Used to represent the actions the user wants to take can be found in controller_commands.py
--Memento
+- Memento
     - Used to implemented Undo and Redo can be found in umlmodel.py
--Observer
+- Observer
     - Used for communication between the controller and the view can be found in umlcontroller_observer.py and umlview_observer.py
--Decorator
+- Decorator
     - Used to add functionality in different places can be found in umlmodel.py
 
 ## Using BS-uml program
