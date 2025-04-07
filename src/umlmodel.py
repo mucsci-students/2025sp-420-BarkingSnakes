@@ -36,12 +36,10 @@ class UmlProject:
         self.has_unsaved_changes = False
 
     def _regex_pattern(count: int = 1, pattern: str = REGEX_DEFAULT):
-        print(count, pattern)
 
         def regex_decorator(func):
             @functools.wraps(func)
             def wrapper(self: UmlProject, *args, **kwargs):
-                print(count, args)
                 for i in range(count):
                     if re.search(pattern, args[i]) is None:
                         raise errors.InvalidNameException()
@@ -698,7 +696,6 @@ class ConcreteMemento(Memento):
 
     def __init__(self, state: dict) -> None:
         self._state = state
-        print(state)
         self._date = datetime.now()
 
     def get_state(self) -> dict:
