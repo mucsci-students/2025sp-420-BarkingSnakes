@@ -79,6 +79,38 @@ class TypedCommand(BaseCommand, Generic[T]):
     def driver(self) -> T:
         return self.get_driver()
 
+class PromptCommand(TypedCommand[T]):
+
+    @property
+    def message(self) -> str:
+        key = "message"
+        return self._kwargs.get(key)
+
+class BinaryPromptCommand(PromptCommand[T]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._outcome = None
+
+    @property
+    def outcome(self) -> bool:
+        return self._outcome
+
+class InputPromptCommand(PromptCommand[T]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._output = None
+
+    @property
+    def output(self) -> str:
+        return self._output
+
+class PromptRequester(ABC):
+
+    @abstractmethod
+    def get_prompt(self, prompt_type:PromptCommand, message:str) -> PromptCommand:
+        """"""
+
+
 class StrategicCommand(UmlCommand):
     def execute(self):
         if self.strategy:
