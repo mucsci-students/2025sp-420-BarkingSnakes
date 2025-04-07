@@ -762,8 +762,10 @@ class UmlController:
         for _m in umlclass.class_methods.values():
             for m in _m.values():
                 methods.append(get_method_data_object(m))
-
-        return UmlClassData(umlclass.class_name, fields, methods)
+        #new position values
+        position = [umlclass.class_pos_x, umlclass.class_pos_y]
+        
+        return UmlClassData(umlclass.class_name, fields, methods, position)
     
     def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
         r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)
