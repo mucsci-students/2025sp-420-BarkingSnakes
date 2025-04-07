@@ -371,19 +371,22 @@ class UmlClass:
         self.class_methods.get(methodname).pop(overloadID)
         self.class_methods.get(methodname)[uml_method.overloadID] = uml_method
 
-    def set_umlclass_position(self, position:list[float]):
+    def set_umlclass_position(self, x_pos:float, y_pos:float):
         """updates class position based on a 2-element float list of coordinates
         Args:
-            position:list[x:float,y:float], x and y values of new position
+            x_pos:float, x position or equivalent on screen
+            y_pos:float, y position or equivalent on screen
         """
+        if type(x_pos) != float or type(y_pos) != float:
+            raise errors.InvalidPositionArgsException()
         #update x and y positions
-        self.class_pos_x = position[0]
-        self.class_pos_y = position[1]
+        self.class_pos_x = x_pos
+        self.class_pos_y = y_pos
     
-    def get_umlclass_position(self) -> list[float, float]:
+    def get_umlclass_position(self) -> tuple[float,float]:
         """get current position of the umlclass as a 2-element list
         """
-        return [self.class_pos_x, self.class_pos_y]
+        return self.class_pos_x, self.class_pos_y
 
     def to_dict(self) -> dict:
         methods = set()
