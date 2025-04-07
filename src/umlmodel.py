@@ -651,17 +651,12 @@ class UmlProject:
             raise errors.NullObjectException()
         
         if not self.contains_umlclass(source):
+            # text added so later sprint can more clearly specify what doesn't exist
             raise errors.NoSuchObjectException("class",source)
         elif not self.contains_umlclass(destination):
             raise errors.NoSuchObjectException("class",destination)
         
+        # if relation does not exist get_relationship will raise an error
         match = self.get_relationship(source, destination)
-        if match not in self.relationships:
-            raise errors.NoSuchObjectException("relation", "src:" + source, "dst:" + destination)
+        
         self.relationships.remove(match)
-
-class UmlModel():
-    """
-        Model aspect of the MVC, may not be needed
-    """
-    
