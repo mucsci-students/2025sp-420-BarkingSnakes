@@ -40,7 +40,8 @@ error_list = {
     "FileHasUnsavedChangesError": 19,
     "UmlClassDeletionError": 20,
     "InvalidTypeNameError": 21,
-    "TestViewPromptError": 22
+    "TestViewPromptError": 22,
+    "InvalidPositionArgsError":23
 }
 ## class definitions
 class UMLException(Exception):
@@ -276,3 +277,8 @@ class TestViewPromptException(UMLException):
     """
     def __init__(self, *args):
         super().__init__(get_error_name(22),*args)
+        
+class InvalidPositionArgsException(UMLException):
+    """exception for invalid position arguments"""
+    def __init__(self, *args):
+        super().__init__(get_error_name(23),*args)
