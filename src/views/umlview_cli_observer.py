@@ -132,7 +132,7 @@ class UmlViewCliObserver(UmlViewObserver):
         """Calculates the available options for tab completion."""
 
         # Base options, always available
-        t_base = ["quit", "list", "relation list", "relation types"]
+        t_base = ["quit", "list", "relation list", "relation types", "undo", "redo"]
 
         classes:list[UmlClass] = None
         cmd:c_cmd.ListClassesCommand = self.parse_command("class list")

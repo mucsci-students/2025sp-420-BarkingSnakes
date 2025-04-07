@@ -8,6 +8,7 @@
 # Date: 2025-03-21
 # Description: Parameter class definition.
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 import errors
 
@@ -48,3 +49,11 @@ class UmlParameter:
             'name': self.name,
             'type': self.umltype
         }
+    
+    def __eq__(self, other:UmlParameter):
+        """Dataclass hash not working apparently. Standard eq consistent with hash."""
+        return self.name == other.name and self.umltype == other.umltype
+    
+    def __hash__(self):
+        """Dataclass hash not working apparently. Standard hash."""
+        return hash(self.name) + 3 * hash(self.umltype)
