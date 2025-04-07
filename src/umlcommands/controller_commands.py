@@ -133,6 +133,7 @@ class AddClassCommand(ControllerCommand):
         try:
             self.driver.model.add_umlclass(self.name)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidNameException as name_ex:
             error_text = "The name provided cannot be used as a class name."
             self.set_result(CommandOutcome.FAILED, name_ex, error_text)
@@ -174,6 +175,7 @@ class RenameClassCommand(ActiveClassCommand):
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.model.classes[self.umlclass.class_name] = self.umlclass
             self.driver.active_class = self.umlclass
+            self.driver.caretaker.backup()
         else:
             self.driver.model.classes[self._backup.class_name] = self._backup
     
@@ -195,6 +197,7 @@ class DeleteClassCommand(ActiveClassCommand):
                 if r.source_class.class_name == classname or r.destination_class.class_name == classname:
                     self.driver.model.relationships.remove(r)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.UMLException as uml_e:
@@ -211,6 +214,7 @@ class AddFieldCommand(ActiveClassCommand):
          
             self.umlclass.add_field(self.name, self.field_type)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.InvalidNameException as name_ex:
@@ -239,6 +243,7 @@ class RenameFieldCommand(ActiveClassCommand):
             classname = self.driver.active_class.class_name
             self.driver.model.rename_field(classname, self.name, self.newname)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.NoSuchObjectException as nso_e:
@@ -269,6 +274,7 @@ class DeleteFieldCommand(ActiveClassCommand):
             self.driver.model.delete_field(classname, self.name)
             self.driver.active_class = None
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.NoSuchObjectException as nso_e:
@@ -298,6 +304,7 @@ class MethodAddCommand(ActiveClassCommand):
 
             self.driver.model.add_method(classname, self.name, self.return_type, self.params)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.InvalidNameException as name_ex:
@@ -370,6 +377,7 @@ class MethodDeleteCommand(ActiveClassCommand):
             if self.driver.active_method.name == methodname and self.driver.active_method.overloadID == overload_id:
                 self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.MethodNameNotExistsException as mnne_e:
@@ -409,6 +417,7 @@ class MethodRenameCommand(ActiveMethodCommand):
             self.driver.model.rename_method(classname, methodname, self.newname, overload_id)
             self.driver.active_method = self.driver.model.get_umlmethod(classname, self.newname, overload_id)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
             return
         except errors.NoActiveMethodException as nam_e:
@@ -443,6 +452,7 @@ class ParameterAddCommand(ActiveMethodCommand):
             overload_id = self.umlmethod.overloadID
             self.driver.model.add_parameter(classname, methodname, overload_id, self.name, self.param_type)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException:
             return
         except errors.NoActiveMethodException:
@@ -480,6 +490,7 @@ class ParameterRenameCommand(ActiveMethodCommand):
 
             self.driver.model.rename_parameter(classname, methodname, overload_id, self.name, self.newname)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException:
             return
         except errors.NoActiveMethodException:
@@ -519,6 +530,7 @@ class ParameterDeleteCommand(ActiveMethodCommand):
 
             self.driver.model.delete_parameter(classname, methodname, overload_id, self.name)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException:
             return
         except errors.NoActiveMethodException:
@@ -555,6 +567,7 @@ class ParameterReplaceAllCommand(ActiveMethodCommand):
             
             self.driver.model.replace_all_parameters(classname, methodname, overload_id, self.params)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException:
             return
         except errors.NoActiveMethodException:
@@ -589,6 +602,7 @@ class ParameterClearCommand(ActiveMethodCommand):
             
             self.driver.model.clear_all_parameters(classname, methodname, overload_id)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.NoActiveClassException:
             return
         except errors.NoActiveMethodException:
@@ -615,6 +629,7 @@ class RelationAddCommand(RelationCommand):
 
             self.driver.model.add_relationship(self.source, self.dest, self.relation_type)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidNameException:
             return
         except errors.InvalidRelationshipTypeException:
@@ -646,6 +661,7 @@ class RelationDeleteCommand(RelationCommand):
             self.raise_InvalidName(self.dest, "relation destination")
             self.driver.model.delete_relationship(self.source, self.dest)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidNameException:
             return
         except errors.InvalidRelationshipTypeException:
@@ -674,6 +690,7 @@ class RelationSetCommand(RelationCommand):
 
             self.driver.model.set_type_relationship(self.source, self.dest, self.relation_type)
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidNameException:
             return
         except errors.InvalidRelationshipTypeException:
@@ -801,6 +818,7 @@ class LoadCommand(PromptingCommand):
                     return
             
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidFileException as if_e:
             error_text = "The file path provided is invalid. Make sure it ends in .json"
             self.set_result(CommandOutcome.FAILED, if_e, error_text)
@@ -866,6 +884,7 @@ class NewCommand(PromptingCommand):
                 self.driver.model._save_path = self.filepath
             
             self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
         except errors.InvalidFileException as if_e:
             error_text = "The file path provided is invalid. Make sure it ends in .json"
             self.set_result(CommandOutcome.FAILED, if_e, error_text)
@@ -890,6 +909,35 @@ class NewCommand(PromptingCommand):
             return None
         return self._args[1]
 
+class UndoCommand(ControllerCommand):
+    def execute(self):
+        try:
+            self.driver.caretaker.undo()
+            self.driver.active_class = None
+            self.driver.active_method = None
+            self.set_result(CommandOutcome.SUCCESS)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+class RedoCommand(ControllerCommand):
+    def execute(self):
+        try:
+            self.driver.caretaker.redo()
+            self.driver.active_class = None
+            self.driver.active_method = None
+            #if self.driver.active_class:
+            #    try:
+            #        self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
+            #    except:
+            #        self.driver.active_class = None
+            #    if self.driver.active_class and self.driver.active_method:
+            #        try:
+            #            self.driver.active_method = self.driver.model.get_umlmethod(self.driver.active_method.name, self.driver.active_method.overloadID)
+            #        except:
+            #            self.driver.active_method = None
+            self.set_result(CommandOutcome.SUCCESS)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
 
 UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^list$": ListClassesCommand,
@@ -918,5 +966,7 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^new(\s.+\..+)*$": NewCommand,
     r"^quit$": QuitCommand,
     r"^save$": SaveCommand,
-    r"^controller back$": BackCommand
+    r"^controller back$": BackCommand,
+    r"^undo$": UndoCommand,
+    r"^redo$": RedoCommand
 }
