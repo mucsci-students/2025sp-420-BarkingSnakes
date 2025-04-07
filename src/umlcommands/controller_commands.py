@@ -149,7 +149,7 @@ class AddClassCommand(ControllerCommand):
     def umlclass(self) -> UmlClass:
         return self.driver.model.get_umlclass(self.name)
 
-class RenameClassCommand(ControllerCommand):
+class RenameClassCommand(ActiveClassCommand):
     def execute(self):
         """"""
         try:
@@ -185,10 +185,15 @@ class RenameClassCommand(ControllerCommand):
     def umlclass(self) -> UmlClass:
         return self._umlclass
 
-class DeleteClassCommand(ControllerCommand):
+class DeleteClassCommand(ActiveClassCommand):
     def execute(self):
         try:
             self.raise_NoActiveClass()
+            classname = self.umlclass.class_name
+            self.driver.model.delete_umlclass(classname)
+            for r in self.driver.model.relationships:
+                if r.source_class.class_name == classname or r.destination_class.class_name == classname:
+                    self.driver.model.relationships.remove(r)
             self.set_result(CommandOutcome.SUCCESS)
         except errors.NoActiveClassException as nac_e:
             return
@@ -262,6 +267,7 @@ class DeleteFieldCommand(ActiveClassCommand):
             self.raise_NoActiveClass()
             classname = self.driver.active_class.class_name
             self.driver.model.delete_field(classname, self.name)
+            self.driver.active_class = None
             self.set_result(CommandOutcome.SUCCESS)
         except errors.NoActiveClassException as nac_e:
             return
