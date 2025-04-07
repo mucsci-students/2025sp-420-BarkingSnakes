@@ -146,7 +146,8 @@ def update_umlclass_position():
     data = request.get_json()
     classname = data.get("classname")
     app.controller.execute_command(["class", classname])
-    app.controller.command_update_umlclass_position([data.get("x_pos"), data.get("y_pos")])
+    pos = [float(data.get("x_pos")), float(data.get("y_pos"))]
+    app.controller.command_update_umlclass_position(pos)
     return jsonify({"message": "Class position updated successfully"}), 200
 
 @app.post("/addField")

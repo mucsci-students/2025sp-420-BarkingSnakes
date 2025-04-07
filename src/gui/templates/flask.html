@@ -754,7 +754,7 @@
             modal.style.display = "none";
             closeSaveModal();
         }
-
+        
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target == modal) {
@@ -1496,6 +1496,8 @@
             }
 
             function closeDragElement() {
+                //save class pos each time this happens, since its when mouse drag stops
+                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
@@ -1561,6 +1563,9 @@
                     if (existingDetailsDiv) {
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
+                        //existingDetailsDiv.style.top = "100px";
+                        //existingDetailsDiv.style.left = "100px";
+                        
                         makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
                     } else {
                         let detailsDiv = document.createElement("div");
@@ -1574,6 +1579,41 @@
                     //makes sure lines are rendered 
                     setTimeout(drawRelationshipLines, 100);
                 });
+        }
+
+        function updatePosition(elementId, leftPos, topPos) {
+            //strip extra characters
+            //13 should be leading "classname"
+            className = slice(13)
+            x_Pos = slice(-2)
+            y_Pos = slice(-2)
+            fetch("/updateClassPosition", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                //second words capitalized to distinguish variables
+                body: JSON.stringify({
+                    classname: className,
+                    x_pos:x_Pos,
+                    y_pos:y_Pos
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        elem.value = "";
+                        return resp.json();
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    snackbar(data.error);
+                })
+                .catch(error => console.log(error))
+            
         }
     </script>
 </body>
