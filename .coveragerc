@@ -6,11 +6,11 @@
 omit =
     src/views/umlview_gui.py
     src/errors.py
+    src/umlcontroller.py
 
 #not used if source is specifed
 include =
     src/uml.py
-    src/umlcontroller.py
     src/umlclass.py
     src/umlfield.py
     src/umlmethod.py

@@ -83,11 +83,11 @@ class UmlProject:
             int: 0 if success
         Exceptions:
             InvalidFileException
+            InvalidJsonSchemaException
         """
         #method returns 0 when true, which is equivalent to false
         #if not 0 errors should be called in validate
-        if self._validate_filepath(filepath):
-            raise errors.InvalidFileException()
+        self._validate_filepath(filepath)    
         with open(filepath, "r") as f:
             # if file invalid raise catch error and raise schema one
             try:
