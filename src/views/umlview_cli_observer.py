@@ -226,7 +226,6 @@ class UmlViewCliObserver(UmlViewObserver):
                 print("Failed: ", result.ErrorText)
             else:
                 print(f"Failed: Something unexpected happened. ({result.exception}:{cmd})")
-                raise result.exception
             return
 
         if result.outcome == CommandOutcome.EXCEPTION:
@@ -274,8 +273,8 @@ class UmlViewCliObserver(UmlViewObserver):
                     self.handle_command(_command)
                     self.handle_command_result(_command)
             except Exception as e:
-                # print(f"ERROR: Something went wrong. ({e})")
-                raise e
+                print(f"ERROR: Something went wrong. ({e})")
+                # raise e
 
     def shutdown(self):
         """Logic needed to shutdown and stop the UmlViewObserver from running."""
