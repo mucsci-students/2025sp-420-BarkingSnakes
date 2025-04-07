@@ -5,6 +5,7 @@
 
 import os
 import pytest
+import json
 
 from src import errors
 from src.umlmodel import UmlProject
@@ -35,6 +36,24 @@ def test_load_invalid_file():
         assert e == errors.InvalidFileException()
     #make sure an exception was raised
     assert var
+
+def test_load_invalid_Json_file(tmp_path):
+    """Tests that an invalid file error is given when loading a file that violates the JSON schema"""
+
+    try:
+        invalid_data = {"badkey": "badvalue"}
+        invalid_file = tmp_path / "invalid_schema.json"
+        
+        with open(invalid_file, "w") as f:
+            json.dump(invalid_data, f)
+
+            UmlProject().load(str(invalid_file))
+
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["InvalidJsonSchemaError"]
+    
 
 def test_make_no_new_file():
     """test a new file was not made"""
@@ -67,6 +86,19 @@ def test_save_no_existing_file():
         var = 1
         assert e == None
     assert not var
+
+def test_save_no_save_path():
+    """test when saving with not save path"""
+    var = None
+    proj = UmlProject()
+    try:
+        proj._save_path = None
+        #save does not need a filename if path is already set
+        proj.save()
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoActiveProjectError"]
 
 def test_load_existing_file():
     """test a file that exists can be loaded"""
