@@ -25,6 +25,8 @@ class add <classname>
 relation add <source class> <destination class> <relationship type>
     Adds a relationship of type <relationship type> from <source class> 
     to <destination class>
+    <relation type> is one of: 
+        "aggregation", "composition", "inheritance", or "realization"
 relation delete <source class> <destination class>
     Deletes a relationship of from <source class> to <destination class> 
     if it exists

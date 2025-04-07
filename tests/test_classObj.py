@@ -1,6 +1,6 @@
-# Filename: unit_tests.py
-# Authors: Kyle Kalbach, John Hershey
-# Creation Date: 02-06-2025, Last Edit Date: 02-12-2025
+# Filename: test_classObj.py
+# Authors: Kyle Kalbach, John Hershey, Juliana Vinluan, Evan Magill
+# Creation Date: 02-06-2025, Last Edit Date: 04-05-2025
 # Description: Unit Tests for umlclass.py
 import os
 import sys
@@ -9,6 +9,7 @@ import logging
 from src.umlclass import UmlClass
 from src.umlfield import UmlField
 from src.umlmethod import UmlMethod
+from src.umlparameter import UmlParameter
 from src import errors
 
 # from src import errors
@@ -50,7 +51,7 @@ def test_add_field_valid():
     test_field_name = "MaxSpeed"
 
     try:
-        test_class.add_field(test_field_name)
+        test_class.add_field(test_field_name,"speed")
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert "MaxSpeed" in test_class.class_fields
@@ -62,7 +63,7 @@ def test_add_field_invalid():
     test_field_name = "exit"
 
     try:
-        test_class.add_field(test_field_name)
+        test_class.add_field(test_field_name,"speed")
     except Exception as e:
        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert len(test_class.class_fields) == 0
@@ -71,7 +72,7 @@ def test_add_field_invalid():
 def test_remove_field_valid():
     """"""
     #change later to avoid direct assignment of fields
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     assert len(test_class.class_fields) == 1
@@ -86,7 +87,7 @@ def test_remove_field_valid():
 # Remove a nonexisting Field
 def test_remove_field_not_found():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     assert len(test_class.class_fields) == 1
@@ -101,7 +102,7 @@ def test_remove_field_not_found():
 # Rename an field
 def test_rename_field_valid():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
@@ -113,7 +114,7 @@ def test_rename_field_valid():
 # Rename an field to an invalid name
 def test_rename_field_invalid():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
     try:
@@ -125,14 +126,16 @@ def test_rename_field_invalid():
 # Rename a field to an existing field
 def test_rename_field_existing():
     """"""
-    test_field = UmlField("MaxSpeed")
+    test_field = UmlField("MaxSpeed","top_speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
     try:
-        test_class.rename_field("MaxSpeed","MaxSpeed")
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
         assert e.get_num() == errors.error_list["DuplicateFieldError"]
     assert "MaxSpeed" in test_class.class_fields
+    assert "MinSpeed" in test_class.class_fields
 
 # test adding method
 def test_add_method_invalid_name():
@@ -140,7 +143,7 @@ def test_add_method_invalid_name():
     test_val = -1
     
     try:
-        test_class.add_method("relation", [])
+        test_class.add_method("relation", "spaghetti", [])
     except Exception as e:
        test_val = e.get_num()
     finally:
@@ -149,38 +152,63 @@ def test_add_method_invalid_name():
 def test_add_method_with_no_parameters():
     """"""
     test_class = UmlClass("Car", {}, {})
-    test_method = UmlMethod("Drive", {})
-    test_value = {"Drive": {0: test_method}}
+    chosen_return_type = "bool"
+    test_method = UmlMethod("Drive", chosen_return_type, [])
+    expected_overloadID = ""
+
+    assert test_method.overloadID == expected_overloadID
+
+    test_value = {"Drive": {expected_overloadID: test_method}}
 
     try:
-        test_class.add_method("Drive", [])
+        test_class.add_method("Drive", chosen_return_type, [])
     except Exception as e:
         assert False
     
     assert test_class.class_methods == test_value
+def test_add_existing_parameter():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_param_type = "CarPart"
+    test_param_name = "transmission"
+    test_return_type = "test_return_type"
+    test_method = UmlMethod(test_method_name, test_return_type, [])
+    test_method.add_parameter(test_param_name,test_param_type)
+    
+    try:
+        test_method.add_parameter(test_param_name,test_param_type)
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateParameterError"]
+    
 
 def test_add_method_with_one_parameter():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_param_type = "CarPart"
+    test_params = [("transmission", test_param_type)]
+    test_return_type = "test_return_type"
+    test_method = UmlMethod(test_method_name, test_return_type, [])
     test_method.add_parameters(test_params)
 
-    test_value = {test_method_name: {1: test_method}}
+    expected_overloadID = test_param_type
+    test_value = {test_method_name: {expected_overloadID: test_method}}
 
-    test_class.add_method(test_method_name, test_params)
+    test_class.add_method(test_method_name, test_return_type, test_params)
     
     assert test_class.class_methods == test_value
 
 def test_add_method_with_multiple_parameter():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission", "speed_limit"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart"), ("speed_limit", "Speed")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_value = {test_method_name: {2: test_method}}
+    test_value = {test_method_name: {"CarPart Speed": test_method}}
 
-    test_class.add_method(test_method_name, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
     
     assert test_class.class_methods == test_value
 
@@ -188,32 +216,16 @@ def test_add_method_with_multiple_parameter():
 def test_adding_method_overload_valid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
-    test_method_overload = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
+    test_method_overload = UmlMethod(test_method_name, test_method_return_type, [])
     test_method_overload.add_parameters(test_params)
-    test_value = {test_method_name: {0: test_method, 1:test_method_overload}}
+    test_value = {test_method_name: {"": test_method, "CarPart":test_method_overload}}
 
     try:
-        test_class.add_method(test_method_name, [])
-        test_class.add_method(test_method_name, test_params)
-    except Exception as e:
-        assert False
-    
-    assert test_class.class_methods == test_value
-
-def test_adding_method_overload_valid():
-    test_class = UmlClass("Car", {}, {})
-    test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
-    test_method_overload = UmlMethod(test_method_name, {})
-    test_method_overload.add_parameters(test_params)
-    test_value = {test_method_name: {0: test_method, 1:test_method_overload}}
-
-    try:
-        test_class.add_method(test_method_name, [])
-        test_class.add_method(test_method_name, test_params)
+        test_class.add_method(test_method_name, test_method_return_type, [])
+        test_class.add_method(test_method_name, test_method_return_type, test_params)
     except Exception as e:
         assert False
     
@@ -222,13 +234,14 @@ def test_adding_method_overload_valid():
 def test_adding_method_overload_invalid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
     test_val = -1
 
     try:
-        test_class.add_method(test_method_name, [])
-        test_class.add_method(test_method_name, test_params)
-        test_class.add_method(test_method_name, test_params)
+        test_class.add_method(test_method_name, test_method_return_type, [])
+        test_class.add_method(test_method_name, test_method_return_type, test_params)
+        test_class.add_method(test_method_name, test_method_return_type, test_params)
     except Exception as e:
         test_val = e.get_num()
     finally:
@@ -251,13 +264,14 @@ def test_rename_method_valid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_rename = "Park"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_rename, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_rename, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_val = {test_method_rename: {1: test_method}}
+    test_val = {test_method_rename: {"CarPart": test_method}}
 
-    test_class.add_method(test_method_name, test_params)
-    test_class.rename_method(test_method_name, len(test_params), test_method_rename)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    test_class.rename_method(test_method_name, "CarPart", test_method_rename)
 
     assert test_class.class_methods == test_val
 
@@ -265,15 +279,16 @@ def test_rename_method_invalid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_rename = "relation"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_error = -1
-    test_val_methods = {test_method_name: {1: test_method}}
+    test_val_methods = {test_method_name: {"CarPart": test_method}}
 
-    test_class.add_method(test_method_name, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
     try:
-        test_class.rename_method(test_method_name, len(test_params), test_method_rename)
+        test_class.rename_method(test_method_name, "CarPart", test_method_rename)
     except Exception as e:
         test_val_error = e.get_num()
     finally:
@@ -284,18 +299,19 @@ def test_rename_method_overload_valid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_rename = "Park"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_method_overload = UmlMethod(test_method_name, {})
-    test_val_methods = {test_method_name: {0: test_method_overload, 1: test_method}}
+    test_method_overload = UmlMethod(test_method_name, test_method_return_type, [])
+    test_val_methods = {test_method_name: {"": test_method_overload, "CarPart": test_method}}
 
     # add method Drive and Park
-    test_class.add_method(test_method_name, test_params)
-    test_class.add_method(test_method_rename, [])
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    test_class.add_method(test_method_rename, test_method_return_type, [])
 
     # Rename method Park so it becomes an overload of method Drive
-    test_class.rename_method(test_method_rename, 0, test_method_name)
+    test_class.rename_method(test_method_rename, "", test_method_name)
 
     assert test_class.class_methods == test_val_methods
 
@@ -303,24 +319,25 @@ def test_rename_method_overload_invalid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_rename = "Park"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_method_overload = UmlMethod(test_method_rename, {})
+    test_method_overload = UmlMethod(test_method_rename, test_method_return_type, [])
     test_method_overload.add_parameters(test_params)
     test_val_methods = {
-        test_method_name: {1: test_method},
-        test_method_rename: {1: test_method_overload}
+        test_method_name: {"CarPart": test_method},
+        test_method_rename: {"CarPart": test_method_overload}
     }
     test_val_error = -1
 
     # add method Drive and Park
-    test_class.add_method(test_method_name, test_params)
-    test_class.add_method(test_method_rename, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    test_class.add_method(test_method_rename, test_method_return_type, test_params)
 
     # Rename method Park so it becomes an overload of method Drive
     try:
-        test_class.rename_method(test_method_rename, 1, test_method_name)
+        test_class.rename_method(test_method_rename, "CarPart", test_method_name)
     except Exception as e:
         test_val_error = e.get_num()
     finally:
@@ -335,13 +352,14 @@ def test_rename_method_overload_invalid():
 def test_remove_method_valid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_methods = {}
 
-    test_class.add_method(test_method_name, test_params)
-    test_class.remove_method(test_method_name, len(test_params))
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    test_class.remove_method(test_method_name, "CarPart")
 
     assert test_class.class_methods == test_val_methods
 
@@ -349,17 +367,18 @@ def test_remove_method_invalid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_invalid_name = "Park"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_val_methods = {test_method_name: {1: test_method}}
+    test_val_methods = {test_method_name: {"CarPart": test_method}}
     test_val_error = -1
 
-    test_class.add_method(test_method_name, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
 
     # Invalid method name case
     try:
-        test_class.remove_method(test_method_invalid_name, len(test_params))
+        test_class.remove_method(test_method_invalid_name, "CarPart")
     except Exception as e:
         test_val_error = e.get_num()
     finally:
@@ -369,16 +388,17 @@ def test_remove_method_invalid():
 def test_remove_method_overload_invalid():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
-    test_val_methods = {test_method_name: {1: test_method}}
+    test_val_methods = {test_method_name: {"CarPart": test_method}}
     test_val_error = -1
 
-    test_class.add_method(test_method_name, test_params)
-    # Invalid arity case
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    # Invalid overloadID case
     try:
-        test_class.remove_method(test_method_name, 0)
+        test_class.remove_method(test_method_name, "")
     except Exception as e:
         test_val_error = e.get_num()
     finally:
@@ -389,12 +409,13 @@ def test_remove_method_overload_invalid():
 def test_remove_method_all():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_methods = {}
     
-    test_class.add_method(test_method_name, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
 
     test_class.remove_all_methods()
 
@@ -404,14 +425,162 @@ def test_remove_method_all():
 def test_remove_method_all_overloads():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
-    test_params = ["transmission"]
-    test_method = UmlMethod(test_method_name, {})
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_methods = {}
     
-    test_class.add_method(test_method_name, test_params)
-    test_class.add_method(test_method_name, [])
+    test_class.add_method(test_method_name, test_method_return_type, test_params)
+    test_class.add_method(test_method_name, test_method_return_type, [])
 
     test_class.remove_all_overloads(test_method_name)
 
     assert test_class.class_methods == test_val_methods
+
+# test replacing all method parameters
+def test_replace_all_method_parameters():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_params = [("transmission", "CarPart")]
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
+    test_method.add_parameters(test_params)
+    test_val_methods = {test_method_name: {"CarPart": test_method}}
+
+    test_class.add_method(test_method_name, test_method_return_type, [])
+    test_class.replace_all_parameters(test_method_name, "", test_params)
+
+    assert test_class.class_methods == test_val_methods
+
+# TODO - Unit tests clear all method parameters
+# test clearing all method parameters
+def test_clear_all_method_parameters():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_method = UmlMethod(test_method_name, test_method_return_type, [])
+    test_val_methods = {test_method_name: {"": test_method}}
+
+    test_class.add_method(test_method_name, test_method_return_type, [])
+    test_class.add_parameter(test_method_name, "", "transmission", "CarPart")
+    test_class.remove_all_parameters(test_method_name, "CarPart")
+
+    assert test_class.class_methods == test_val_methods
+
+def test_remove_parameter():
+    test_class = UmlClass("Car", {}, {})
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    test_method.remove_parameter("transmission")
+    
+    assert test_param not in test_method.params
+
+def test_remove_parameter_not_found():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.remove_parameter("nonexistingparam")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchParameterError"]
+    
+def test_rename_parameter():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_param2 = UmlParameter("engine","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    test_method.rename_parameter("transmission","engine")
+
+    assert test_param2 in test_method.params
+    
+    
+
+def test_rename_parameter_not_found():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.rename_parameter("engine","Carpart")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchParameterError"]
+
+def test_rename_parameter_duplicate():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.rename_parameter("engine","transmission")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateParameterError"]
+
+def test_replace_parameter():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_param2 = UmlParameter("engine","CarPiece")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    test_method.replace_parameter("transmission","engine","CarPiece")
+    
+    assert test_param2 in test_method.params
+
+def test_replace_parameter_duplicate():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_param2 = UmlParameter("engine","CarPiece")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param,test_param2])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.replace_parameter("transmission","engine","CarPiece")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateParameterError"]
+
+def test_replace_parameter_Not_found():
+    test_method_name = "Drive"
+    test_method_return_type = "bool"
+    test_param = UmlParameter("transmission","Carpart")
+    test_method = UmlMethod(test_method_name, test_method_return_type, [test_param])
+    
+    assert test_param in test_method.params
+
+    try:
+        test_method.replace_parameter("wheel","engine","CarPiece")
+    except Exception as e:
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchParameterError"]

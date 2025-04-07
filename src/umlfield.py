@@ -1,5 +1,5 @@
 # Filename: field.py
-# Authors: Kyle Kalbach, Steven Barnes, Evan Magill, Juliana , Spencer
+# Authors: Kyle Kalbach, Steven Barnes, Evan Magill, Juliana Vinluan , Spencer Hoover
 # Date: 2025-02-24
 # Description: Field class and methods
 
@@ -9,6 +9,7 @@ import errors
 @dataclass
 class UmlField:
     name:str
+    type:str
 
     def rename_field(self,name:str) -> int:
          """ Renames the Field
@@ -25,5 +26,6 @@ class UmlField:
     
     def to_dict(self) -> dict:
         return {
-            'name': self.name
+            'name': self.name,
+            'type': self.type
         }

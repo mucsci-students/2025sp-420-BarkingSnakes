@@ -1,14 +1,15 @@
 # Filename: test_user_input.py
 # Authors: Steven Barnes
-# Date: 2025-02-15
+# Date: 2025-02-15, Last edit date: 2025-04-05
 # Description: Unit Tests CLI user input portion of UML
 
 import pytest
 
-from src.umlcontroller import UmlApplication
+from src.umlcontroller import UmlController
+from src.views import umlview_cli
 import src.errors as errors
 
-app = UmlApplication()
+app = UmlController(umlview_cli.UmlCliView())
 
 def test_command_list_raises_exception_with_no_project_loaded():
     retval = False
@@ -23,7 +24,7 @@ def test_command_list_raises_exception_with_no_project_loaded():
 def test_command_class_raises_no_exception_with_no_project_loaded():
     retval = False
     try:
-        app.project.add_umlclass("temp")
+        app.model.add_umlclass("temp")
         app.command_class("temp")
         app.command_back()
     except Exception as e:
@@ -31,12 +32,14 @@ def test_command_class_raises_no_exception_with_no_project_loaded():
     finally:
         assert not retval
 
-def test_command_add_umlclass_raises_exception_with_no_class_context():
-    retval = False
+def test_command_add_umlclass_raises_no_exception_with_no_class_context():
+    retval = True
     try:
-        app.command_add_umlclass()
+        app.command_add_umlclass("temp1")
+        app.command_back()
     except Exception as e:
-        retval = e.get_num() == errors.error_list['NoActiveClassError']
+        assert e == None
+        retval = False
     finally:
         assert retval
 

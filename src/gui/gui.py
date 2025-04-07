@@ -88,21 +88,18 @@ def classdetails():
             app.controller.execute_command(["class", class_name])
         elif not class_name and app.controller.view.active_class:
             class_name = app.controller.view.active_class
-        # class_info = app.controller.model.classes
         model = app.controller.model
         umlclass = model.get_umlclass(class_name)
-        # details = class_info.get(class_name, {"fields": [], "methods": []})
+        if not umlclass:
+            raise errors.NoSuchObjectException(f"Class '{class_name}' does not exist.")
         dto = app.controller._get_class_data_object(umlclass)
-        # dto = {
-        #     'name':_dto.name,
-        #     'fields': [f.name for f in _dto.fields],
-        #     'methods':[{'name':m.name, 'params':[p.name for p in m.params]} for m in _dto.methods]
-        # }
         data = {"html": render_template("/_umlclass.html", dto=dto)}
         return jsonify(data)
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return app.view.response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.post("/addClass")
@@ -133,10 +130,15 @@ def rename_umlclass():
         data = request.get_json()
         oldname = data.get("oldname")
         newname = data.get("newname")
+        app.controller.execute_command(["class", oldname])
         app.controller.execute_command(["rename", newname])
+        app.controller.view.set_active_class(newname)
+        return jsonify({"message": "Class renamed successfully"}), 200
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
         return app.view.response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.post("/addField")
@@ -145,11 +147,12 @@ def add_field():
     data = request.get_json()
     fieldname = data.get("fieldname")
     classname = data.get("classname")
+    type = data.get("type")
     if fieldname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["field", "add", fieldname])
+        app.controller.execute_command(["field", "add", fieldname, type])
         return jsonify({"message": "Field added successfully"}), 202
-    return jsonify({"error": "Missing field"}), 406
+    return jsonify({"error": "Missing field name, class name, or field type"}), 406
 
 @app.post("/deleteField")
 @handle_umlexception
@@ -182,24 +185,25 @@ def rename_field():
 def add_method():
     data = request.get_json()
     methodname = data.get("methodname")
-    if methodname:
+    classname = data.get("classname")
+    if methodname and classname:
+        app.controller.execute_command(["class", classname])
         app.controller.execute_command(["method", "add", methodname])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Method added successfully"}), 202
+    return jsonify({"error": "Missing method name or class name"}), 406
 
 
-@app.post("/renameMethod")
+@app.put("/renameMethod")
 @handle_umlexception
 def rename_method():
     data = request.get_json()
     class_name = data.get("classname")
     oldname = data.get("oldname")
     newname = data.get("newname")
+    arity = data.get("arity")
     if class_name and oldname and newname:
         app.controller.execute_command(["class", class_name])
-        app.controller.execute_command(
-            ["method", "rename", oldname, newname, "arity", "0"]
-        )
+        app.controller.execute_command(["method", "rename", oldname, newname, "arity", arity])
         return Response(status=202)
     return Response(status=406)
 
@@ -265,10 +269,58 @@ def add_method_param():
     methodname = data.get('methodname')
     paramname = data.get('paramname')
     arity = data.get('arity')
-    
-    app.controller.execute_command(["method", methodname, "arity", str(arity)])
-    app.controller.execute_command(["parameter", "add", paramname])
-    return Response(status=200)
+    classname = data.get('classname')
+
+    if paramname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname, "arity", str(arity)])
+        app.controller.execute_command(["parameter", "add", paramname])
+        return jsonify({"message": "Parameter added successfully"}), 200
+    return jsonify({"error": "Missing method name or arity or parameter name"}), 406
+
+@app.delete("/deleteMethodParam")
+@handle_umlexception
+def delete_param():
+    data = request.get_json()
+    methodname = data.get("methodname")
+    arity = data.get("arity")
+    parametername = data.get("parametername")
+    classname = data.get("classname")
+    if methodname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname , "arity" ,arity])
+        app.controller.execute_command(["parameter","delete",parametername])
+        return jsonify({"message": "Parameter deleted successfully"}), 200
+    return jsonify({"error": "Missing parameter name"}), 406
+
+@app.put("/renameMethodParam")
+@handle_umlexception
+def rename_method_param():
+    data = request.get_json()
+    oldname = data.get("oldname")
+    newname = data.get("newname")
+    methodname = data.get("methodname")
+    arity = data.get("arity")
+    classname = data.get("classname")
+    if classname and oldname and newname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", methodname , "arity" ,arity])
+        app.controller.execute_command(["parameter", "rename" , oldname,newname])
+        return Response(status=202)
+    return jsonify({"error": "Invalid rename"}), 406
+
+@app.delete("/deleteMethod")
+@handle_umlexception
+def delete_method():
+    data = request.get_json()
+    methodname = data.get("methodname")
+    arity = data.get("arity")
+    classname = data.get("classname")
+    if methodname:
+        app.controller.execute_command(["class", classname])
+        app.controller.execute_command(["method", "delete", methodname, "arity" ,arity])
+        return jsonify({"message": "Method deleted successfully"}), 200
+    return jsonify({"error": "Missing method name or arity"}), 406
 
 @app.route("/relationList")
 @handle_umlexception
@@ -276,7 +328,18 @@ def relation_list():
     project_dto = app.controller._get_model_as_data_object()
     relation_types = list(filter(lambda n: n != "DEFAULT", RelationshipType._member_names_))
 
-    data = {'html': render_template("_umlrelationshiplist.html", model = project_dto, relation_types = relation_types)}
+    data = {
+        'html': render_template("_umlrelationshiplist.html", model=project_dto, relation_types=relation_types),
+        'model': {
+            'relationships': [
+                {
+                    'source': r.source,
+                    'destination': r.destination,
+                    'relation_type': r.relation_type
+                } for r in project_dto.relationships
+            ]
+        }
+    }
 
     return jsonify(data)
 
