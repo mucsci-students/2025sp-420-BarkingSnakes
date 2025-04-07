@@ -115,6 +115,9 @@ class GetUmlClassCommand(ControllerCommand):
             self._umlclass = self.driver.model.get_umlclass(self.name)
             self.driver.active_class = self.umlclass
             self.set_result(CommandOutcome.SUCCESS)
+        except errors.NoSuchObjectException as nso_e:
+            error_text = f"No class named {self.name} exists on the project."
+            self.set_result(CommandOutcome.FAILED, nso_e, error_text)
         except errors.UMLException as uml_e:
             self.set_result(CommandOutcome.FAILED, uml_e)
         except Exception as e:
