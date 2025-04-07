@@ -18,6 +18,9 @@ class UmlClass:
     """
     class_methods:dict[str, dict[str, UmlMethod]] = field(default_factory= lambda: {})
 
+    class_pos_x:float = 0.0
+    class_pos_y:float = 0.0
+    
     def add_field(self, name:str, type:str) -> int:
         """
         Adds a field to the UmlClass
@@ -377,7 +380,11 @@ class UmlClass:
         return {
             'name': self.class_name,
             'fields': [f.to_dict() for f in self.class_fields.values()],
-            'methods': [m.to_dict() for m in methods]
+            'methods': [m.to_dict() for m in methods],
+            'position':{
+                'x':self.class_pos_x,
+                'y':self.class_pos_y
+            }
         }
         
         
