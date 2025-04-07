@@ -1580,7 +1580,7 @@
                     setTimeout(drawRelationshipLines, 100);
                 });
         }
-
+        //added 4-7 for saving position
         function updatePosition(elementId, leftPos, topPos) {
             //strip extra characters
             //13 should be leading "classname"
@@ -1604,16 +1604,15 @@
                     if (resp.status >= 400) {
                         elem.value = "";
                         return resp.json();
-                    } else {
-                        displayClassDetails(className);
-                    }
+                    } //else {
+                     //   displayClassDetails(className);
+                    //}
                 })
                 .then(data => {
                     console.log(data);
                     snackbar(data.error);
                 })
                 .catch(error => console.log(error))
-            
         }
     </script>
 </body>
