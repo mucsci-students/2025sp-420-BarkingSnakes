@@ -93,7 +93,8 @@ def classdetails():
         if not umlclass:
             raise errors.NoSuchObjectException(f"Class '{class_name}' does not exist.")
         dto = app.controller._get_class_data_object(umlclass)
-        data = {"html": render_template("/_umlclass.html", dto=dto)}
+        position = umlclass.get_umlclass_position()
+        data = {"html": render_template("/_umlclass.html", dto=dto), "x_pos": position[0], "y_pos": position[1]}
         return jsonify(data)
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
