@@ -452,15 +452,15 @@ class UmlController:
         self.view.set_active_class(name)
 
     @_requires_active_class
-    def command_update_umlclass_position(self, position:list[float]):
+    def command_update_umlclass_position(self, x_pos:float, y_pos:float):
         """moves the UmlClass in the current context to the specified position
         """
-        if len(position) < 2:
+        # may want to move this typechecking later
+        if type(x_pos) != float or type(y_pos) != float:
             raise errors.InvalidPositionArgsException()
-        #get class from model
-        umlclass = self.model.get_umlclass(self.view.active_class)
-        #update pos
-        umlclass.set_umlclass_position(position)
+        #use model method
+        self.model.update_position_umlclass(self.view.active_class, x_pos, y_pos)
+        
     
     @_requires_active_class
     def command_delete_umlclass(self, override:bool = False):
