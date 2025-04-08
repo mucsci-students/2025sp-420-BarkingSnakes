@@ -54,14 +54,14 @@ relation list
         field rename <old field name> <new field name>
             Renames the field on the class with <old field name>
             to <new field name>
-        method add <method name> <method return type> <param name>:<param type>
+        method add <method name> <method return type> <paramameter1 name>:<parameter1 type> <paramameter2 name>:<parameter2 type>...
             Adds the method with name <method name> to the class.
         method rename <old method name> <new method name> arity <arity>
             Renames the method on the class with <old method name>
             to <new method name>, arity must be specified
-        method delete <method name> <param1 type> <param2 type> <param2 type>...
+        method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>...
             Deletes the method with name <method name> from the class.
-        method <method name> <param1 type> <param2 type> <param2 type>...
+        method <method name> <parameter1 type> <parameter2 type> <parameter2 type>...
             Enters the context for the specified method
         
             method context commands:
