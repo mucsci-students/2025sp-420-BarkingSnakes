@@ -224,7 +224,11 @@ class UmlProject:
                 data.get("return_type"),
                 {param.name:param for param in params}
             )
-
+        def _parse_uml_position(data:dict) -> tuple[float,float]:
+            """parses the position of the class"""
+            if data:
+                return data.get("x"), data.get("y")
+            return None
         
         uml_fields:list[UmlField] = []
         if data.get("fields"):
@@ -247,10 +251,14 @@ class UmlProject:
             
             methods[method.name][method.overloadID] = method
 
+        # gets the position
+        position = _parse_uml_position(data.get("position"))
         return UmlClass(
             data.get("name"),
             {field.name:field for field in uml_fields},
-            methods
+            methods,
+            position[0],
+            position[1]
         )
 
     def _parse_uml_relationship(self, data:dict) -> UmlRelationship:
