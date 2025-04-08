@@ -426,6 +426,39 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    @_has_changed
+    def update_position_umlclass(self,name:str, x_pos:float, y_pos:float):
+        """updates a umlclass's position in the model
+
+        Params:
+            name: name of the class to update position
+            x_pos: new x(left-right) position of the class
+            y_pos: new y(left-right) position of the class
+        Returns:
+            None
+        Exceptions:
+            NoSuchObjectException
+        """
+        if name not in self.classes.keys():
+            raise errors.NoSuchObjectException()
+        # update the pos using the class method
+        self.get_umlclass(name).set_umlclass_position(x_pos, y_pos)
+        
+    def get_position_umlclass(self,name:str) -> tuple[float, float]:
+        """gets a uml classes position
+
+        Params:
+            name: name of the class to update position
+        Returns:
+            tuple(float, float): x and y position of the class
+        Exceptions:
+            NoSuchObjectException
+        """
+        if name not in self.classes.keys():
+            raise errors.NoSuchObjectException()
+        # return the pos using the class's method
+        return self.get_umlclass(name).get_umlclass_position()
+    
     #field methods
     # @_regex_pattern(count=2)
     @_has_changed
@@ -440,7 +473,7 @@ class UmlProject:
         Exceptions:
             DuplicateFieldException
         """
-        #check if class exists, if so, throw and error
+        #check if field exists, if so, throw and error
         if self.classes.get(classname).class_fields.get(field_name):
             raise errors.DuplicateFieldException()
         #create the field
