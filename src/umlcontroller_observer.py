@@ -1,6 +1,6 @@
 from umlcommands.base_commands import UmlCommand, TypedCommand
 from umlobserver import UmlSubject, UmlObserver, BaseSubject, CommandSubject
-from umlmodel import UmlProject, UmlClass, UmlMethod
+from umlmodel import UmlProject, UmlClass, UmlMethod, Caretaker
 import errors
 
 class UmlControllerObserver(BaseSubject, UmlObserver):
@@ -11,6 +11,7 @@ class UmlControllerObserver(BaseSubject, UmlObserver):
         self.model:UmlProject = UmlProject()
         self.active_class:UmlClass = None
         self.active_method:UmlMethod = None
+        self.caretaker:Caretaker = Caretaker(self.model)
 
     def update(self, subject:UmlSubject):
         """"""

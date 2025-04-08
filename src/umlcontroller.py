@@ -11,7 +11,7 @@ from typing import Protocol, Callable
 import re
 
 import umlmodel
-from umlmodel import UmlProject
+from umlmodel import UmlProject,Caretaker
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
@@ -137,6 +137,25 @@ class UmlCommands:
         Commands:list[UmlCommand] = [AddParameter, RenameParameter, DeleteParameter, ListParameter, ClearParameter, ReplaceParameter, HelpParameter]
         Usage:str = HelpParameter.usage + "\n".join([c.usage for c in Commands[:-1]])
 
+    class UmlHistoryCommands:
+        class Undo(UmlCommand):
+            id = r"undo"
+            regex = r"undo"
+            usage = "undo"
+        
+        class Redo(UmlCommand):
+            id = r"redo"
+            regex = r"redo"
+            usage = "redo"
+        
+        class HelpHistory(UmlCommand):
+            id = r"history"
+            regex = r"history"
+            usage = "history commands:\n"
+        
+        Commands:list[UmlCommand] = [Undo, Redo]
+        Usage:str = HelpHistory.usage + "\n".join([c.usage for c in Commands[:-1]])
+
 class UmlController:
     HELP_PATH = os.path.join(umlmodel.__DIR__, 'help.txt')
     
@@ -144,8 +163,8 @@ class UmlController:
         self.view = view
 
         self.model:UmlProject = UmlProject()
+        self.caretaker:Caretaker = Caretaker(self.model)
         self.active_class:str = None
-        # self.model.load("test_json.json")
         self.is_running = False
     
     def _handle_unsaved_changes(func):
@@ -217,6 +236,18 @@ class UmlController:
             return func(self, *args, **kwargs)
         return wrapper
 
+    def _backup_memento(func):
+        @functools.wraps(func)
+        def wrapper(self:UmlController, *args, **kwargs):
+            try:
+                result = func(self, *args, **kwargs)
+                self.caretaker.backup()
+                return result
+            except:
+                raise
+        return wrapper
+
+    @_backup_memento
     @_handle_unsaved_changes
     def load_project(self, filepath:str, override:bool = False) -> None:
         """Load the project at the provided filepath.
@@ -268,6 +299,7 @@ class UmlController:
         #set current filepath to ignore save prompts on later saves of file
         self.model.save()
     
+    @_backup_memento
     @_handle_unsaved_changes
     def new_project(self, filepath:str, override:bool = False) -> None:
         """
@@ -404,6 +436,13 @@ class UmlController:
             if len(args) == 3:
                 override = args[2] == "True"
             self.load_project(args[1], override)
+        
+        elif cmd == 'undo':
+            self.command_undo()
+        
+        elif cmd == 'redo':
+            self.command_redo()
+
         else:
             self.view.handle_exceptions(error_text)
 
@@ -442,6 +481,7 @@ class UmlController:
         else:
             self.view.set_active_class(temp_class.class_name)
 
+    @_backup_memento
     def command_add_umlclass(self, name:str) -> None:
         """adds the specified class name to the project
         
@@ -451,6 +491,7 @@ class UmlController:
         self.model.add_umlclass(name)
         self.view.set_active_class(name)
 
+    @_backup_memento
     @_requires_active_class
     def command_update_umlclass_position(self, x_pos:float, y_pos:float):
         """moves the UmlClass in the current context to the specified position
@@ -485,6 +526,7 @@ class UmlController:
         self.model.delete_umlclass(self.view.active_class)
         self.view.set_active_class(None)
 
+    @_backup_memento
     @_requires_active_class
     def command_rename_umlclass(self, name:str):
         """Renames the UmlClass in the current context.
@@ -515,6 +557,7 @@ class UmlController:
         elif cmd == 'rename':
             self.command_rename_field(args[2], args[3])
 
+    @_backup_memento
     @_requires_active_class
     def command_add_field(self, name:str, type:str) -> None:
         """Adds an field to the UmlClass in current context.
@@ -526,6 +569,7 @@ class UmlController:
         # self.model.get_umlclass(self.view.active_class).add_field(name)
         self.model.add_field(self.view.active_class, name, type)
 
+    @_backup_memento
     @_requires_active_class
     def command_delete_field(self, name:str) -> None:
         """Deletes an field from the UmlClass in the current context.
@@ -536,6 +580,7 @@ class UmlController:
         # self.model.get_umlclass(self.view.active_class).remove_field(name)
         self.model.delete_field(self.view.active_class, name)
 
+    @_backup_memento
     @_requires_active_class
     def command_rename_field(self, oldname:str, newname:str) -> None:
         """Renames an field from the UmlClass in the current context.
@@ -603,6 +648,7 @@ class UmlController:
         elif cmd == 'set':
             self.command_set_relation(args[2], args[3], args[4])
 
+    @_backup_memento
     @_requires_active_project
     def command_add_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Adds a relationship.
@@ -617,6 +663,7 @@ class UmlController:
         """
         self.model.add_relationship(source, destination, relationship_type)
 
+    @_backup_memento
     @_requires_active_project
     def command_set_relation(self, source:str, destination:str, relationship_type:str) -> None:
         """Sets the type of an existing relationship.
@@ -631,6 +678,7 @@ class UmlController:
         """
         self.model.set_type_relationship(source, destination, relationship_type)
 
+    @_backup_memento
     @_requires_active_project
     def command_delete_relation(self, source:str, destination:str) -> None:
         """Delete a relationship.
@@ -704,6 +752,13 @@ class UmlController:
         self.model.get_umlmethod(self.view.active_class, name, arity)
         self.view.set_active_method((name, arity,))
         
+    @_requires_active_project
+    def command_undo(self):
+        self.caretaker.undo()
+    
+    @_requires_active_project
+    def command_redo(self):
+        self.caretaker.redo()
 
     @_requires_active_method
     def command_parameter(self, args:list[str]):
