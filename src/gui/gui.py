@@ -94,6 +94,7 @@ def classdetails():
             raise errors.NoSuchObjectException(f"Class '{class_name}' does not exist.")
         dto = app.controller._get_class_data_object(umlclass)
         position = umlclass.get_umlclass_position()
+        # passes the position separate from the html, this may need changed
         data = {"html": render_template("/_umlclass.html", dto=dto), "x_pos": position[0], "y_pos": position[1]}
         return jsonify(data)
     except errors.UMLException as uml_e:
@@ -144,11 +145,16 @@ def rename_umlclass():
 @app.post("/updateClassPosition")
 @handle_umlexception
 def update_umlclass_position():
+    """updates the position in the model of the class the user just stopped dragging"""
     data = request.get_json()
     classname = data.get("classname")
+    
+    # enter class context
     app.controller.execute_command(["class", classname])
     x_pos = float(data.get("x_pos"))
     y_pos = float(data.get("y_pos"))
+    
+    # tell controller to tell model to update position
     app.controller.command_update_umlclass_position(x_pos, y_pos)
     return jsonify({"message": "Class position updated successfully"}), 200
 

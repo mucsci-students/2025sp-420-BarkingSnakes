@@ -1560,12 +1560,20 @@
                 .then(response => response.json())
                 .then(data => {
                     let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
+                    //get the class's position
+                    saved_x_pos = data.x_pos;
+                    saved_y_pos = data.y_pos;
                     if (existingDetailsDiv) {
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
-                        //existingDetailsDiv.style.top = "100px";
-                        //existingDetailsDiv.style.left = "100px";
-                        
+                        // if class of same name exists when a new project is loaded,
+                        // this will get called here since a new div is not currently
+                        // created when loading a project if the names match
+                        if (saved_x_pos != 0 || saved_y_pos != 0)
+                        {
+                            existingDetailsDiv.style.left = `${saved_x_pos}px`;
+                            existingDetailsDiv.style.top = `${saved_y_pos}px`;
+                        }
                         makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
                     } else {
                         let detailsDiv = document.createElement("div");
@@ -1574,6 +1582,12 @@
                         detailsDiv.innerHTML = data.html;
                         document.body.appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
+                        // only update the pos from saved if the class was moved
+                        if (saved_x_pos != 0 || saved_y_pos != 0)
+                        {
+                            detailsDiv.style.left = `${saved_x_pos}px`;
+                            detailsDiv.style.top = `${saved_y_pos}px`;
+                        }
                         makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
                     }
                     //makes sure lines are rendered 
