@@ -376,6 +376,10 @@ class UmlClass:
         Args:
             x_pos:float, x position or equivalent on screen
             y_pos:float, y position or equivalent on screen
+        Returns:
+            None
+        Exceptions:
+            InvalidPositionArgsException: if x_pos or y_pos are not floats
         """
         if type(x_pos) != float or type(y_pos) != float:
             raise errors.InvalidPositionArgsException()

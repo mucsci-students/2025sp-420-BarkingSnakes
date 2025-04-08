@@ -1,6 +1,6 @@
 # Filename: test_umlmodel.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Creation Date: 04-06-2025, Last Edit Date: 04-06-2025
+# Creation Date: 04-06-2025, Last Edit Date: 04-07-2025
 # Description: Unit Tests for umlmodel.py
 import os
 import sys
@@ -13,6 +13,7 @@ from src.umlparameter import UmlParameter
 from src.umlmodel import UmlProject
 from src import errors
 
+# rename class tests
 def test_rename_umlclass():
     """Tests rename umlclass"""
     test_proj = UmlProject()
@@ -47,6 +48,7 @@ def test_rename_umlclass_existing_class():
     finally:
         assert test_val_error == errors.error_list["DuplicateClassError"]
 
+# delete class tests
 def test_delete_umlclass():
     """Tests delete_umlclass"""
     test_proj = UmlProject()
@@ -111,5 +113,61 @@ def test_delete_field():
 
     assert "MaxSpeed" not in  test_proj.classes.get("car").class_fields
 
+# update class position tests
 
+def test_update_position_class_no_such_class():
+    """Tests that an error is raised if the class isn't in the project"""
+    model = UmlProject()
+    try:
+        model.add_umlclass("temp")
+        model.update_position_umlclass("temp2", 1.0, 2.0)
+        assert False
+    except Exception as e:
+        assert e == errors.NoSuchObjectException()
+    # make sure existing class wasn't changed
+    assert model.get_umlclass("temp").get_umlclass_position() == (0.0, 0.0)
+    assert not model.classes.get("temp2")
+
+def test_update_position_class_invalid_type():
+    """Tests that an error is raised if a position type isn't float"""
+    model = UmlProject()
+    try:
+        model.add_umlclass("temp")
+        model.update_position_umlclass("temp", "str", 2.0)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidPositionArgsException()
+    assert model.get_umlclass("temp").get_umlclass_position() == (0.0, 0.0)
     
+def test_update_position_class():
+    """Tests that no error is raised if class exists and positions are valid"""
+    model = UmlProject()
+    try:
+        model.add_umlclass("temp")
+        model.update_position_umlclass("temp", 1.0, 2.0)
+    except Exception as e:
+        assert e == None
+    assert model.get_umlclass("temp").get_umlclass_position() == (1.0, 2.0)
+
+# get class position tests
+def test_get_position_class_no_class():
+    """Tests that an error is raised if class does not exist"""
+    model = UmlProject()
+    try:
+        model.add_umlclass("temp")
+        model.get_position_umlclass("temp2")
+        assert False
+    except Exception as e:
+        assert e == errors.NoSuchObjectException()
+        
+def test_get_position_class_exists():
+    """Tests that no error is raised if class exists"""
+    pos = None
+    try:
+        model = UmlProject()
+        model.add_umlclass("temp")
+        model.update_position_umlclass("temp", 1.0, 2.0)
+        pos = model.get_position_umlclass("temp")
+    except Exception as e:
+        assert e == None
+    assert pos == (1.0,2.0)
