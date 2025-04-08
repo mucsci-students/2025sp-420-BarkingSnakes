@@ -166,6 +166,8 @@ def test_add_method_with_no_parameters():
         assert False
     
     assert test_class.class_methods == test_value
+    
+### umlmethod class tests
 def test_add_existing_parameter():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
@@ -454,6 +456,7 @@ def test_replace_all_method_parameters():
     assert test_class.class_methods == test_val_methods
 
 # TODO - Unit tests clear all method parameters
+### umlparameter class tests
 # test clearing all method parameters
 def test_clear_all_method_parameters():
     test_class = UmlClass("Car", {}, {})
@@ -584,3 +587,48 @@ def test_replace_parameter_Not_found():
         test_val_error = e.get_num()
     finally:
         assert test_val_error == errors.error_list["NoSuchParameterError"]
+
+### umlclass position method tests
+# set_umlclass_position tests
+def test_set_umlclass_position_invalid_x_type():
+    """tests that an error is raised if the type of the x pos isn't float"""
+    try:
+        umlclass = UmlClass("temp")
+        umlclass.set_umlclass_position("str", 0.0)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidPositionArgsException()
+        
+def test_set_umlclass_position_invalid_y_type():
+    """tests that an error is raised if the type of the x pos isn't float"""
+    try:
+        umlclass = UmlClass("temp")
+        umlclass.set_umlclass_position(0.0, "str")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidPositionArgsException()
+
+def test_set_umlclass_position_valid():
+    """tests that the position was changed"""
+    umlclass = UmlClass("temp")
+    try:
+        umlclass.set_umlclass_position(2.0, 3.0)
+    except Exception as e:
+        assert e == None
+    assert umlclass.class_pos_x == 2.0
+    assert umlclass.class_pos_y == 3.0
+
+# get_umlclass_position tests
+def test_get_umlclass_position():
+    """tests get pos returns the position"""
+    umlclass = UmlClass("temp", {}, {}, 2.0, 3.0)
+    pos = None
+    try:
+        pos = umlclass.get_umlclass_position()
+    except Exception as e:
+        assert e == None
+    assert pos[0] == 2.0
+    assert pos[1] == 3.0
+### umlclass umlmethod tests
+
+### umlclass umlparamter tests

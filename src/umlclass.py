@@ -18,6 +18,9 @@ class UmlClass:
     """
     class_methods:dict[str, dict[str, UmlMethod]] = field(default_factory= lambda: {})
 
+    class_pos_x:float = 0.0
+    class_pos_y:float = 0.0
+    
     def add_field(self, name:str, type:str) -> int:
         """
         Adds a field to the UmlClass
@@ -368,6 +371,26 @@ class UmlClass:
         self.class_methods.get(methodname).pop(overloadID)
         self.class_methods.get(methodname)[uml_method.overloadID] = uml_method
 
+    def set_umlclass_position(self, x_pos:float, y_pos:float):
+        """updates class position based on a 2-element float list of coordinates
+        Args:
+            x_pos:float, x position or equivalent on screen
+            y_pos:float, y position or equivalent on screen
+        Returns:
+            None
+        Exceptions:
+            InvalidPositionArgsException: if x_pos or y_pos are not floats
+        """
+        if type(x_pos) != float or type(y_pos) != float:
+            raise errors.InvalidPositionArgsException()
+        #update x and y positions
+        self.class_pos_x = x_pos
+        self.class_pos_y = y_pos
+    
+    def get_umlclass_position(self) -> tuple[float,float]:
+        """get current position of the umlclass as a 2-element list
+        """
+        return self.class_pos_x, self.class_pos_y
 
     def to_dict(self) -> dict:
         methods = set()
@@ -377,7 +400,11 @@ class UmlClass:
         return {
             'name': self.class_name,
             'fields': [f.to_dict() for f in self.class_fields.values()],
-            'methods': [m.to_dict() for m in methods]
+            'methods': [m.to_dict() for m in methods],
+            'position':{
+                'x':self.class_pos_x,
+                'y':self.class_pos_y
+            }
         }
         
         

@@ -24,6 +24,8 @@ class UmlClassData(NamedTuple):
     name:str
     fields:list[UmlFieldData]
     methods:list[UmlMethodData]
+    x_pos:float
+    y_pos:float
 
 class UmlRelationshipData(NamedTuple):
     relation_type:str

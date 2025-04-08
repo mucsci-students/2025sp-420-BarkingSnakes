@@ -493,6 +493,17 @@ class UmlController:
 
     @_backup_memento
     @_requires_active_class
+    def command_update_umlclass_position(self, x_pos:float, y_pos:float):
+        """moves the UmlClass in the current context to the specified position
+        """
+        # may want to move this typechecking later
+        if type(x_pos) != float or type(y_pos) != float:
+            raise errors.InvalidPositionArgsException()
+        #use model method
+        self.model.update_position_umlclass(self.view.active_class, x_pos, y_pos)
+        
+    
+    @_requires_active_class
     def command_delete_umlclass(self, override:bool = False):
         """Removes the UmlClass in the current context from the project.
         Prompts and informs the user to delete relationships.
@@ -817,8 +828,11 @@ class UmlController:
         for _m in umlclass.class_methods.values():
             for m in _m.values():
                 methods.append(get_method_data_object(m))
-
-        return UmlClassData(umlclass.class_name, fields, methods)
+        #new position values
+        x_pos = umlclass.class_pos_x
+        y_pos = umlclass.class_pos_y
+        
+        return UmlClassData(umlclass.class_name, fields, methods, x_pos, y_pos)
     
     def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
         r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)

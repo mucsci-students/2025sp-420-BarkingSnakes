@@ -754,7 +754,7 @@
             modal.style.display = "none";
             closeSaveModal();
         }
-
+        
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target == modal) {
@@ -1496,6 +1496,8 @@
             }
 
             function closeDragElement() {
+                //save class pos each time this happens, since its when mouse drag stops
+                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
@@ -1558,9 +1560,20 @@
                 .then(response => response.json())
                 .then(data => {
                     let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
+                    //get the class's position
+                    saved_x_pos = data.x_pos;
+                    saved_y_pos = data.y_pos;
                     if (existingDetailsDiv) {
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
+                        // if class of same name exists when a new project is loaded,
+                        // this will get called here since a new div is not currently
+                        // created when loading a project if the names match
+                        if (saved_x_pos != 0 || saved_y_pos != 0)
+                        {
+                            existingDetailsDiv.style.left = `${saved_x_pos}px`;
+                            existingDetailsDiv.style.top = `${saved_y_pos}px`;
+                        }
                         makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
                     } else {
                         let detailsDiv = document.createElement("div");
@@ -1569,11 +1582,52 @@
                         detailsDiv.innerHTML = data.html;
                         document.body.appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
+                        // only update the pos from saved if the class was moved
+                        if (saved_x_pos != 0 || saved_y_pos != 0)
+                        {
+                            detailsDiv.style.left = `${saved_x_pos}px`;
+                            detailsDiv.style.top = `${saved_y_pos}px`;
+                        }
                         makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
                     }
                     //makes sure lines are rendered 
                     setTimeout(drawRelationshipLines, 100);
                 });
+        }
+        //added 4-7 for saving position
+        function updatePosition(elementId, leftPos, topPos) {
+            //strip extra characters
+            //13 should be leading "classname"
+            let className = elementId.slice(13)
+            let x_Pos = leftPos.slice(0, leftPos.length-2)
+            let y_Pos = topPos.slice(0, topPos.length-2)
+            fetch("/updateClassPosition", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                //second words capitalized to distinguish variables
+                body: JSON.stringify({
+                    classname: className,
+                    x_pos: x_Pos,
+                    y_pos: y_Pos
+                })
+            })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        displayClassDetails(className);
+                    }
+                })
+                .then(data => {
+                    console.log(data);
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.log(error))
         }
     </script>
 </body>
