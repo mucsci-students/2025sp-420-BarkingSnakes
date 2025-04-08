@@ -47,27 +47,27 @@ relation list
         list
             Displays the current class and its fields, methods and parameters
             in a box.
-        field add <field name>
-            Adds the field with name <field name> to the class.
+        field add <field name> <field type>
+            Adds the field with name <field name> and <field type> to the class.
         field delete <field name>
             Deletes the field with name <field name> from the class.
         field rename <old field name> <new field name>
             Renames the field on the class with <old field name>
             to <new field name>
-        method add <method name>
+        method add <method name> <method return type> <param name>:<param type>
             Adds the method with name <method name> to the class.
         method rename <old method name> <new method name> arity <arity>
             Renames the method on the class with <old method name>
             to <new method name>, arity must be specified
-        method delete <method name>
+        method delete <method name> <param1 type> <param2 type> <param2 type>...
             Deletes the method with name <method name> from the class.
-        method <method name> arity <arity>
+        method <method name> <param1 type> <param2 type> <param2 type>...
             Enters the context for the specified method
         
             method context commands:
                 back
                     When inside a class context, returns to the project context.
-                parameter add <parameter name>
+                parameter add <parameter name>:<parameter type>
                     Adds the parameter with name <parameter name> to the class.
                 parameter rename <old parameter name> <new parameter name>
                     Renames the parameter on the class with <old parameter name>
