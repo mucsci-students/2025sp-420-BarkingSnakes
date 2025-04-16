@@ -202,10 +202,13 @@ def rename_field():
 def add_method():
     data = request.get_json()
     methodname = data.get("methodname")
+    methodtype = data.get("methodtype")
     classname = data.get("classname")
+    
+
     if methodname and classname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["method", "add", methodname])
+        app.controller.execute_command(["method", "add", methodname, methodtype,[]])
         return jsonify({"message": "Method added successfully"}), 202
     return jsonify({"error": "Missing method name or class name"}), 406
 
