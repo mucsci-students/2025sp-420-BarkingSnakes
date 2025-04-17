@@ -723,8 +723,10 @@ class UmlController:
 
         if umlcommand == UmlCommands.UmlMethodCommands.AddMethod:
             methodname = args[2]
-            methodparams = args[3:]
-            self.model.add_method(active_class, methodname, methodparams)
+            returntype = args[3]
+            methodparams = args[4:]
+            
+            self.model.add_method(active_class, methodname, returntype , methodparams)
         elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
             oldname = args[2]
             newname = args[3]

@@ -208,7 +208,7 @@ def add_method():
 
     if methodname and classname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["method", "add", methodname, methodtype,[]])
+        app.controller.execute_command(["method", "add", methodname, methodtype,""])
         return jsonify({"message": "Method added successfully"}), 202
     return jsonify({"error": "Missing method name or class name"}), 406
 
