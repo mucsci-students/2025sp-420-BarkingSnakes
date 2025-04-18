@@ -196,10 +196,8 @@ class FileAlreadyExistsException(UMLException):
 class FileHasUnsavedChangesException(UMLException):
     args:list
 
-class UmlClassDeletionErrorException(UMLException):
-    args:list
-
 class InvalidTypeNameException(UMLException):
+    """exception for invalid type name of fields, methods, and parameters"""
     args:list
         
 class TestViewPromptException(UMLException):
