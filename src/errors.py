@@ -1,23 +1,15 @@
 # Filename: errors.py
 # Authors: John Hershey, Evan Magill, Steven Barnes
-# Date 2025-02-25
+# Creation Date 2025-02-25. Last Edit Date: 2025-04-18
 # Description: class listing errors
 
 ## imports
 from __future__ import annotations
-
-import keyword
 import re
 
 ## static class objects
 REGEX_DEFAULT_PATTERN = "^[A-Za-z][A-Za-z0-9_]*$"
 
-uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list", 
-             "back", "add", "delete", "rename", "umlclass", "save", " method",
-            "parameter" , "", " "]
-#adds python keywords to list of invalid words
-# stop using blocked keywords
-invalid_names = ""#uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
     "NullObjectError":1,
@@ -51,7 +43,6 @@ class UMLException(Exception):
         Declaration Params:   
             name: error name
         Variables:
-            name: name of error
             error_num: number of the error
         Exceptions:
             NoSuchErrorError: if error name not in error_list
@@ -63,30 +54,19 @@ class UMLException(Exception):
 
     def __eq__(self,other:UMLException):
         """checks if self and other have the same error num, using =="""
-        return self.error_num == other.error_num
+        return self.__class__ == other.__class__
+        #return self.error_num == other.error_num
     
-    def __init__(self, *args):
-        """initializes the error name and error number of the specific error"""
+    def __init__(self, num, *args):
+        """
+        initializes the error number of the specific error
+            args allows for more description if needed
+        """
         #initalize superclass as well
         super().__init__(*args)
-        #set name to specifed error
-        self.name = args[0]
-        #only add the number if specified
-        if self.name in error_list:
-            self.error_num = error_list[self.name]
-        #raise error if error not in list
-        else:
-            raise UMLException("NoSuchErrorError")
+        #add the number
+        self.error_num = num
 
-    def get_name(self) -> str:
-        """
-        Gets name of the error
-            Params:   
-                None
-            Returns:
-                name: name of exception
-        """
-        return self.name
     def get_num(self) -> int:
         """
         Gets number of the error
@@ -98,37 +78,30 @@ class UMLException(Exception):
         return self.error_num
 
 #class methods
-def valid_name(name:str, regex:str = REGEX_DEFAULT_PATTERN) -> int:
+def valid_name(name:str, regex:str = REGEX_DEFAULT_PATTERN):
     """
     Checks if a class name is valid
         Params: 
             name: potential name in the uml, a string
         Returns:
-            0: if name was not an invalid keyword
+            None
         Exceptions:
             InvalidNameError: if the name is invalid
     """
-    if name.lower() in invalid_names or re.search(regex, name) is None:
+    if re.search(regex, name) is None:
         raise InvalidNameException()
-    
-    return 0
+    return
 
-def get_error_name(val:int) -> str:
+## error types
+class NullObjectException(UMLException):
     """
-    returns the name for a given error in the error_list dict
-        Params:   
-            val: the error value to find the corresponding name for
-        Returns:
-            error_name: the error name with the number from input
+    Wrapper of UMLException class for "no such error" error
+        Args:
+            None
     """
-    #if out of range give that error
-    if val < 0 or val >= len(error_list):
-        raise UMLException("NoSuchErrorError")
-    # takes the list of keys, and finds the error name at val
-    error_name = list(error_list.keys())[val]
-    return error_name
+    def __init__(self, *args):
+        super().__init__(0,*args)
 
-## test
 class NullObjectException(UMLException):
     """
     Wrapper of UMLException class for null object error
@@ -137,7 +110,7 @@ class NullObjectException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(1),*args)
+        super().__init__(1,*args)
 
 class InvalidNameException(UMLException):
     """
@@ -147,7 +120,7 @@ class InvalidNameException(UMLException):
             onto UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(2),*args)
+        super().__init__(2,*args)
         
 class DuplicateClassException(UMLException):
     """
@@ -157,7 +130,7 @@ class DuplicateClassException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(3),*args)
+        super().__init__(3,*args)
 
 class NoSuchObjectException(UMLException):
     """
@@ -167,7 +140,7 @@ class NoSuchObjectException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(get_error_name(4),*args)
+        super().__init__(4,*args)
         self.object_type = kwargs.get("object_type")
 
 class NoActiveProjectException(UMLException):
@@ -178,7 +151,7 @@ class NoActiveProjectException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(5),*args)
+        super().__init__(5,*args)
 
 class NoActiveClassException(UMLException):
     """
@@ -188,7 +161,7 @@ class NoActiveClassException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(6), *args)
+        super().__init__(6, *args)
 
 class DuplicateFieldException(UMLException):
     """
@@ -198,7 +171,7 @@ class DuplicateFieldException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(7),*args)
+        super().__init__(7,*args)
 
 class InvalidFileException(UMLException):
     """
@@ -208,7 +181,7 @@ class InvalidFileException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(8),*args)
+        super().__init__(8,*args)
         
 class DuplicateRelationshipException(UMLException):
     """
@@ -218,55 +191,55 @@ class DuplicateRelationshipException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(9),*args)
+        super().__init__(9,*args)
 
 class DuplicateMethodOverloadException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(10), *args)
+        super().__init__(10, *args)
 
 class MethodNameNotExistsException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(11), *args)
+        super().__init__(11, *args)
 
 class MethodOverloadNotExistsException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(12), *args)
+        super().__init__(12, *args)
 
 class DuplicateParameterException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(13), *args)
+        super().__init__(13, *args)
 
 class NoSuchParameterException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(14), *args)
+        super().__init__(14, *args)
 
 class InvalidJsonSchemaException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(15), *args)
+        super().__init__(15, *args)
 
 class NoActiveMethodException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(16), *args)
+        super().__init__(16, *args)
 
 class InvalidRelationshipTypeException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(17), *args)
+        super().__init__(17, *args)
 
 class FileAlreadyExistsException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(18), *args)
+        super().__init__(18, *args)
 
 class FileHasUnsavedChangesException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(19), *args)
+        super().__init__(19, *args)
 
 class UmlClassDeletionErrorException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(20), *args)
+        super().__init__(20, *args)
 
 class InvalidTypeNameException(UMLException):
     def __init__(self, *args):
-        super().__init__(get_error_name(21),*args)
+        super().__init__(21,*args)
         
 class TestViewPromptException(UMLException):
     """
@@ -277,9 +250,9 @@ class TestViewPromptException(UMLException):
         prompt: the intended prompt for the user. This does not need to be included
     """
     def __init__(self, *args):
-        super().__init__(get_error_name(22),*args)
+        super().__init__(22,*args)
         
 class InvalidPositionArgsException(UMLException):
     """exception for invalid position arguments"""
     def __init__(self, *args):
-        super().__init__(get_error_name(23),*args)
+        super().__init__(23,*args)
