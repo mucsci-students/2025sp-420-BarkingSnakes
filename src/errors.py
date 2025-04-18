@@ -16,7 +16,8 @@ uml_names = ["attribute", "relation", "exit", "quit", "help", "name", "list",
              "back", "add", "delete", "rename", "umlclass", "save", " method",
             "parameter" , "", " "]
 #adds python keywords to list of invalid words
-invalid_names = uml_names + keyword.kwlist
+# stop using blocked keywords
+invalid_names = ""#uml_names + keyword.kwlist
 error_list = {
     "NoSuchErrorError":0,
     "NullObjectError":1,
