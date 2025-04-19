@@ -167,33 +167,43 @@ class DuplicateRelationshipException(UMLException):
     args:list
 
 class DuplicateMethodOverloadException(UMLException):
+    """exception for when a new method overload already exists"""
     args:list
 
 class MethodNameNotExistsException(UMLException):
+    """exception for when a named method does not exist"""
     args:list
 
 class MethodOverloadNotExistsException(UMLException):
+    """exception for when a specific method overload does not exist"""
     args:list
 
 class DuplicateParameterException(UMLException):
+    """exception for when a new parameter name already exists"""
     args:list
 
 class NoSuchParameterException(UMLException):
+    """exception for when a named parameter does not exist"""
     args:list
 
 class InvalidJsonSchemaException(UMLException):
+    """exception for when a loaded file does not match the template saved pattern"""
     args:list
 
 class NoActiveMethodException(UMLException):
+    """exception for when a method command is attempted outside method context"""
     args:list
 
 class InvalidRelationshipTypeException(UMLException):
+    """exception for invalid type name of fields, methods, and parameters"""
     args:list
 
 class FileAlreadyExistsException(UMLException):
+    """exception for when a file exists with the same name as a new save object"""
     args:list
 
 class FileHasUnsavedChangesException(UMLException):
+    """exception for when the project has unsaved changes"""
     args:list
 
 class InvalidTypeNameException(UMLException):
