@@ -31,7 +31,7 @@ class UmlClassSvgBuilder(SvgBuilder):
         self._xml = ""
         self.x = 0
         self.y = 0
-        self.padding_y:float = 5.0
+        self.padding_y:float = 2.5
         self.padding_x:float = 5.0
         self.width = 0
         self.height = 0
@@ -99,7 +99,11 @@ class UmlClassSvgBuilder(SvgBuilder):
             f_text = svg.SvgText(
                 f"+{f.name}:{f.type}", f"{self.umlclass.name}-field-{i}", 0, 0
             )
+            f_text.add_style("font-size", "10px")
+            f_text.add_style("fill", "red")
+            f_text.add_style("text-rendering", "optimizeLegibility")
             self.fields.append(f_text)
+            self.image.add(f_text)
 
         # Create method text elements
         for i, m in enumerate(self.umlclass.methods):
@@ -125,7 +129,7 @@ class UmlClassSvgBuilder(SvgBuilder):
 
         for e in text_elements:
             self.width = max(self.width, e.box_size.width)
-            self.height = max(self.height, e.box_size.height)
+            self.height += e.box_size.height
 
         # Set final height and width with appropriate padding.
         # Height adds an extra padding to account for the missed space between
@@ -140,8 +144,11 @@ class UmlClassSvgBuilder(SvgBuilder):
         self.name.x = self.rect.x + self.name_x_offset
         self.name.y = self.rect.y + self.name_y_offset
 
-        # offset_y = self.name.y + self.name.box_size.height + self.padding_y
-        # for f in self.fields:
-        #     f.x = self.rect.x + self.field_x_offset
-        #     f.y = offset_y
-        #     offset_y += f.box_size.height + self.padding_y
+        offset_y = self.name.y + self.name.box_size.height + self.padding_y
+        for f in self.fields:
+            f.x = self.rect.x + self.field_x_offset
+            f.y = offset_y
+            offset_y += f.box_size.height + self.padding_y
+        
+        self.image.width = max(self.image.width, self.width + self.padding_x * 2)
+        self.image.height = max(self.image.height, self.height + self.padding_y * 2)
