@@ -44,12 +44,12 @@ class UMLException(Exception):
     """
     
     def equals(self, other:UMLException):
-        """checks if self and other have the same error num"""
-        return self.__class__ == other.__class__
+        """checks if self and other have the same class"""
+        return self.__class__.__name__ == other.__class__.__name__
 
     def __eq__(self,other:UMLException):
-        """checks if self and other have the same error num, using =="""
-        return self.__class__ == other.__class__
+        """checks if self and other are the same error"""
+        return self.__class__.__name__ == other.__class__.__name__
         #return self.error_num == other.error_num
     
     def __init__(self, *args):
@@ -118,7 +118,7 @@ class NoSuchObjectException(UMLException):
             UMLException so no args are needed
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(4,*args)
+        super().__init__(*args)
         self.object_type = kwargs.get("object_type")
 
 class NoActiveProjectException(UMLException):
