@@ -83,3 +83,44 @@ class SvgElement(ABC):
     def set_parent(self, image:SvgImage) -> None:
         """Sets the parent svg image."""
         self.parent = image
+
+class SvgBoundary(SvgElement):
+    """An SVG element which has a defined boundry and get check for intersections."""
+
+    @abstractmethod
+    def intersects(self, elem:SvgElement) -> bool:
+        """Checks whether the provided element intersects with this element."""
+
+class SvgRect(SvgBoundary):
+    """A SVG rectangle element."""
+
+    def __init__(self, element_id:ElementId, x:float, y:float, width:float, height:float):
+        super().__init__(element_id, x, y)
+        self.width = width
+        self.height = height
+        self.styles:dict[str, str] = {}
+        self.classes:list[str] = []
+
+    @property
+    def xml(self) -> str:
+        """Get the element's xml."""
+        _xml = f'<rect x="{self.x}" y="{self.y}" width="{self.width}" height="{self.height}" '
+        if self.element_id:
+            _xml += f'id="{self.element_id}" '
+        if self.classes:
+            _xml += f'class="{" ".join(self.classes)}" '
+        _xml += '/>'
+        return _xml
+
+    @property
+    def box_size(self) -> Boxsize:
+        """Get the boxsize (width, height) of the element."""
+        return Boxsize(self.width, self.height)
+
+    def intersects(self, elem:SvgElement) -> bool:
+        """Checks whether the provided element intersects with this element."""
+        min_x, min_y = (self.x, self.y)
+        max_x, max_y = (self.x+self.width, self.y+self.height)
+        intersect_x = elem.x >= min_x and elem.x <= max_x
+        intersect_y = elem.y >= min_y and elem.y <= max_y
+        return  intersect_x and intersect_y
