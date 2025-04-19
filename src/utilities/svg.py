@@ -152,6 +152,8 @@ class SvgText(SvgElement):
 
     def add_style(self, key, value):
         if key == "font-size":
+            if "px" not in value:
+                raise Exception("font-size style value should be in pixels (px).")
             self.font_size = float(value.split("px")[0])
         return super().add_style(key, value)
 
