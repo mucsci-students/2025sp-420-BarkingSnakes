@@ -124,3 +124,89 @@ class SvgRect(SvgBoundary):
         intersect_x = elem.x >= min_x and elem.x <= max_x
         intersect_y = elem.y >= min_y and elem.y <= max_y
         return  intersect_x and intersect_y
+
+class SvgText(SvgElement):
+    """A SVG text element."""
+    def __init__(self, text:str, element_id:ElementId, x:float, y:float):
+        super().__init__(element_id, x, y)
+        self.text = text
+        self.font_size = 10
+        self.scaling_magnitude = 10
+        self.font_scale = 0.7
+
+    @property
+    def xml(self) -> str:
+        """Get the element's xml."""
+        adj_y = self.y + \
+            (self.font_size * self.font_scale) + \
+            (self.font_size / self.scaling_magnitude)
+
+        _xml = f'<text x="{self.x}" y="{adj_y}" '
+        if self.element_id:
+            _xml += f'id="{self.element_id}" '
+        if self.classes:
+            _xml += f'class="{" ".join(self.classes)}" '
+
+        _xml += f'>{self.text}</text>'
+        return _xml
+
+    def add_style(self, key, value):
+        if key == "font-size":
+            self.font_size = float(value.split("px")[0])
+        return super().add_style(key, value)
+
+    @property
+    def box_size(self) -> Boxsize:
+        """Get the boxsize (width, height) of the element."""
+        return self._calc_text_boxsize()
+
+    def _calc_text_boxsize(self) -> Boxsize:
+        """Calculates the required width and height needed to render the text."""
+
+        text = self.text
+        h = math.ceil(self.font_size * self.font_scale)
+        h = h + math.floor(h * .5)
+
+        char_widths = {
+            'a': 4.9, 'A': 7,
+            'b': 5.1, 'B': 6,
+            'c': 4.1, 'C': 7,
+            'd': 5.4, 'D': 7,
+            'e': 4.1, 'E': 6,
+            'f': 4, 'F': 6,
+            'g': 5, 'G': 8,
+            'h': 5.2, 'H': 8,
+            'i': 2.9, 'I': 4,
+            'j': 2.5, 'J': 5,
+            'k': 5.6, 'K': 8,
+            'l': 2.8, 'L': 6,
+            'm': 8.1, 'M': 10,
+            'n': 5.2, 'N': 7,
+            'o': 4.8, 'O': 8,
+            'p': 5.1, 'P': 6,
+            'q': 5.5, 'Q': 7.5,
+            'r': 5.2, 'R': 8,
+            's': 3.5, 'S': 5,
+            't': 3.2, 'T': 7,
+            'u': 5.2, 'U': 7,
+            'v': 5, 'V': 7,
+            'w': 7.2, 'W': 10,
+            'x': 4.9, 'X': 7,
+            'y': 5, 'Y': 7,
+            'z': 4.1, 'Z': 7,
+            ' ': 1, '0': 5,
+            '1': 5, '2': 5,
+            '3': 5, '4': 4.8,
+            '5': 5, '6': 5,
+            '7': 5, '8': 5,
+            '9': 5, '(': 3.2,
+            ')': 3, '+': 5.5,
+            '-': 3, ':': 3,
+            '_': 5.1
+        }
+
+        w = 0
+
+        for c in text:
+            w += self.font_size * (char_widths[c] / self.scaling_magnitude)
+        return Boxsize(w, h)
