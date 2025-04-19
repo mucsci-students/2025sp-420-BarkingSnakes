@@ -10,32 +10,6 @@ import re
 ## static class objects
 REGEX_DEFAULT_PATTERN = "^[A-Za-z][A-Za-z0-9_]*$"
 
-error_list = {
-    "NoSuchErrorError":0,
-    "NullObjectError":1,
-    "InvalidNameError":2,
-    "DuplicateClassError":3,
-    "NoSuchObjectError":4,
-    "NoActiveProjectError":5,
-    "NoActiveClassError":6,
-    "DuplicateFieldError":7,
-    "InvalidFileError":8,
-    "DuplicateRelationshipError":9,
-    "DuplicateMethodOverloadError":10,
-    "MethodNameNotExistsError":11,
-    "MethodOverloadNotExistsError":12,
-    "DuplicateParameterError":13,
-    "NoSuchParameterError":14,
-    "InvalidJsonSchemaError":15,
-    "NoActiveMethodError":16,
-    "InvalidRelationshipTypeError":17,
-    "FileAlreadyExistsError": 18,
-    "FileHasUnsavedChangesError": 19,
-    "UmlClassDeletionError": 20,
-    "InvalidTypeNameError": 21,
-    "TestViewPromptError": 22,
-    "InvalidPositionArgsError":23
-}
 ## class definitions
 class UMLException(Exception):
     """
@@ -50,7 +24,6 @@ class UMLException(Exception):
     def __eq__(self,other:UMLException):
         """checks if self and other are the same error"""
         return self.__class__.__name__ == other.__class__.__name__
-        #return self.error_num == other.error_num
     
     def __init__(self, *args):
         """
