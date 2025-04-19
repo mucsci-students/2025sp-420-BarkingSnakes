@@ -229,8 +229,8 @@ class UmlProject:
         def _parse_uml_position(data:dict) -> tuple[float,float]:
             """parses the position of the class"""
             if data:
-                return data.get("x"), data.get("y")
-            return None
+                return data.get("x", 0), data.get("y", 0)
+            return 0, 0
         
         uml_fields: list[UmlField] = []
         if data.get("fields"):
