@@ -30,23 +30,21 @@ def test_rename_umlclass_nonexistant_class():
 
     try:
         test_proj.rename_umlclass("testclass1","testclass2")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoSuchObjectError"]
+        assert e == errors.NoSuchObjectException()
 
 def test_rename_umlclass_existing_class():
-    """Tests rename umlclass duplicateclasserro"""
+    """Tests rename umlclass duplicateclasserror"""
     test_proj = UmlProject()
     test_proj.add_umlclass("testclass")
     test_proj.add_umlclass("car")
 
     try:
         test_proj.rename_umlclass("testclass","car")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["DuplicateClassError"]
+        assert e == errors.DuplicateClassException()
 
 # delete class tests
 def test_delete_umlclass():
@@ -64,10 +62,9 @@ def test_delete_umlclass_nonexistant_class():
     
     try:
         test_proj.delete_umlclass("van")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoSuchObjectError"]
+        assert e == errors.NoSuchObjectException()
     
 def test_add_field():
     """Tests add_field"""
@@ -87,10 +84,9 @@ def test_add_field():
     
     try:
         test_proj.add_field("car","MaxSpeed","mph")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["DuplicateFieldError"]
+        assert e == errors.DuplicateFieldException()
 
 def test_rename_field():
     """Tests rename_field"""

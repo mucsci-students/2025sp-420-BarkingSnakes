@@ -67,7 +67,7 @@ def test_remove_field_valid():
         test_class.remove_field(test_field.name)
         
     except Exception as e:
-       assert e.get_num() == errors.error_list["NoSuchObjectError"]
+       assert e == errors.NoSuchObjectException()
     assert len(test_class.class_fields) == 0
 
 # Remove a nonexisting Field
@@ -120,7 +120,7 @@ def test_rename_field_existing():
         test_class.add_field("MinSpeed","slow_speed")
         test_class.rename_field("MaxSpeed","MinSpeed")
     except Exception as e:
-        assert e.get_num() == errors.error_list["DuplicateFieldError"]
+        assert e == errors.DuplicateFieldException()
     assert "MaxSpeed" in test_class.class_fields
     assert "MinSpeed" in test_class.class_fields
 
@@ -141,10 +141,9 @@ def test_add_method_invalid_name():
     test_class = UmlClass("Car", {}, {})
     try:
         test_class.add_method("3the", "spaghetti", [])
+        assert False
     except Exception as e:
-       test_val = e.get_num()
-    finally:
-        assert test_val == errors.error_list["InvalidNameError"]
+       assert e == errors.InvalidNameException()
 
 def test_add_method_with_no_parameters():
     """"""
@@ -176,10 +175,9 @@ def test_add_existing_parameter():
     
     try:
         test_method.add_parameter(test_param_name,test_param_type)
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["DuplicateParameterError"]
+        assert e == errors.DuplicateParameterException()
     
 
 def test_add_method_with_one_parameter():
@@ -230,21 +228,19 @@ def test_adding_method_overload_valid():
     
     assert test_class.class_methods == test_value
 
-def test_adding_method_overload_invalid():
+def test_adding_method_overload_duplicate():
     test_class = UmlClass("Car", {}, {})
     test_method_name = "Drive"
     test_method_return_type = "bool"
     test_params = [("transmission", "CarPart")]
-    test_val = -1
 
     try:
         test_class.add_method(test_method_name, test_method_return_type, [])
         test_class.add_method(test_method_name, test_method_return_type, test_params)
         test_class.add_method(test_method_name, test_method_return_type, test_params)
+        assert False
     except Exception as e:
-        test_val = e.get_num()
-    finally:
-        assert test_val == errors.error_list["DuplicateMethodOverloadError"]
+        assert e == errors.DuplicateMethodOverloadException()
 
 # test renaming method
 #   - produces overload
@@ -327,7 +323,6 @@ def test_rename_method_overload_invalid():
         test_method_name: {"CarPart": test_method},
         test_method_rename: {"CarPart": test_method_overload}
     }
-    test_val_error = -1
 
     # add method Drive and Park
     test_class.add_method(test_method_name, test_method_return_type, test_params)
@@ -336,11 +331,10 @@ def test_rename_method_overload_invalid():
     # Rename method Park so it becomes an overload of method Drive
     try:
         test_class.rename_method(test_method_rename, "CarPart", test_method_name)
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_class.class_methods == test_val_methods
-        assert test_val_error == errors.error_list['DuplicateMethodOverloadError']
+        assert e == errors.DuplicateMethodOverloadException()
+    assert test_class.class_methods == test_val_methods
 
 # test removing method
 #   - invalid name case
@@ -370,18 +364,16 @@ def test_remove_method_invalid():
     test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_methods = {test_method_name: {"CarPart": test_method}}
-    test_val_error = -1
 
     test_class.add_method(test_method_name, test_method_return_type, test_params)
 
     # Invalid method name case
     try:
         test_class.remove_method(test_method_invalid_name, "CarPart")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_class.class_methods == test_val_methods
-        assert test_val_error == errors.error_list["MethodNameNotExistsError"]
+        assert e == errors.MethodNameNotExistsException()
+    assert test_class.class_methods == test_val_methods
 
 def test_remove_method_overload_invalid():
     test_class = UmlClass("Car", {}, {})
@@ -391,17 +383,15 @@ def test_remove_method_overload_invalid():
     test_method = UmlMethod(test_method_name, test_method_return_type, [])
     test_method.add_parameters(test_params)
     test_val_methods = {test_method_name: {"CarPart": test_method}}
-    test_val_error = -1
 
     test_class.add_method(test_method_name, test_method_return_type, test_params)
     # Invalid overloadID case
     try:
         test_class.remove_method(test_method_name, "")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_class.class_methods == test_val_methods
-        assert test_val_error == errors.error_list["MethodOverloadNotExistsError"]
+        assert e == errors.MethodOverloadNotExistsException()
+    assert test_class.class_methods == test_val_methods
 
 # test removing all methods
 def test_remove_method_all():
@@ -490,10 +480,9 @@ def test_remove_parameter_not_found():
 
     try:
         test_method.remove_parameter("nonexistingparam")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoSuchParameterError"]
+        assert e == errors.NoSuchParameterException()
     
 def test_rename_parameter():
     test_method_name = "Drive"
@@ -520,10 +509,9 @@ def test_rename_parameter_not_found():
 
     try:
         test_method.rename_parameter("engine","Carpart")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoSuchParameterError"]
+        assert e == errors.NoSuchParameterException()
 
 def test_rename_parameter_duplicate():
     test_method_name = "Drive"
@@ -535,10 +523,9 @@ def test_rename_parameter_duplicate():
 
     try:
         test_method.rename_parameter("engine","transmission")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["DuplicateParameterError"]
+        assert e == errors.DuplicateParameterException()
 
 def test_replace_parameter():
     test_method_name = "Drive"
@@ -564,10 +551,9 @@ def test_replace_parameter_duplicate():
 
     try:
         test_method.replace_parameter("transmission","engine","CarPiece")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["DuplicateParameterError"]
+        assert e == errors.DuplicateParameterException()
 
 def test_replace_parameter_Not_found():
     test_method_name = "Drive"
@@ -579,10 +565,9 @@ def test_replace_parameter_Not_found():
 
     try:
         test_method.replace_parameter("wheel","engine","CarPiece")
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoSuchParameterError"]
+        assert e == errors.NoSuchParameterException()
 
 ### umlclass position method tests
 # set_umlclass_position tests

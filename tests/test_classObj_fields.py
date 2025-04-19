@@ -252,7 +252,7 @@ def test_field_long():
     try:
         test_class.add_field(test_name, test_type)
     except Exception as e:
-       assert e.get_num() == errors.error_list["InvalidTypeNameError"]
+       assert e == errors.InvalidTypeNameException()
     assert len(test_class.class_fields) == 1
 
 def test_remove_field_valid():
