@@ -113,7 +113,11 @@ class UmlClassSvgBuilder(SvgBuilder):
                 0,
                 0,
             )
+            m_text.add_style("font-size", "10px")
+            m_text.add_style("fill", "red")
+            m_text.add_style("text-rendering", "optimizeLegibility")
             self.methods.append(m_text)
+            self.image.add(m_text)
 
         self._set_required_size()
 
@@ -149,6 +153,11 @@ class UmlClassSvgBuilder(SvgBuilder):
             f.x = self.rect.x + self.field_x_offset
             f.y = offset_y
             offset_y += f.box_size.height + self.padding_y
+        
+        for m in self.methods:
+            m.x = self.rect.x + self.field_x_offset
+            m.y = offset_y
+            offset_y += m.box_size.height + self.padding_y
         
         self.image.width = max(self.image.width, self.width + self.padding_x * 2)
         self.image.height = max(self.image.height, self.height + self.padding_y * 2)
