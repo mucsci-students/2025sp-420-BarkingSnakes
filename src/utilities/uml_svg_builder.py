@@ -144,6 +144,7 @@ class UmlClassSvgBuilder(SvgBuilder):
         self.rect.width = self.width
         self.rect.height = self.height
 
+        # Center the UmlClass name inside the rect
         self.name_x_offset = self.width * .5
         self.name.x = self.rect.x + self.name_x_offset
         self.name.y = self.rect.y + self.name_y_offset
@@ -160,4 +161,4 @@ class UmlClassSvgBuilder(SvgBuilder):
             offset_y += m.box_size.height + self.padding_y
         
         self.image.width = max(self.image.width, self.width + self.padding_x * 2)
-        self.image.height = max(self.image.height, self.height + self.padding_y * 2)
+        self.image.height = max(self.image.height, self.height + self.padding_y * 4)
