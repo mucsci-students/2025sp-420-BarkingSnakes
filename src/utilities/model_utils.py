@@ -163,7 +163,7 @@ class UmlParameterNamedTupledEncoder:
         name:str
         type:str
     def encode(self, o:UmlParameter) -> dict:
-        return self.UmlParameterNT(o.name, o.type)
+        return self.UmlParameterNT(o.name, o.umltype)
 
 class UmlMethodNamedTupledEncoder:
     class UmlMethodNT(NamedTuple):
