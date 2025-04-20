@@ -588,6 +588,7 @@
             fetch("/relationList")
                 .then(res => res.json())
                 .then(data => {
+                    console.log("Updated relationship list:", data.model.relationships);
                     container = document.getElementById("RelationTable");
                     container.innerHTML = data.html;
                 })
@@ -672,47 +673,47 @@
             let editModeState = false;
 
             if (isHidden) {
-                if(addFieldContainer){
+                if (addFieldContainer) {
                     addFieldContainer.classList.remove('hidden');
                 }
-               
-                if(deleteFieldbtn){
+
+                if (deleteFieldbtn) {
                     deleteFieldbtn.classList.remove('hidden');
                 }
 
-                if(addMethodContainer){
-                    addMethodContainer.classList.remove('hidden'); 
-                }
-                
-                if(fieldTextInpt){
-                    fieldTextInpt.readOnly = false; 
+                if (addMethodContainer) {
+                    addMethodContainer.classList.remove('hidden');
                 }
 
-                if(classTextInpt){
-                    classTextInpt.readOnly = false; 
+                if (fieldTextInpt) {
+                    fieldTextInpt.readOnly = false;
+                }
+
+                if (classTextInpt) {
+                    classTextInpt.readOnly = false;
                 }
                 editModeState = true; // Set edit mode to true
             } else {
-                if(addFieldContainer){
+                if (addFieldContainer) {
                     addFieldContainer.classList.add('hidden');
                 }
-               
-                if(deleteFieldbtn){
+
+                if (deleteFieldbtn) {
                     deleteFieldbtn.classList.add('hidden');
                 }
 
-                if(addMethodContainer){
-                    addMethodContainer.classList.add('hidden'); 
-                }
-                
-                if(fieldTextInpt){
-                    fieldTextInpt.readOnly = true; 
+                if (addMethodContainer) {
+                    addMethodContainer.classList.add('hidden');
                 }
 
-                if(classTextInpt){
-                    classTextInpt.readOnly = true; 
+                if (fieldTextInpt) {
+                    fieldTextInpt.readOnly = true;
                 }
-                
+
+                if (classTextInpt) {
+                    classTextInpt.readOnly = true;
+                }
+
                 editModeState = false; // Set edit mode to false
             }
 
@@ -754,7 +755,7 @@
             modal.style.display = "none";
             closeSaveModal();
         }
-        
+
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target == modal) {
@@ -860,16 +861,43 @@
          * Adds the new relation to the relation list and updates the display.
          */
         function addRelation() {
-            let input = document.getElementById("classNameInput").value;
-            let [sourceClass, targetClass] = input.split(" ");
-            // Add logic to handle the new relationship
-            console.log("New relationship:", sourceClass, "->", targetClass);
-            // Add the new relationship to the list
-            let table = document.getElementById("RelationData");
-            let row = table.insertRow(table.rows.length - 1);
-            let cell = row.insertCell(0);
-            cell.innerHTML = `${sourceClass} -> ${targetClass}`;
-            modal.style.display = "none";
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value.toUpperCase();
+
+            if (!sourceClass || !targetClass || !relationType) {
+                console.error("Missing source, destination, or relation type.");
+                snackbar("Please select all fields before submitting.");
+                return;
+            }
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || "Failed to add relation.");
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Relation added successfully:", data);
+                    getRelationList();
+                })
+                .catch(error => {
+                    console.error("Error adding relation:", error);
+                    snackbar(error.message);
+                });
         }
 
         /**
@@ -894,9 +922,9 @@
             }
         }
 
-        function addField2(event, elem1,elem2, className) {
+        function addField2(event, elem1, elem2, className) {
             if (event.key === "Enter") {
-                const fieldType = "string"; // Defaulted to string for temp fix
+                const fieldType = "string";
                 fetch("/addField", {
                     method: "POST",
                     headers: {
@@ -998,7 +1026,7 @@
             }
         }
 
-        function deleteMethod(methodName,arity,className) {
+        function deleteMethod(methodName, arity, className) {
             fetch("/deleteMethod", {
                 method: "DELETE",
                 headers: {
@@ -1049,7 +1077,7 @@
                 .catch(err => console.log(err));
         }
 
-        function deleteMethodParameter(methodName,arity,parametername,className) {
+        function deleteMethodParameter(methodName, arity, parametername, className) {
             fetch("/deleteMethodParam", {
                 method: "DELETE",
                 headers: {
@@ -1059,7 +1087,7 @@
                 body: JSON.stringify({
                     methodname: methodName,
                     arity: arity,
-                    parametername:parametername,
+                    parametername: parametername,
                     classname: className
                 })
             })
@@ -1075,7 +1103,7 @@
                 })
         }
 
-        function renameMethodParam(oldname,newname,methodname,arity,classname) {
+        function renameMethodParam(oldname, newname, methodname, arity, classname) {
             fetch("/renameMethodParam", {
                 method: "PUT",
                 headers: {
@@ -1085,8 +1113,8 @@
                 body: JSON.stringify({
                     oldname: oldname,
                     newname: newname,
-                    methodname:methodname,
-                    arity:arity,
+                    methodname: methodname,
+                    arity: arity,
                     classname: classname
                 })
             })
@@ -1294,7 +1322,7 @@
                 })
         }
 
-        function renameMethod(oldname,newname,arity,className) {
+        function renameMethod(oldname, newname, arity, className) {
             fetch("/renameMethod", {
                 method: "PUT",
                 headers: {
@@ -1304,7 +1332,7 @@
                 body: JSON.stringify({
                     oldname: oldname,
                     newname: newname,
-                    arity:arity,
+                    arity: arity,
                     classname: className
                 })
             })
@@ -1572,8 +1600,7 @@
                         // if class of same name exists when a new project is loaded,
                         // this will get called here since a new div is not currently
                         // created when loading a project if the names match
-                        if (saved_x_pos != 0 || saved_y_pos != 0)
-                        {
+                        if (saved_x_pos != 0 || saved_y_pos != 0) {
                             existingDetailsDiv.style.left = `${saved_x_pos}px`;
                             existingDetailsDiv.style.top = `${saved_y_pos}px`;
                         }
@@ -1586,8 +1613,7 @@
                         document.body.appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
                         // only update the pos from saved if the class was moved
-                        if (saved_x_pos != 0 || saved_y_pos != 0)
-                        {
+                        if (saved_x_pos != 0 || saved_y_pos != 0) {
                             detailsDiv.style.left = `${saved_x_pos}px`;
                             detailsDiv.style.top = `${saved_y_pos}px`;
                         }
@@ -1602,8 +1628,8 @@
             //strip extra characters
             //13 should be leading "classname"
             let className = elementId.slice(13)
-            let x_Pos = leftPos.slice(0, leftPos.length-2)
-            let y_Pos = topPos.slice(0, topPos.length-2)
+            let x_Pos = leftPos.slice(0, leftPos.length - 2)
+            let y_Pos = topPos.slice(0, topPos.length - 2)
             fetch("/updateClassPosition", {
                 method: "POST",
                 headers: {
