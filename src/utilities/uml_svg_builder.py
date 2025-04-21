@@ -6,9 +6,8 @@
 from abc import ABC, abstractmethod
 
 from utilities import svg
-from utilities.model_utils import UmlClassNamedTupledEncoder
+from utilities.model_utils import UmlClassNT, UmlModelNT
 
-UmlClass = UmlClassNamedTupledEncoder.UmlClassNT
 
 class SvgBuilder(ABC):
     """Builder interface for building a UML Diagram from a UmlProject."""
@@ -25,12 +24,12 @@ class SvgBuilder(ABC):
 class UmlClassSvgBuilder(SvgBuilder):
     """SvgBuilder for building a UmlClass into a SVG element."""
 
-    def __init__(self, umlclass: UmlClass, image: svg.SvgImage):
+    def __init__(self, umlclass: UmlClassNT, image: svg.SvgImage):
         self.umlclass = umlclass
         self.image = image
         self._xml = ""
-        self.x = 0
-        self.y = 0
+        self.x = umlclass.x
+        self.y = umlclass.y
         self.padding_y:float = 2.5
         self.padding_x:float = 5.0
         self.width = 0
@@ -160,5 +159,35 @@ class UmlClassSvgBuilder(SvgBuilder):
             m.y = offset_y
             offset_y += m.box_size.height + self.padding_y
         
-        self.image.width = max(self.image.width, self.width + self.padding_x * 2)
-        self.image.height = max(self.image.height, self.height + self.padding_y * 4)
+        self.width = self.width + self.padding_x * 2
+        self.height = self.height + self.padding_y * 4
+
+        # self.image.width = max(self.image.width, self.width)
+        # self.image.height = max(self.image.height, self.height)
+
+class UmlDiagramSvgBuilder(SvgBuilder):
+    """SvgBuilder for building a UML Diagram into a SVG element."""
+    def __init__(self, model:UmlModelNT):
+        self.model = model
+        self.image = svg.SvgImage(0,0)
+        self.class_builders:list[UmlClassSvgBuilder] = []
+
+        for c in model.classes:
+            self.class_builders.append(UmlClassSvgBuilder(c, self.image))
+
+    @property
+    def svg(self) -> None:
+        """Method to retreive the SVG."""
+
+    def produce_svg_part(self) -> None:
+        """Method to generate the SVG component."""
+        width = 0
+        height = 0
+        for builder in self.class_builders:
+            builder.produce_svg_part()
+            width = max(width, builder.x + builder.width)
+            height = max(height, builder.y + builder.height)
+
+        self.image.width = width
+        self.image.height = height
+        
