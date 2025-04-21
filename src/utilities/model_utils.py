@@ -150,47 +150,78 @@ class NamedTupleEncoder:
     def encode(self, o:T) -> NamedTuple:
         """"""
 
-class UmlFieldNamedTupledEncoder:
-    class UmlFieldNT(NamedTuple):
-        name:str
-        type:str
+class UmlFieldNT(NamedTuple):
+    name:str
+    type:str
 
-    def encode(self, o:UmlField) -> dict:
-        return self.UmlFieldNT(o.name, o.type)
+class UmlFieldNamedTupledEncoder:
+
+    def encode(self, o:UmlField) -> UmlFieldNT:
+        return UmlFieldNT(o.name, o.type)
+
+class UmlParameterNT(NamedTuple):
+    name:str
+    type:str
 
 class UmlParameterNamedTupledEncoder:
-    class UmlParameterNT(NamedTuple):
-        name:str
-        type:str
-    def encode(self, o:UmlParameter) -> dict:
-        return self.UmlParameterNT(o.name, o.umltype)
+
+    def encode(self, o:UmlParameter) -> UmlParameterNT:
+        return UmlParameterNT(o.name, o.umltype)
+
+class UmlMethodNT(NamedTuple):
+    name:str
+    return_type:str
+    params:list[UmlParameterNT]
 
 class UmlMethodNamedTupledEncoder:
-    class UmlMethodNT(NamedTuple):
-        name:str
-        return_type:str
-        params:list[UmlParameterNamedTupledEncoder.UmlParameterNT]
 
-    def encode(self, o:UmlMethod) -> dict:
-        return self.UmlMethodNT(o.name, o.return_type, list(map(UmlParameterNamedTupledEncoder().encode, o.params)))
+    def encode(self, o:UmlMethod) -> UmlMethodNT:
+        return UmlMethodNT(o.name, o.return_type, list(map(UmlParameterNamedTupledEncoder().encode, o.params)))
+
+class UmlClassNT(NamedTuple):
+    name:str
+    fields:list[UmlFieldNT]
+    methods:list[UmlMethodNT]
+    x:float
+    y:float
 
 class UmlClassNamedTupledEncoder:
-    class UmlClassNT(NamedTuple):
-        name:str
-        fields:list[UmlFieldNamedTupledEncoder.UmlFieldNT]
-        methods:list[UmlMethodNamedTupledEncoder.UmlMethodNT]
-        x:float
-        y:float
 
-    def encode(self, o:UmlClass) -> dict:
+    def encode(self, o:UmlClass) -> UmlClassNT:
         """"""
         methods = []
         for m in o.class_methods.values():
             methods.extend(m.values())
-        return self.UmlClassNT(
+        return UmlClassNT(
             o.class_name,
             list(map(UmlFieldNamedTupledEncoder().encode, o.class_fields.values())),
             list(map(UmlMethodNamedTupledEncoder().encode, methods)),
             o.class_pos_x,
             o.class_pos_y
+        )
+
+class UmlRelationshipNT(NamedTuple):
+    source:str
+    destination:str
+    type:str
+
+class UmlRelationshipNamedTupleEncoder:        
+    def encode(self, o:UmlRelationship) -> UmlRelationshipNT:
+        return UmlRelationshipNT(
+            o.source_class.class_name,
+            o.destination_class.class_name,
+            o.relationship_type.name.capitalize()
+        )
+
+class UmlModelNT(NamedTuple):
+    classes:list[UmlClassNT]
+    relationships:list[UmlRelationshipNT]
+
+class UmlModelNamedTupleEncoder:
+
+    def encode(self, o:UmlProject) -> UmlModelNT:
+        """"""
+        return UmlModelNT(
+            list(map(UmlClassNamedTupledEncoder().encode, o.classes.values())),
+            list(map(UmlRelationshipNamedTupleEncoder().encode, o.relationships))
         )
