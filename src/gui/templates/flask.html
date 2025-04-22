@@ -1488,47 +1488,14 @@
                 offsetY = initialY - e.clientY;
                 initialX = e.clientX;
                 initialY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
 
-                // Calculate new position
-                let newTop = element.offsetTop - offsetY;
-                let newLeft = element.offsetLeft - offsetX;
-
-                // Get viewport dimensions
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                // Get element dimensions
-                const elementWidth = element.offsetWidth;
-                const elementHeight = element.offsetHeight;
-
-                // Define additional margins for the right and bottom edges
-                const rightMargin = 150; // Increase this value to allow more space on the right
-                const bottomMargin = 120; // Increase this value to allow more space at the bottom
-
-                // Constrain the element within the viewport
-                if (newTop < 190) {
-                    newTop = 190;
-                }
-                if (newTop + elementHeight > viewportHeight + bottomMargin) {
-                    newTop = viewportHeight - elementHeight + bottomMargin;
-                }
-
-                if (newLeft < 150) {
-                    newLeft = 150;
-                }
-                if (newLeft + elementWidth > viewportWidth + rightMargin) {
-                    newLeft = viewportWidth - elementWidth + rightMargin;
-                }
-
-                element.style.top = `${newTop}px`;
-                element.style.left = `${newLeft}px`;
-
+                //for auto updating lines to make them dynamic
                 lines.forEach(line => line.position());
             }
 
             function closeDragElement() {
-                //save class pos each time this happens, since its when mouse drag stops
-                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
@@ -1556,14 +1523,17 @@
 
                         if (sourceElement && destinationElement) {
                             const line = new LeaderLine(
-                                LeaderLine.pointAnchor(sourceElement, { x: '50%', y: '10%' }),
-                                LeaderLine.pointAnchor(destinationElement, { x: '50%', y: '10%' }),
+                                sourceElement,
+                                destinationElement,
                                 {
                                     color: 'red',
                                     size: 2,
                                     dash: { animation: true },
                                     startPlug: 'disc',
-                                    endPlug: 'arrow3'
+                                    endPlug: 'arrow3',
+                                    path: 'fluid',
+                                    startSocket: 'auto',
+                                    endSocket: 'auto'
                                 }
                             );
 
