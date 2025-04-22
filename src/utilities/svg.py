@@ -121,9 +121,18 @@ class SvgRect(SvgBoundary):
         """Checks whether the provided element intersects with this element."""
         min_x, min_y = (self.x, self.y)
         max_x, max_y = (self.x+self.width, self.y+self.height)
-        intersect_x = elem.x >= min_x and elem.x <= max_x
-        intersect_y = elem.y >= min_y and elem.y <= max_y
-        return  intersect_x and intersect_y
+
+        min_x2, min_y2 = (elem.x, elem.y)
+        max_x2, max_y2 = (elem.x+elem.width, elem.y+elem.height)
+
+        points = [(min_x2, min_y2), (max_x2, min_y2), (max_x2, max_y2), (min_x2, max_y2)]
+        for (x,y) in points:
+            intersect_x = x >= min_x and x <= max_x
+            intersect_y = y >= min_y and y <= max_y
+
+            if intersect_x and intersect_y:
+                return True
+        return False
 
 class SvgText(SvgElement):
     """A SVG text element."""
@@ -212,3 +221,103 @@ class SvgText(SvgElement):
         for c in text:
             w += self.font_size * (char_widths[c] / self.scaling_magnitude)
         return Boxsize(w, h)
+
+class SvgTriangle(SvgElement):
+    def __init__(self, points:tuple[tuple[int, int]], element_id:ElementId, x:float=None, y:float=None):
+        super().__init__(id, x, y)
+        self.points = points
+
+    @property
+    def xml(self) -> str:
+        """Get the element's xml."""
+        return self.shape()
+
+    @property
+    def box_size(self) -> Boxsize:
+        """Get the boxsize (width, height) of the element."""
+
+    def shape(self) -> str:
+        xml = '<polygon points="'
+        for (x, y) in self.points:
+            xml += '{x},{y} '.format(x=x, y=y)
+        xml += '" fill="white" />\n'
+        return xml
+
+class SvgRelation(SvgElement):
+    def __init__(self, r1:SvgRect, r2:SvgRect, glyph_size:int = 5):
+        self.r1 = r1
+        self.r2 = r2
+        self.glyph_size = glyph_size
+        self.avoids:list[SvgBoundary] = []
+    
+    @property
+    def xml(self) -> str:
+        """"""
+        return self.line_xml() + self.line_glyph()
+        # return self.line_xml()
+
+    def line_vector(self) -> tuple[tuple[int,int]]:
+        points = []
+        p1_x = self.r1.x + math.floor(self.r1.w * .5)
+        p1_y = self.r1.y + self.r1.h
+
+        p2_x = self.r2.x + math.floor(self.r2.w * .5)
+        p2_y = self.r2.y
+
+        points.append((p1_x, p1_y,))
+
+        p_x:int
+        p_y:int
+
+
+        points.append((p2_x,p2_y-self.glyph_size,))
+
+        return((p1_x, p1_y,), (p2_x,p2_y-self.glyph_size,),)
+
+    def line_glyph(self) -> str:
+        (_,_), (x,y) = self.line_vector()
+        points = (
+            (x - self.glyph_size, y,),
+            (x + self.glyph_size, y,),
+            (x, y + self.glyph_size),
+        )
+
+        glyph = SvgTriangle(points)
+
+        return glyph.xml
+
+    def line_xml(self) -> str:
+        (p1_x, p1_y), (p2_x, p2_y) = self.line_vector()
+        xml = '<path d="'
+
+        # Draw the line
+        xml += 'M {x},{y} '.format(x=p1_x, y=p1_y)
+
+        for j in range(p1_y, p2_y+1):
+            intersection = False
+            # print(i,j)
+            p = SvgElement(-1, p1_x, j)
+            for e in self.avoids:
+                intersection = e.intersects(p)
+                if intersection:
+                    xml += 'l 0,{y} '.format(y=p.y - p1_y - 2)
+                    dy = (e.h + e.y) + 2
+                    
+                    xml += 'H {x} '.format(x=e.x - 2)
+                    xml += 'V {y} '.format(y=dy)
+                    xml += 'H {x}'.format(x=p1_x)
+                    
+                    # xml += 'l {x},0 l 0,{y} l {x2},0 l 0,{y2} '.format(x=dx, y=dy, x2=-dx, y2=dy2)
+                    break
+            
+            if intersection:
+                break
+
+        # xml += 'L {x},{y} '.format(x=p2_x, y=p2_y)
+
+        xml += 'V {y}" '.format(y=p2_y)
+        xml += 'stroke="white" stroke-dasharray="5,5" fill="none" />\n'
+        return xml
+
+    def avoid(self, elem:SvgElement):
+        self.avoids.append(elem)
