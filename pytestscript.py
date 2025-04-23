@@ -15,7 +15,7 @@ with open("coverage.xml", "r") as cov:
     # get index of the current code coverage value
     ind = data.index("line-rate=")
     # access the current code coverage percentage
-    newpercent = data[ind+13:ind+15]
+    newpercent = int(float(data[ind + 11 : ind + 16]) * 100)
     
 with open(".coveragerc", "r") as currcov:
     # read coveragerc file
@@ -23,9 +23,9 @@ with open(".coveragerc", "r") as currcov:
     # get index of current fail rate percentage
     ind2 = covdata.index("fail_under =")
     #access the current code coverage failure rate
-    oldpercent = covdata[ind2+13:ind2+15]
+    oldpercent = int(covdata[ind2 + 13 : ind2 + 16])
     #if code coverage has increased adjust the fail rate in the coverage file
     if oldpercent < newpercent:
         with open(".coveragerc", "w") as newcov:
             #update the coverage file using the index of the fail-under field
-            newcov.write(covdata[:ind2 + 13] + newpercent + covdata[ind2 + 15:])
+            newcov.write(covdata[:ind2 + 13] + str(newpercent) + covdata[ind2 + 16:])
