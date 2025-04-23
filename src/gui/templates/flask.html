@@ -967,6 +967,8 @@
 
         function addMethod2(event, elem, elem2, className) {
             if (event.key === "Enter") {
+                let methodname = document.getElementById('newMethodName-' + className);
+                let returntype = document.getElementById('newMethodType-' + className)
                 fetch("/addMethod", {
                     method: "POST",
                     headers: {
@@ -974,8 +976,8 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        methodname: elem.value,
-                        methodtype: elem2.value,
+                        methodname: methodname.value,
+                        returntype: returntype.value,
                         classname: className
                     })
                 })

@@ -208,6 +208,31 @@ class DeleteClassCommand(ActiveClassCommand):
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 
+class SetClassPositionCommand(ActiveClassCommand):
+    def execute(self):
+        try:
+            self.raise_NoActiveClass()
+            classname = self.umlclass.class_name
+            self.driver.model.update_position_umlclass(classname, self.x_pos, self.y_pos)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+    
+    @property
+    def x_pos(self) -> float:
+        prop_index = 3
+        return float(self._args[prop_index])
+
+    @property
+    def y_pos(self) -> float:
+        prop_index = 4
+        return float(self._args[prop_index])
+
 class AddFieldCommand(ActiveClassCommand):
     def execute(self):
         try:
@@ -275,7 +300,6 @@ class DeleteFieldCommand(ActiveClassCommand):
             self.raise_NoActiveClass()
             classname = self.driver.active_class.class_name
             self.driver.model.delete_field(classname, self.name)
-            self.driver.active_class = None
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
@@ -971,5 +995,6 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^save$": SaveCommand,
     r"^controller back$": BackCommand,
     r"^undo$": UndoCommand,
-    r"^redo$": RedoCommand
+    r"^redo$": RedoCommand,
+    r"^class position set [0-9]+(\.[0-9]+){0,1} [0-9]+(\.[0-9]+){0,1}$": SetClassPositionCommand
 }
