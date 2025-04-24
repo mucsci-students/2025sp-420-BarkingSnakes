@@ -1503,6 +1503,80 @@
 
         let lines = []; // Store references to LeaderLine instances
 
+        function drawLineByType(type, sourceElement, destinationElement) {
+            switch (type.toLowerCase()) {
+                case 'aggregation':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'composition':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugSize: 1.5,
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'inheritance':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#000000',
+                            outline: true,
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'realization':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            dash: { len: 10, gap: 15, animation: true },
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                default:
+                    console.error(`Unknown relationship type: ${type}`);
+                    return null;
+            }
+        }
+
         function drawRelationshipLines() {
             console.log("Drawing relationship lines...");
 
@@ -1522,28 +1596,17 @@
                         console.log("Source ID:", `ClassDetails-${relation.source}`, "Destination ID:", `ClassDetails-${relation.destination}`); // Debug log
 
                         if (sourceElement && destinationElement) {
-                            const line = new LeaderLine(
-                                sourceElement,
-                                destinationElement,
-                                {
-                                    color: 'red',
-                                    size: 2,
-                                    dash: { animation: true },
-                                    startPlug: 'disc',
-                                    endPlug: 'arrow3',
-                                    path: 'fluid',
-                                    startSocket: 'auto',
-                                    endSocket: 'auto'
-                                }
-                            );
+                            const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);
 
-                            // Attach metadata to the line
-                            line.sourceElement = sourceElement;
-                            line.destinationElement = destinationElement;
+                            if (line) {
+                                // Attach metadata to the line
+                                line.sourceElement = sourceElement;
+                                line.destinationElement = destinationElement;
 
-                            console.log("Line created:", line); // Debug log
-                            lines.push(line);
-                            console.log("Line drawn between:", relation.source, "and", relation.destination); // Debug log
+                                console.log("Line created:", line); // Debug log
+                                lines.push(line);
+                                console.log("Line drawn between:", relation.source, "and", relation.destination); // Debug log
+                            }
                         } else {
                             console.log("One or both elements not found:", relation.source, relation.destination); // Debug log
                         }
