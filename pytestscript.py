@@ -43,3 +43,4 @@ with open("coverage.xml", "r") as cov:
 if newpercent > oldmincov:
     with open("../coverage.txt", "w") as f:
         f.write(str(newpercent))
+print(__file__)
