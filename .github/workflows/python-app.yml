@@ -5,7 +5,7 @@ name: Python application for Tests
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["develop", "code-coverage-update"]
   pull_request:
     branches: ["develop"]
 
@@ -40,3 +40,15 @@ jobs:
           # if coverage on a pr were to increase to 82% compared to 80% on develop, 
           # then all future merges will also need 82% coverage
           python pytestscript.py
+        
+        - name: Generate coverage report
+        run: |
+          pytest --cov=src --cov-report=xml tests/
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+
