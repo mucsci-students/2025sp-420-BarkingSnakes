@@ -41,14 +41,4 @@ jobs:
           # then all future merges will also need 82% coverage
           python pytestscript.py
         
-        - name: Generate coverage report
-        run: |
-          pytest --cov=src --cov-report=xml tests/
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-
 
