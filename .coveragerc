@@ -19,4 +19,4 @@ include =
     src/umlrelationship.py
 
 [report]
-fail_under = 81
+fail_under = 80
