@@ -386,8 +386,8 @@ def add_relation():
     relation_type = data.get('type').upper()
     if source and destination and relation_type:
         app.controller.execute_command(["relation", "add", source, destination, relation_type])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Relation added successfully"}), 202
+    return jsonify({"error": "Invalid input"}), 406
 
 @app.post("/deleteRelation")
 @handle_umlexception
