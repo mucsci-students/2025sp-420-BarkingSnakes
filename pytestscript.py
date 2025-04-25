@@ -46,5 +46,5 @@ if newpercent > oldmincov:
     with open("../../coverage.txt", "w") as f:
         f.write(str(newpercent))
     with open("../../coverage.txt", "r") as f2:
-        print(f.read())
+        print(f2.read())
 print(__file__)
