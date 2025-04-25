@@ -34,6 +34,9 @@ class umlShell (cmd.Cmd):
     def do_a_b (self, arg):
         'Is A space B ?'
     
+    def do_undocumentedCommand(self, arg):
+        print('no docs')
+    
     def do_quit(self, arg):
         'Quit the program'
         print('Exiting BS-UML')
@@ -47,6 +50,39 @@ class umlShell (cmd.Cmd):
     def do_longCommandThatLooksThisOtherWay(self, arg):
         'zoop'
         print('zoopity',arg,'doop')
+
+    def do_commandWithCompletes(self, arg):
+        'this command has completion options'
+        print('hello',arg)
+
+    def do_EOF(self, arg):
+        'closes'
+        print('\nbye')
+        return True
+
+    def default(self, line):
+        'no matches for your command'
+        print('reached default',line)
+
+    def completedefault(self, text, line, begidx, endidx):
+        print()
+        print('text', text)
+        print('line', line)
+        print('begidx', begidx)
+        print('endidx', endidx)
+        print('test', line[begidx:endidx])
+        print()
+        return ['list', 'of', 'options']
+
+    def complete_commandWithCompletes(self, text, line, begidx, endidx):
+        print()
+        print('text', text)
+        print('line', line)
+        print('begidx', begidx)
+        print('endidx', endidx)
+        print('test', line[begidx:endidx])
+        print()
+        return ['world', 'worm']
     
 if __name__ == '__main__' :
     umlShell().cmdloop()
