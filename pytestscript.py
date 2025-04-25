@@ -7,7 +7,7 @@ import pytest
     
 # try to open the archived file
 try:
-    with open("../coverage.txt", "r") as f:
+    with open("../../coverage.txt", "r") as f:
         oldmincov = int(f.read() or 0)
 except FileNotFoundError:
     print("not found")
@@ -42,6 +42,9 @@ with open("coverage.xml", "r") as cov:
 
 # if coverage has increased update archive file
 if newpercent > oldmincov:
-    with open("../coverage.txt", "w") as f:
+    print(f"new percent: {newpercent} old percent: {oldmincov}")
+    with open("../../coverage.txt", "w") as f:
         f.write(str(newpercent))
+    with open("../../coverage.txt", "r") as f2:
+        print(f.read())
 print(__file__)
