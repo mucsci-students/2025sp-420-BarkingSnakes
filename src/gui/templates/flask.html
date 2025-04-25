@@ -1551,22 +1551,15 @@
                         const sourceElement = document.getElementById(`ClassDetails-${relation.source}`);
                         const destinationElement = document.getElementById(`ClassDetails-${relation.destination}`);
 
-                        console.log("Source ID:", `ClassDetails-${relation.source}`, "Destination ID:", `ClassDetails-${relation.destination}`); // Debug log
+                        if (!sourceElement || !destinationElement) {
+                            console.error(`One or both elements not found for relation:`, relation);
+                            return; 
+                        }
 
-                        if (sourceElement && destinationElement) {
-                            const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);
-
-                            if (line) {
-                                // Attach metadata to the line
-                                line.sourceElement = sourceElement;
-                                line.destinationElement = destinationElement;
-
-                                console.log("Line created:", line); // Debug log
-                                lines.push(line);
-                                console.log("Line drawn between:", relation.source, "and", relation.destination); // Debug log
-                            }
-                        } else {
-                            console.log("One or both elements not found:", relation.source, relation.destination); // Debug log
+                        const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);
+                        if (line) {
+                            lines.push(line);
+                            console.log("Line drawn between:", relation.source, "and", relation.destination);
                         }
                     });
                 })
