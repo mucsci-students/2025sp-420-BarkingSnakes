@@ -14,13 +14,18 @@
 
 <body style="background-color: #0e1113;">
     <div id="toolbar">
-        <button onclick="toggleLists()">Lists</button>
-        <button onclick="showNewModal()">New</button>
-        <button onclick="showSaveModal()">Save</button>
-        <button onclick="showLoadModal()">Load</button>
-        <button onclick="confirmQuit()">Quit</button>
+        <div id="addButtons">
+            <button onclick="showAddClassModal()">Add Class</button>
+            <button onclick="showAddRelationModal()">Add Relationship</button>
+        </div>
+        <div id="otherButtons">
+            <button onclick="toggleLists()">Lists</button>
+            <button onclick="showNewModal()">New</button>
+            <button onclick="showSaveModal()">Save</button>
+            <button onclick="showLoadModal()">Load</button>
+            <button onclick="confirmQuit()">Quit</button>
+        </div>
     </div>
-
     <div id="content">
     </div>
 
@@ -38,16 +43,6 @@
     <div id="ClassDetails" style="display: none;">
         <button class="close" onclick="closeClassDetails()">&times;</button>
         <!-- Class details will be displayed here -->
-    </div>
-
-    <!-- The Modal for adding classes and relationships -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p id="modalPrompt">Enter Class Name:</p>
-            <input type="text" id="classNameInput" />
-            <button id="modalSubmitButton" onclick="addClass()">Submit</button>
-        </div>
     </div>
 
     <!-- The Modal for creating a new project -->
@@ -93,6 +88,37 @@
         </div>
     </div>
 
+    <!-- Add Class Modal -->
+    <div id="addClassModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddClassModal()">&times;</span>
+            <h2>Add Class</h2>
+            <p>Enter Class Name:</p>
+            <input type="text" id="addClassInput" />
+            <button onclick="addClassFromModal()">Add Class</button>
+        </div>
+    </div>
+
+    <!-- Add Relationship Modal -->
+    <div id="addRelationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddRelationModal()">&times;</span>
+            <h2>Add Relationship</h2>
+            <p>Select Relationship Type:</p>
+            <select id="relationTypeDropdown">
+                <option value="Inheritance">Inheritance</option>
+                <option value="Aggregation">Aggregation</option>
+                <option value="Composition">Composition</option>
+                <option value="Realization">Realization</option>
+            </select>
+            <p>Select Source Class:</p>
+            <select id="relationSourceDropdown"></select>
+            <p>Select Destination Class:</p>
+            <select id="relationDestinationDropdown"></select>
+            <button onclick="addRelationFromModal()">Add Relationship</button>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
@@ -108,8 +134,24 @@
             background-color: #333;
             color: white;
             padding: 10px;
-            text-align: center;
+            display: flex;
+            align-items: center;
             z-index: 2;
+        }
+
+        #addButtons {
+            display: flex;
+            gap: 10px;
+            margin-right: auto;
+        }
+
+        #otherButtons {
+            display: flex;
+            gap: 10px;
+            margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         #toolbar button {
@@ -117,7 +159,6 @@
             color: white;
             border: none;
             padding: 10px 20px;
-            margin: 5px;
             cursor: pointer;
             font-size: 16px;
         }
@@ -126,33 +167,6 @@
             background-color: #028a5e;
         }
 
-        #mySidenav {
-            position: fixed;
-            left: 0;
-            top: 60px;
-            /* Adjusted to be below the toolbar */
-            height: calc(100% - 60px);
-            /* Adjusted to be below the toolbar */
-            width: 125px;
-            background-color: #111;
-            padding-top: 20px;
-        }
-
-        #mySidenav button {
-            position: relative;
-            left: -75px;
-            transition: 0.3s;
-            padding: 15px;
-            width: 125px;
-            text-decoration: none;
-            font-size: 18px;
-            color: white;
-            border-radius: 0 5px 5px 0;
-        }
-
-        #mySidenav button:hover {
-            left: 0;
-        }
 
         #ClassList {
             top: 20px;
@@ -171,11 +185,8 @@
             color: white;
             margin-bottom: 20px;
             position: fixed;
-            /* Fix the position */
             left: 0;
-            /* Align to the left wall */
             width: 20%;
-            /* Adjust width as needed */
         }
 
         #ClassTable {
@@ -267,22 +278,6 @@
             font-size: 18px;
         }
 
-        .add-button {
-            background-color: #04AA6D;
-            color: white;
-            border: 2px solid #028a5e;
-            padding: 10px;
-            text-align: center;
-            width: 100%;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-
-        .add-button:hover {
-            background-color: #028a5e;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
 
         /* Modal styles */
         .modal {
@@ -585,6 +580,8 @@
         var modal = document.getElementById("myModal");
         var saveModal = document.getElementById("saveModal");
         var newModal = document.getElementById("newModal");
+        var addClassModal = document.getElementById("addClassModal");
+        var addRelationModal = document.getElementById("addRelationModal");
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
@@ -620,7 +617,7 @@
          * Shows the new project modal.
          */
         function showNewModal() {
-            // document.getElementById("newFileNameInput").value = ".json"
+            closeAllModals();
             newModal.style.display = "block";
         }
 
@@ -635,8 +632,8 @@
          * Shows the save modal.
          */
         function showSaveModal() {
-            // document.getElementById("fileNameInput")
-            saveModal.style.display = "block";
+            closeAllModals();
+            document.getElementById("saveModal").style.display = "block";
         }
 
         /**
@@ -750,59 +747,62 @@
             if (event.target == saveModal) {
                 saveModal.style.display = "none";
             }
-        }
-
-        /**
-         * Adds a new class.
-         * Adds the new class to the class list and updates the display.
-         */
-        function addClass() {
-            let className = document.getElementById("classNameInput").value;
-            // Add logic to handle the new class name
-            console.log("New class name:", className);
-            // Add the new class to the list above the "Add Class" button
-            let table = document.getElementById("Data");
-            let plusRow = table.rows[table.rows.length - 1];
-            let row = table.insertRow(table.rows.length - 1);
-            let cell = row.insertCell(0);
-            let button = document.createElement("button");
-            button.innerHTML = className;
-            button.className = "class-button";
-            button.onclick = function () {
-                displayClassDetails(className);
-            };
-            cell.appendChild(button);
-            modal.style.display = "none";
-        }
-
-        function addClass2(event, elem) {
-            if (event.key === "Enter") {
-
-                fetch("/addClass", {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        classname: elem.value
-                    })
-                })
-                    .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        } else {
-                            getClassList();
-                            getRelationList();
-                        }
-                    })
-                    .then(data => {
-                        console.log(data);
-                        snackbar(data.error);
-                    })
-                    .catch(error => console.log(error))
+            if (event.target == loadModal) {
+                loadModal.style.display = "none";
             }
+            if (event.target == newModal) {
+                newModal.style.display = "none";
+            }
+            if (event.target == addClassModal) {
+                closeAddClassModal();
+            }
+            if (event.target == addRelationModal) {
+                closeAddRelationModal();
+            }
+        }
+
+        function closeAllModals() {
+            const modals = document.querySelectorAll(".modal");
+            modals.forEach(modal => {
+                modal.style.display = "none";
+            });
+        }
+
+        // Show Add Class Modal
+        function showAddClassModal() {
+            closeAllModals();
+            document.getElementById("addClassModal").style.display = "block";
+        }
+
+        // Close Add Class Modal
+        function closeAddClassModal() {
+            document.getElementById("addClassModal").style.display = "none";
+        }
+
+        // Add Class from Modal
+        function addClassFromModal() {
+            const className = document.getElementById("addClassInput").value;
+            if (!className) {
+                snackbar("Class name cannot be empty.");
+                return;
+            }
+
+            fetch("/addClass", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ classname: className })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        getClassList();
+                        closeAddClassModal();
+                    } else {
+                        snackbar("Failed to add class.");
+                    }
+                })
+                .catch(error => console.error("Error adding class:", error));
         }
 
         function deleteClass(classname, override) {
@@ -842,53 +842,67 @@
         }
 
 
-        /**
-         * Adds a new relation.
-         * Adds the new relation to the relation list and updates the display.
-         */
-        function addRelation() {
-            let sourceClass = document.getElementById("newRelationSource").value;
-            let targetClass = document.getElementById("newRelationDestination").value;
-            let relationType = document.getElementById("newRelationType").value.toUpperCase();
+        // Show Add Relationship Modal
+        function showAddRelationModal() {
+            closeAllModals(); // Close any open modals
+            document.getElementById("addRelationModal").style.display = "block";
 
-            if (!sourceClass || !targetClass || !relationType) {
-                console.error("Missing source, destination, or relation type.");
-                snackbar("Please select all fields before submitting.");
+            // Populate dropdowns with class names
+            fetch("/classlist")
+                .then(response => response.json())
+                .then(data => {
+                    const classNames = data.html.match(/<button.*?>(.*?)<\/button>/g).map(btn => btn.replace(/<.*?>/g, ''));
+                    const sourceDropdown = document.getElementById("relationSourceDropdown");
+                    const destinationDropdown = document.getElementById("relationDestinationDropdown");
+
+                    sourceDropdown.innerHTML = "";
+                    destinationDropdown.innerHTML = "";
+
+                    classNames.forEach(className => {
+                        const option = `<option value="${className}">${className}</option>`;
+                        sourceDropdown.innerHTML += option;
+                        destinationDropdown.innerHTML += option;
+                    });
+                });
+        }
+
+        // Close Add Relationship Modal
+        function closeAddRelationModal() {
+            document.getElementById("addRelationModal").style.display = "none";
+        }
+
+        // Add Relationship from Modal
+        function addRelationFromModal() {
+            const relationType = document.getElementById("relationTypeDropdown").value;
+            const sourceClass = document.getElementById("relationSourceDropdown").value;
+            const destinationClass = document.getElementById("relationDestinationDropdown").value;
+
+            if (!relationType || !sourceClass || !destinationClass) {
+                snackbar("All fields are required.");
                 return;
             }
 
             fetch("/addRelation", {
                 method: "POST",
                 headers: {
-                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    type: relationType,
                     source: sourceClass,
-                    destination: targetClass,
-                    type: relationType
+                    destination: destinationClass
                 })
             })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        return resp.json().then(data => {
-                            throw new Error(data.error || "Failed to add relation.");
-                        });
+                .then(response => {
+                    if (response.ok) {
+                        getRelationList();
+                        drawRelationshipLines();
+                        closeAddRelationModal();
+                    } else {
+                        snackbar("Failed to add relationship.");
                     }
-                    // Handle cases where the response body might be empty
-                    return resp.json().catch(() => ({}));
                 })
-                .then(() => {
-                    console.log("Relation added successfully.");
-                    getRelationList(); // Update the relation list
-                    drawRelationshipLines(); // Draw the updated lines
-                })
-                .catch(error => {
-                    console.error("Error adding relation:", error);
-                    snackbar(error.message);
-                });
-
-            toggleVisibility(['cntrAddRelationship']);
+                .catch(error => console.error("Error adding relationship:", error));
         }
 
         /**
@@ -984,7 +998,7 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event,className) {
+        function addMethod2(event, className) {
             if (event.key === "Enter") {
                 let methodname = document.getElementById('newMethodName-' + className);
                 let returntype = document.getElementById('newMethodType-' + className);
@@ -1276,6 +1290,7 @@
         }
 
         function showLoadModal() {
+            closeAllModals()
             document.getElementById("loadModal").style.display = "block";
         }
 
@@ -1555,7 +1570,7 @@
 
                         if (!sourceElement || !destinationElement) {
                             console.error(`One or both elements not found for relation:`, relation);
-                            return; 
+                            return;
                         }
 
                         const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);

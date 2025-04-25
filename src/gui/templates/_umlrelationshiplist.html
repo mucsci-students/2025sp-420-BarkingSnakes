@@ -29,23 +29,5 @@
             </td>
         </tr>
         {% endfor %}
-        <tr style="align-items:center">
-            <td>
-                {% with tagId="newRelationType" %}
-                {% include "_umlrelationtypes_dropdown.html" %}
-                {% endwith %}
-            </td>
-            <td>
-                {% with tagId="newRelationSource" %}
-                {% include "_umlclasses_dropdown.html" %}
-                {% endwith %}
-            </td>
-            <td>
-                {% with tagId="newRelationDestination" %}
-                {% include "_umlclasses_dropdown.html" %}
-                {% endwith %}
-            </td>
-            <td><button class="add-button" onclick="addRelation()">Submit</button></td>
-        </tr>
     </tbody>
 </table>
