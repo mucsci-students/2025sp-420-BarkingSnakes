@@ -24,7 +24,6 @@ class UmlShell(cmd.Cmd):
 
     def default(self, line):
         try:
-            print(line)
             _command = self.view.parse_command(line)
             self.view.handle_command(_command)
             self.view.handle_command_result(_command)
