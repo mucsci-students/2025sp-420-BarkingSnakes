@@ -42,9 +42,6 @@ with open("coverage.xml", "r") as cov:
 
 # if coverage has increased update archive file
 if newpercent > oldmincov:
-    print(f"new percent: {newpercent} old percent: {oldmincov}")
     with open("../../coverage.txt", "w") as f:
         f.write(str(newpercent))
-    with open("../../coverage.txt", "r") as f2:
-        print(f2.read())
 print(__file__)
