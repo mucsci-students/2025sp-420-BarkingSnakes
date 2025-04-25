@@ -15,11 +15,12 @@ class UmlShell(cmd.Cmd):
         self.prompt = view.prompt
 
     def completedefault(self, text, line, begidx, endidx):
-        def is_matching_line(suggestion):
-            return suggestion.startswith(line)
-
+        # def is_matching_line(suggestion):
+        #     return suggestion.startswith(line)
+        offset = len(line) - len(text)
         tcompletes = self.view._calculate_tab_completion_list()
-        return list(filter(is_matching_line, tcompletes))
+        return [s[offset:] for s in tcompletes if s.startswith(line)]
+        # return list(filter(is_matching_line, tcompletes))
 
     def default(self, line):
         try:
@@ -81,7 +82,9 @@ class UmlShell(cmd.Cmd):
 
 class UmlViewCliObserver(UmlViewObserver):
     """"""
-    
+    import utilities.cli_utils as cli
+    _ec = cli.get_escape_char()
+
     DEFAULT_PROMPT = "BS-uml"
     active_class:UmlClass = None
     active_method:UmlMethod = None
@@ -122,16 +125,16 @@ class UmlViewCliObserver(UmlViewObserver):
     @property
     def prompt(self) -> str:
         """The CLI prompt to display each loop."""
-        prompt = f"{self.DEFAULT_PROMPT}"
+        prompt = f"{self._ec}[1;31m{self.DEFAULT_PROMPT}{self._ec}[0m"
         if self.active_class:
             classname = self.active_class.class_name
-            prompt += f"{classname}"
+            prompt += f"{self._ec}[36m[{classname}]{self._ec}[0m"
         if self.active_method:
             methodname = self.active_method.name
             paramlist = ",".join(self.active_method.overloadID.split(" "))
             rtype = self.active_method.return_type
-            prompt += f"{methodname}({paramlist}) -> {rtype}"
-        return f"{prompt}> "
+            prompt += f"{self._ec}[33m[+{methodname}({paramlist}) -> {rtype}]{self._ec}[0m"
+        return rf"{prompt}{self._ec}[1;31m>{self._ec}[0m "
 
     def _calculate_tab_completion_list(self) -> list[str]:
         """Calculates the available options for tab completion."""
