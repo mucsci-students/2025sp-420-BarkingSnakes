@@ -17,18 +17,10 @@
                 {% endwith %}
             </td>
             <td>
-                {% with tagId='relationSourceRow-' + loop.index|string() %}
-                {% with selected_type = r.source %}
-                {% include "_umlclasses_dropdown.html" with context %}
-                {% endwith %}
-                {% endwith %}
+                <span>{{ r.source }}</span>
             </td>
             <td>
-                {% with tagId='relationDestinationRow-' + loop.index|string() %}
-                {% with selected_type = r.destination %}
-                {% include "_umlclasses_dropdown.html" with context %}
-                {% endwith %}
-                {% endwith %}
+                <span>{{ r.destination }}</span>
             </td>
             <td>
                 <a href="#" onclick="deleteRelation('{{ r.source }}', '{{ r.destination }}')" title="Delete Relation">
@@ -37,45 +29,23 @@
             </td>
         </tr>
         {% endfor %}
-        <tr></tr>
+        <tr style="align-items:center">
+            <td>
+                {% with tagId="newRelationType" %}
+                {% include "_umlrelationtypes_dropdown.html" %}
+                {% endwith %}
+            </td>
+            <td>
+                {% with tagId="newRelationSource" %}
+                {% include "_umlclasses_dropdown.html" %}
+                {% endwith %}
+            </td>
+            <td>
+                {% with tagId="newRelationDestination" %}
+                {% include "_umlclasses_dropdown.html" %}
+                {% endwith %}
+            </td>
+            <td><button class="add-button" onclick="addRelation()">Submit</button></td>
+        </tr>
     </tbody>
 </table>
-<hr>
-<div style="margin-top:15px;">
-    <button style="display: block;" id="btnAddRelationship" class="add-button"
-        onclick="toggleVisibility(['cntrAddRelationship'])"><span class="glyphicon glyphicon-plus-sign"></span> Add
-        Relationship</button>
-    <div id="cntrAddRelationship" style="width: 100%; display:none; margin-top:15px;">
-        <!-- <label for="newRelationType">Type:</label>
-        <input class="input-mode-view" id="newRelationType" type="text" onkeydown="addClass2(event, this)" onblur="inputBlur(event, () => toggleVisibility(['btnAddClass', 'cntrAddClass']))"> -->
-        <table class="RelationData">
-            <thead>
-                <tr>
-                    <td>Type</td>
-                    <td>Source</td>
-                    <td>Destination</td>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="align-items:center">
-                    <td>
-                        {% with tagId="newRelationType" %}
-                        {% include "_umlrelationtypes_dropdown.html" %}
-                        {% endwith %}
-                    </td>
-                    <td>
-                        {% with tagId="newRelationSource" %}
-                        {% include "_umlclasses_dropdown.html" %}
-                        {% endwith %}
-                    </td>
-                    <td>
-                        {% with tagId="newRelationDestination" %}
-                        {% include "_umlclasses_dropdown.html" %}
-                        {% endwith %}
-                    </td>
-                    <td><button class="add-button" onclick="addRelation()">Submit</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>

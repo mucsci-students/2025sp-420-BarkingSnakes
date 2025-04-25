@@ -549,21 +549,20 @@
         function toggleVisibility(ids) {
             console.log("Toggle: " + ids);
             ids.forEach(id => {
-                elem = document.getElementById(id);
-                input = elem.getElementsByTagName("input")[0];
+                const elem = document.getElementById(id);
+                if (!elem) {
+                    console.error(`Element with ID '${id}' not found.`);
+                    return;
+                }
+                const input = elem.getElementsByTagName("input")[0];
                 console.log(elem.style.display, elem);
                 if (elem.style.display === "none" || elem.style.display === "" || elem.style.display === null) {
                     elem.style.display = "block";
-                    if (input) {
-                        input.focus();
-                    }
+                    if (input) input.focus();
                 } else {
                     elem.style.display = "none";
-                    if (input) {
-                        input.blur();
-                    }
                 }
-            })
+            });
         }
 
         /**
@@ -571,27 +570,14 @@
          * Sends a request to the server to get the list of relations.
          */
         function getRelationList() {
-            // fetch('/relationlist')
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         table = document.getElementById("RelationData");
-            //         table.innerHTML = "";
-            //         data.forEach(element => {
-            //             table.insertRow(0).insertCell(0).innerHTML = element;
-            //         });
-            //         // Add a row with a plus sign at the bottom
-            //         let plusRow = table.insertRow();
-            //         let plusCell = plusRow.insertCell(0);
-            //         plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
-            //     });
-
             fetch("/relationList")
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Updated relationship list:", data.model.relationships);
-                    container = document.getElementById("RelationTable");
-                    container.innerHTML = data.html;
+                    const container = document.getElementById("RelationTable");
+                    container.innerHTML = data.html; // Update the relation table
+                    drawRelationshipLines(); // Redraw the lines after updating the table
                 })
+                .catch(error => console.error("Error fetching relation list:", error));
         }
 
 
@@ -874,6 +860,7 @@
             fetch("/addRelation", {
                 method: "POST",
                 headers: {
+                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -882,22 +869,26 @@
                     type: relationType
                 })
             })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(data => {
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json().then(data => {
                             throw new Error(data.error || "Failed to add relation.");
                         });
                     }
-                    return response.json();
+                    // Handle cases where the response body might be empty
+                    return resp.json().catch(() => ({}));
                 })
-                .then(data => {
-                    console.log("Relation added successfully:", data);
-                    getRelationList();
+                .then(() => {
+                    console.log("Relation added successfully.");
+                    getRelationList(); // Update the relation list
+                    drawRelationshipLines(); // Draw the updated lines
                 })
                 .catch(error => {
                     console.error("Error adding relation:", error);
                     snackbar(error.message);
                 });
+
+            toggleVisibility(['cntrAddRelationship']);
         }
 
         /**
@@ -1406,39 +1397,6 @@
             }
         }
 
-        function addRelation() {
-            let sourceClass = document.getElementById("newRelationSource").value;
-            let targetClass = document.getElementById("newRelationDestination").value;
-            let relationType = document.getElementById("newRelationType").value;
-
-            fetch("/addRelation", {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    source: sourceClass,
-                    destination: targetClass,
-                    type: relationType
-                })
-            })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        return resp.json();
-                    } else {
-                        getRelationList();
-                    }
-                })
-                .then(data => {
-                    if (data && data.error) {
-                        snackbar(data.error);
-                    }
-                })
-                .catch(error => console.log(error));
-
-            toggleVisibility(['cntrAddRelationship']);
-        }
 
         function deleteRelation(source, destination) {
             console.log(source, destination);
@@ -1505,6 +1463,80 @@
 
         let lines = []; // Store references to LeaderLine instances
 
+        function drawLineByType(type, sourceElement, destinationElement) {
+            switch (type.toLowerCase()) {
+                case 'aggregation':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'composition':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugSize: 1.5,
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'inheritance':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#000000',
+                            outline: true,
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'realization':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            dash: { len: 10, gap: 15, animation: true },
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                default:
+                    console.error(`Unknown relationship type: ${type}`);
+                    return null;
+            }
+        }
+
         function drawRelationshipLines() {
             console.log("Drawing relationship lines...");
 
@@ -1521,33 +1553,15 @@
                         const sourceElement = document.getElementById(`ClassDetails-${relation.source}`);
                         const destinationElement = document.getElementById(`ClassDetails-${relation.destination}`);
 
-                        console.log("Source ID:", `ClassDetails-${relation.source}`, "Destination ID:", `ClassDetails-${relation.destination}`); // Debug log
+                        if (!sourceElement || !destinationElement) {
+                            console.error(`One or both elements not found for relation:`, relation);
+                            return; 
+                        }
 
-                        if (sourceElement && destinationElement) {
-                            const line = new LeaderLine(
-                                sourceElement,
-                                destinationElement,
-                                {
-                                    color: 'red',
-                                    size: 2,
-                                    dash: { animation: true },
-                                    startPlug: 'disc',
-                                    endPlug: 'arrow3',
-                                    path: 'fluid',
-                                    startSocket: 'auto',
-                                    endSocket: 'auto'
-                                }
-                            );
-
-                            // Attach metadata to the line
-                            line.sourceElement = sourceElement;
-                            line.destinationElement = destinationElement;
-
-                            console.log("Line created:", line); // Debug log
+                        const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);
+                        if (line) {
                             lines.push(line);
-                            console.log("Line drawn between:", relation.source, "and", relation.destination); // Debug log
-                        } else {
-                            console.log("One or both elements not found:", relation.source, relation.destination); // Debug log
+                            console.log("Line drawn between:", relation.source, "and", relation.destination);
                         }
                     });
                 })
