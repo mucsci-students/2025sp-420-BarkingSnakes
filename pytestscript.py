@@ -10,6 +10,7 @@ try:
     with open("../coverage.txt", "r") as f:
         oldmincov = int(f.read() or 0)
 except FileNotFoundError:
+    print("not found")
     oldmincov = 80
 
 # update coveragerc from the archived file
