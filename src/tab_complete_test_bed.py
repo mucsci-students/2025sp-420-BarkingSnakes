@@ -63,19 +63,18 @@ class umlShell (cmd.Cmd):
     def default(self, line):
         'no matches for your command'
         print('reached default',line)
-        return True
 
     def completedefault(self, text, line, begidx, endidx):
-        #print()
-        #print('text', text)
-        #print('line', line)
+        # print()
+        # print('text', text)
+        # print('line', line)
         # print('begidx', begidx)
         # print('endidx', endidx)
         # print('test', line[begidx:endidx])
         # print()
-        fullList = ['list', 'of', 'options', 'wow', 'look', 'at', 'all', 'these', 'limes']
+        fullList = ['list', 'of', 'options', 'wow', 'look', 'at', 'all', 'these', 'limes', 'list class', 'list car']
         def good(item):
-            return item.startswith(text)
+            return item.startswith(line)
         answer = list(filter(good, fullList))
         # print(answer)
         return answer

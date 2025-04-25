@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 import re
 import cmd
@@ -8,7 +9,77 @@ import umlcommands.controller_commands as c_cmd
 from umlclass import UmlClass, UmlMethod
 from umlrelationship import RelationshipType, UmlRelationship
 
-class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
+class UmlShell(cmd.Cmd):
+    def set_view(self, view:UmlViewCliObserver):
+        self.view = view
+        self.prompt = view.prompt
+
+    def completedefault(self, text, line, begidx, endidx):
+        def is_matching_line(suggestion):
+            return suggestion.startswith(line)
+
+        tcompletes = self.view._calculate_tab_completion_list()
+        return list(filter(is_matching_line, tcompletes))
+
+    def default(self, line):
+        try:
+            print(line)
+            _command = self.view.parse_command(line)
+            self.view.handle_command(_command)
+            self.view.handle_command_result(_command)
+        except Exception as e:
+            print(f"ERROR: Something went wrong. ({e})")
+        self.prompt = self.view.prompt
+        return not self.view.running
+
+    # The following functions are needed for tab completion of the first token.
+    def do_class(self, arg):
+        return self.default('class ' + arg)
+
+    def do_relation(self, arg):
+        return self.default('relation ' + arg)
+
+    def do_load(self, arg):
+        return self.default('load ' + arg)
+
+    def do_new(self, arg):
+        return self.default('new ' + arg)
+
+    def do_save(self, arg):
+        return self.default('save ' + arg)
+
+    def do_quit(self, arg):
+        return self.default('quit ' + arg)
+
+    def do_list(self, arg):
+        return self.default('list ' + arg)
+
+    def do_undo(self, arg):
+        return self.default('undo ' + arg)
+    
+    def do_redo(self, arg):
+        return self.default('redo ' + arg)
+
+    def do_EOF(self, arg):
+        quit()
+
+    # Though these should only be accessible in certain contexts, to have the words
+    # tab complete, we need these here, but that means they will also be options
+    # in the other contexts.
+    def do_parameter(self, arg):
+        return self.default('parameter ' + arg)
+
+    def do_field(self, arg):
+        return self.default('field ' + arg)
+
+    def do_method(self, arg):
+        return self.default('method ' + arg)
+    
+    def do_back(self, arg):
+        return self.default('back ' + arg)
+
+
+class UmlViewCliObserver(UmlViewObserver):
     """"""
     
     DEFAULT_PROMPT = "BS-uml"
@@ -18,12 +89,8 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
 
     def parse_command(self, cmd_string:str) -> UmlCommand:
         """Logic to parse command strings and return an appropriate UmlCommand."""
-        # if cmd_string == "quit":
-        #     cmd = self.COMMANDS.ExitCommand()
-        #     cmd.set_driver(self)
-        #     return cmd
-        # else:
-        cmd_args = tuple(cmd_string.split(" "))
+        cmd_string = cmd_string.strip()
+        cmd_args = tuple(cmd_string.split())# Changed from .split(" "), revert if needed.
         for regex, cmd in c_cmd.UMLCOMMANDS.items():
             if re.search(regex, cmd_string):
                 _cmd = cmd(*cmd_args)
@@ -101,8 +168,6 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.COMPOSITION.name.lower()}")
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.INHERITANCE.name.lower()}")
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.REALIZATION.name.lower()}")
-        
-
 
         # options available when not in a class context
         if not self.active_class:
@@ -152,7 +217,6 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
                 
                 t_base.extend(method_context_base)
                 
-
         return t_base
             
     def handle_command_result(self, cmd:UmlCommand):
@@ -195,45 +259,6 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
         cmdsub.attach(self)
         cmdsub.notify()
 
-    def default(self, line):
-        try:
-            _command = self.parse_command(line)
-            self.handle_command(_command)
-            self.handle_command_result(_command)
-        except Exception as e:
-            print(f"ERROR: Something went wrong. ({e})")
-        return self.running
-
-    def do_class(self, arg):
-        return self.default('class ' + arg)
-
-    def do_relation(self, arg):
-        return self.default('relation ' + arg)
-
-    def do_load(self, arg):
-        return self.default('load ' + arg)
-
-    def do_new(self, arg):
-        return self.default('new ' + arg)
-
-    def do_save(self, arg):
-        return self.default('save ' + arg)
-
-    def do_quit(self, arg):
-        return self.default('quit ' + arg)
-
-    def do_list(self, arg):
-        return self.default('list ' + arg)
-
-    def do_parameter(self, arg):
-        return self.default('parameter ' + arg)
-
-    def do_field(self, arg):
-        return self.default('field ' + arg)
-
-    def do_method(self, arg):
-        return self.default('method ' + arg)
-
     def start(self):
         """Logic needed to run the UmlViewObserver."""
         import umlcommands.cli_commands
@@ -241,7 +266,11 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
         self._prompt_requester = self.COMMANDS.CliPromptRequester()
 
         self.running = True
-        self.cmdloop()
+        
+        shell = UmlShell()
+        shell.set_view(self)
+        shell.cmdloop()
+
         # while self.running:
         #     try:
         #         tcompletes = self._calculate_tab_completion_list()
