@@ -66,94 +66,94 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
             prompt += f"{methodname}({paramlist}) -> {rtype}"
         return f"{prompt}> "
 
-    # def _calculate_tab_completion_list(self) -> list[str]:
-    #     """Calculates the available options for tab completion."""
+    def _calculate_tab_completion_list(self) -> list[str]:
+        """Calculates the available options for tab completion."""
 
-    #     # Base options, always available
-    #     t_base = ["quit", "list", "relation list", "relation types", "undo", "redo"]
+        # Base options, always available
+        t_base = ["quit", "list", "relation list", "relation types", "undo", "redo"]
 
-    #     classes:list[UmlClass] = None
-    #     cmd:c_cmd.ListClassesCommand = self.parse_command("class list")
-    #     self.handle_command(cmd)
-    #     result = cmd.get_result()
-    #     if result.outcome == CommandOutcome.SUCCESS:
-    #         classes = cmd.umlclasses
+        classes:list[UmlClass] = None
+        cmd:c_cmd.ListClassesCommand = self.parse_command("class list")
+        self.handle_command(cmd)
+        result = cmd.get_result()
+        if result.outcome == CommandOutcome.SUCCESS:
+            classes = cmd.umlclasses
         
-    #     relationships:set[UmlRelationship] = None
-    #     cmd2:c_cmd.ListRelationCommand = self.parse_command("relation list")
-    #     self.handle_command(cmd2)
-    #     result2 = cmd.get_result()
-    #     if result.outcome == CommandOutcome.SUCCESS:
-    #         relationships = cmd2.relationships
-    #         relation_strings = [f"{r.source_class.class_name} {r.destination_class.class_name}" for r in relationships]
+        relationships:set[UmlRelationship] = None
+        cmd2:c_cmd.ListRelationCommand = self.parse_command("relation list")
+        self.handle_command(cmd2)
+        result2 = cmd.get_result()
+        if result.outcome == CommandOutcome.SUCCESS:
+            relationships = cmd2.relationships
+            relation_strings = [f"{r.source_class.class_name} {r.destination_class.class_name}" for r in relationships]
 
-    #     for c1 in classes:
-    #         for c2 in classes:
-    #             relation_string = f"{c2.class_name} {c2.class_name}"
-    #             if relation_string in relation_strings:
-    #                 t_base.append(f"relation delete {relation_string}")
-    #                 t_base.append(f"relation set {relation_string} {RelationshipType.AGGREGATION.name.lower()}")
-    #                 t_base.append(f"relation set {relation_string} {RelationshipType.COMPOSITION.name.lower()}")
-    #                 t_base.append(f"relation set {relation_string} {RelationshipType.INHERITANCE.name.lower()}")
-    #                 t_base.append(f"relation set {relation_string} {RelationshipType.REALIZATION.name.lower()}")
-    #             else:
-    #                 t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.AGGREGATION.name.lower()}")
-    #                 t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.COMPOSITION.name.lower()}")
-    #                 t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.INHERITANCE.name.lower()}")
-    #                 t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.REALIZATION.name.lower()}")
+        for c1 in classes:
+            for c2 in classes:
+                relation_string = f"{c2.class_name} {c2.class_name}"
+                if relation_string in relation_strings:
+                    t_base.append(f"relation delete {relation_string}")
+                    t_base.append(f"relation set {relation_string} {RelationshipType.AGGREGATION.name.lower()}")
+                    t_base.append(f"relation set {relation_string} {RelationshipType.COMPOSITION.name.lower()}")
+                    t_base.append(f"relation set {relation_string} {RelationshipType.INHERITANCE.name.lower()}")
+                    t_base.append(f"relation set {relation_string} {RelationshipType.REALIZATION.name.lower()}")
+                else:
+                    t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.AGGREGATION.name.lower()}")
+                    t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.COMPOSITION.name.lower()}")
+                    t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.INHERITANCE.name.lower()}")
+                    t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.REALIZATION.name.lower()}")
         
 
 
-    #     # options available when not in a class context
-    #     if not self.active_class:
-    #         class_base = ["class add "]
+        # options available when not in a class context
+        if not self.active_class:
+            class_base = ["class add "]
 
-    #         # Add the classes from the model as tab complete options
-    #         if classes:
-    #             for c in classes:
-    #                 class_base.append("class {}".format(c.class_name))
-    #         t_base.extend(class_base)
-    #     else:
-    #         # Options available in a class context
-    #         class_context_base = [
-    #             "back", 
-    #             "field add ", 
-    #             "delete", 
-    #             "rename ",
-    #             "field add ",
-    #             "method add "
-    #         ]
+            # Add the classes from the model as tab complete options
+            if classes:
+                for c in classes:
+                    class_base.append("class {}".format(c.class_name))
+            t_base.extend(class_base)
+        else:
+            # Options available in a class context
+            class_context_base = [
+                "back", 
+                "field add ", 
+                "delete", 
+                "rename ",
+                "field add ",
+                "method add "
+            ]
 
-    #         # Add the class field and method names as tab complete options
-    #         for f in self.active_class.class_fields.keys():
-    #             class_context_base.append(f"field delete {f}")
-    #             class_context_base.append(f"field rename {f} ")
+            # Add the class field and method names as tab complete options
+            for f in self.active_class.class_fields.keys():
+                class_context_base.append(f"field delete {f}")
+                class_context_base.append(f"field rename {f} ")
             
-    #         # for _m in cmd.umlclass.class_methods.values():
-    #         for _m in self.active_class.class_methods.values():
-    #             for m in _m.values():
-    #                 method_string = f"{m.name} {m.overloadID}".strip()
-    #                 class_context_base.append(f"method {method_string}")
-    #                 class_context_base.append(f"method delete {method_string}")
-    #         t_base.extend(class_context_base)
+            # for _m in cmd.umlclass.class_methods.values():
+            for _m in self.active_class.class_methods.values():
+                for m in _m.values():
+                    method_string = f"{m.name} {m.overloadID}".strip()
+                    class_context_base.append(f"method {method_string}")
+                    class_context_base.append(f"method delete {method_string}")
+            t_base.extend(class_context_base)
             
-    #         if self.active_method:
-    #             method_context_base = [
-    #                 "method rename ", 
-    #                 "parameter add ", 
-    #                 "parameter replace all",
-    #                 "parameter clear all"
-    #             ]
+            if self.active_method:
+                method_context_base = [
+                    "method rename ", 
+                    "parameter add ", 
+                    "parameter replace all",
+                    "parameter clear all"
+                ]
 
-    #             for p in self.active_method.params:
-    #                 method_context_base.append(f"parameter rename {p.name} ")
-    #                 method_context_base.append(f"parameter delete {p.name}")
-    #                 # method_context_base.append(f"parameter replace {p.name} ")
+                for p in self.active_method.params:
+                    method_context_base.append(f"parameter rename {p.name} ")
+                    method_context_base.append(f"parameter delete {p.name}")
+                    # method_context_base.append(f"parameter replace {p.name} ")
                 
-    #             t_base.extend(method_context_base)
+                t_base.extend(method_context_base)
                 
 
-    #     return t_base
+        return t_base
             
     def handle_command_result(self, cmd:UmlCommand):
         """Handles additional logic based on the outcomes of a command execution."""
@@ -195,24 +195,64 @@ class UmlViewCliObserver(UmlViewObserver, cmd.Cmd):
         cmdsub.attach(self)
         cmdsub.notify()
 
-    # def start(self):
-    #     """Logic needed to run the UmlViewObserver."""
-    #     import umlcommands.cli_commands
-    #     self.COMMANDS = umlcommands.cli_commands
-    #     self._prompt_requester = self.COMMANDS.CliPromptRequester()
+    def default(self, line):
+        try:
+            _command = self.parse_command(line)
+            self.handle_command(_command)
+            self.handle_command_result(_command)
+        except Exception as e:
+            print(f"ERROR: Something went wrong. ({e})")
+        return self.running
 
-    #     self.running = True
-    #     while self.running:
-    #         try:
-    #             tcompletes = self._calculate_tab_completion_list()
-    #             cmd_string = self.get_user_input(tcompletes)
-    #             if cmd_string:
-    #                 _command = self.parse_command(cmd_string)
-    #                 self.handle_command(_command)
-    #                 self.handle_command_result(_command)
-    #         except Exception as e:
-    #             print(f"ERROR: Something went wrong. ({e})")
-    #             # raise e
+    def do_class(self, arg):
+        return self.default('class ' + arg)
+
+    def do_relation(self, arg):
+        return self.default('relation ' + arg)
+
+    def do_load(self, arg):
+        return self.default('load ' + arg)
+
+    def do_new(self, arg):
+        return self.default('new ' + arg)
+
+    def do_save(self, arg):
+        return self.default('save ' + arg)
+
+    def do_quit(self, arg):
+        return self.default('quit ' + arg)
+
+    def do_list(self, arg):
+        return self.default('list ' + arg)
+
+    def do_parameter(self, arg):
+        return self.default('parameter ' + arg)
+
+    def do_field(self, arg):
+        return self.default('field ' + arg)
+
+    def do_method(self, arg):
+        return self.default('method ' + arg)
+
+    def start(self):
+        """Logic needed to run the UmlViewObserver."""
+        import umlcommands.cli_commands
+        self.COMMANDS = umlcommands.cli_commands
+        self._prompt_requester = self.COMMANDS.CliPromptRequester()
+
+        self.running = True
+        self.cmdloop()
+        # while self.running:
+        #     try:
+        #         tcompletes = self._calculate_tab_completion_list()
+        #         cmd_string = self.get_user_input(tcompletes)
+        #         if cmd_string:
+        #             _command = self.parse_command(cmd_string)
+        #             self.handle_command(_command)
+        #             self.handle_command_result(_command)
+        #     except Exception as e:
+        #         print(f"ERROR: Something went wrong. ({e})")
+        #         # raise e
 
     def shutdown(self):
         """Logic needed to shutdown and stop the UmlViewObserver from running."""
