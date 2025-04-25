@@ -21,32 +21,4 @@
         </tr>
         {% endfor %}
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="2">
-                <button style="display: block;" id="btnAddClass" class="add-button"
-                    onclick="toggleVisibility(['btnAddClass', 'cntrAddClass'])">
-                    <i class="fas fa-plus-circle"></i> Add Class
-                </button>
-                <div id="cntrAddClass" style="width: 100%; padding: 10px; ; display:none;">
-                    <label for="newClassName">Class Name:</label>
-                    <div id="input-container">
-                        <input class="input-mode-view" id="newClassName" type="text">
-                        <i class="fa-solid fa-circle-check"
-                            style="color: white; font-size: 18px; transition: all 0.2s ease-in-out;"
-                            onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
-                            onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
-                            onclick="addClass2({key:'Enter'},document.getElementById('newClassName')); toggleVisibility(['btnAddClass','cntrAddClass'])"
-                            ></i>
-                        <i class="fa-solid fa-circle-xmark"
-                            style="color: red; font-size: 18px; transition: all 0.2s ease-in-out; cursor: pointer;"
-                            onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)';"
-                            onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
-                            onclick="toggleVisibility(['btnAddClass','cntrAddClass']); document.getElementById('newClassName').value='';" >
-                        </i>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </tfoot>
 </table>
