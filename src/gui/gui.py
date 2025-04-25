@@ -349,8 +349,24 @@ def relation_list():
     project_dto = app.controller._get_model_as_data_object()
     relation_types = list(filter(lambda n: n != "DEFAULT", RelationshipType._member_names_))
 
+    class_names = [c.name for c in project_dto.classes]
+
+    print("Classes in project:", class_names)
+    print("Relationships in project:", [
+        {
+            'source': r.source,
+            'destination': r.destination,
+            'relation_type': r.relation_type
+        } for r in project_dto.relationships
+    ])
+
     data = {
-        'html': render_template("_umlrelationshiplist.html", model=project_dto, relation_types=relation_types),
+        'html': render_template(
+            "_umlrelationshiplist.html",
+            model=project_dto,
+            relation_types=relation_types,
+            class_names=class_names
+        ),
         'model': {
             'relationships': [
                 {
@@ -358,7 +374,8 @@ def relation_list():
                     'destination': r.destination,
                     'relation_type': r.relation_type
                 } for r in project_dto.relationships
-            ]
+            ],
+            'classes': class_names
         }
     }
 
@@ -370,7 +387,7 @@ def add_relation():
     data = request.get_json()
     source = data.get('source')
     destination = data.get('destination')
-    relation_type = data.get('type')
+    relation_type = data.get('type').upper()
     if source and destination and relation_type:
         app.controller.execute_command(["relation", "add", source, destination, relation_type])
         return Response(status=202)

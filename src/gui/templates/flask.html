@@ -588,6 +588,7 @@
             fetch("/relationList")
                 .then(res => res.json())
                 .then(data => {
+                    console.log("Updated relationship list:", data.model.relationships);
                     container = document.getElementById("RelationTable");
                     container.innerHTML = data.html;
                 })
@@ -860,16 +861,43 @@
          * Adds the new relation to the relation list and updates the display.
          */
         function addRelation() {
-            let input = document.getElementById("classNameInput").value;
-            let [sourceClass, targetClass] = input.split(" ");
-            // Add logic to handle the new relationship
-            console.log("New relationship:", sourceClass, "->", targetClass);
-            // Add the new relationship to the list
-            let table = document.getElementById("RelationData");
-            let row = table.insertRow(table.rows.length - 1);
-            let cell = row.insertCell(0);
-            cell.innerHTML = `${sourceClass} -> ${targetClass}`;
-            modal.style.display = "none";
+            let sourceClass = document.getElementById("newRelationSource").value;
+            let targetClass = document.getElementById("newRelationDestination").value;
+            let relationType = document.getElementById("newRelationType").value.toUpperCase();
+
+            if (!sourceClass || !targetClass || !relationType) {
+                console.error("Missing source, destination, or relation type.");
+                snackbar("Please select all fields before submitting.");
+                return;
+            }
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: sourceClass,
+                    destination: targetClass,
+                    type: relationType
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || "Failed to add relation.");
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Relation added successfully:", data);
+                    getRelationList();
+                })
+                .catch(error => {
+                    console.error("Error adding relation:", error);
+                    snackbar(error.message);
+                });
         }
 
         /**
@@ -896,7 +924,7 @@
 
         function addField2(event, elem1, elem2, className) {
             if (event.key === "Enter") {
-                const fieldType = "string"; // Defaulted to string for temp fix
+                const fieldType = "string";
                 fetch("/addField", {
                     method: "POST",
                     headers: {
@@ -1462,47 +1490,14 @@
                 offsetY = initialY - e.clientY;
                 initialX = e.clientX;
                 initialY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
 
-                // Calculate new position
-                let newTop = element.offsetTop - offsetY;
-                let newLeft = element.offsetLeft - offsetX;
-
-                // Get viewport dimensions
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                // Get element dimensions
-                const elementWidth = element.offsetWidth;
-                const elementHeight = element.offsetHeight;
-
-                // Define additional margins for the right and bottom edges
-                const rightMargin = 150; // Increase this value to allow more space on the right
-                const bottomMargin = 120; // Increase this value to allow more space at the bottom
-
-                // Constrain the element within the viewport
-                if (newTop < 190) {
-                    newTop = 190;
-                }
-                if (newTop + elementHeight > viewportHeight + bottomMargin) {
-                    newTop = viewportHeight - elementHeight + bottomMargin;
-                }
-
-                if (newLeft < 150) {
-                    newLeft = 150;
-                }
-                if (newLeft + elementWidth > viewportWidth + rightMargin) {
-                    newLeft = viewportWidth - elementWidth + rightMargin;
-                }
-
-                element.style.top = `${newTop}px`;
-                element.style.left = `${newLeft}px`;
-
+                //for auto updating lines to make them dynamic
                 lines.forEach(line => line.position());
             }
 
             function closeDragElement() {
-                //save class pos each time this happens, since its when mouse drag stops
-                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
@@ -1530,14 +1525,17 @@
 
                         if (sourceElement && destinationElement) {
                             const line = new LeaderLine(
-                                LeaderLine.pointAnchor(sourceElement, { x: '50%', y: '10%' }),
-                                LeaderLine.pointAnchor(destinationElement, { x: '50%', y: '10%' }),
+                                sourceElement,
+                                destinationElement,
                                 {
                                     color: 'red',
                                     size: 2,
                                     dash: { animation: true },
                                     startPlug: 'disc',
-                                    endPlug: 'arrow3'
+                                    endPlug: 'arrow3',
+                                    path: 'fluid',
+                                    startSocket: 'auto',
+                                    endSocket: 'auto'
                                 }
                             );
 

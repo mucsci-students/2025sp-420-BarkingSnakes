@@ -514,8 +514,6 @@ class UmlController:
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
         if not override:
-            if isinstance(self.view, UmlGuiView):
-                raise errors.UmlClassDeletionErrorException()
             # Confirm with user
             prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
             # return self.view.prompt_user(prompt, lambda: self.command_delete_umlclass(True))
