@@ -303,6 +303,66 @@
             color: white;
         }
 
+        .modal-content input[type="text"] {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            width: auto;
+            min-width: 150px;
+            max-width: 50%;
+            box-sizing: border-box;
+            resize: horizontal;
+        }
+
+        .modal-content input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .modal-content input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(4, 170, 109, 0.8);
+        }
+
+        .modal-content select {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            width: auto;
+            min-width: 150px;
+            max-width: 50%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .modal-content select:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(4, 170, 109, 0.8);
+        }
+
+        .modal-content button {
+            background-color: #101010;
+            /* Dark gray */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .modal-content button:hover {
+            background-color: #000000;
+            transform: scale(1.05);
+        }
+
         .close {
             color: #aaa;
             float: right;
@@ -715,22 +775,31 @@
                 console.log(`ClassDetails-${className} not found.`); // Debug log
             }
 
-            // Remove lines associated with the closed class
-            lines = lines.filter(line => {
-                const isStartClass = line.sourceElement && line.sourceElement.id === `ClassDetails-${className}`;
-                const isEndClass = line.destinationElement && line.destinationElement.id === `ClassDetails-${className}`;
+            // Remove lines associated with the closed class, including self-relations
+            const remainingLines = [];
+            lines.forEach(line => {
+                const isStartClass = line.start && line.start.id === `ClassDetails-${className}`;
+                const isEndClass = line.end && line.end.id === `ClassDetails-${className}`;
+                const isSelfRelation = isStartClass && isEndClass;
 
-                console.log(`Checking line: Source ID = ${line.sourceElement?.id}, Destination ID = ${line.destinationElement?.id}`); // Debug log
-
-                if (isStartClass || isEndClass) {
+                if (isStartClass || isEndClass || isSelfRelation) {
                     console.log(`Removing line connected to ClassDetails-${className}`); // Debug log
                     line.remove(); // Remove the line from the DOM
-                    return false; // Exclude this line from the `lines` array
+                } else {
+                    remainingLines.push(line);
                 }
-                return true; // Keep this line in the `lines` array
             });
 
-            console.log("Remaining lines:", lines); // Debug log
+            lines = remainingLines;
+            console.log("Remaining lines:", lines);
+
+            // Force redraw of relationship lines to ensure self-relations are removed
+            drawRelationshipLines();
+
+            // Remove the class from the DOM
+            if (detailsDiv) {
+                detailsDiv.remove();
+            }
         }
 
         // When the user clicks on <span> (x), close the modal
@@ -771,6 +840,10 @@
         // Show Add Class Modal
         function showAddClassModal() {
             closeAllModals();
+            const addClassInput = document.getElementById("addClassInput");
+            if (addClassInput) {
+                addClassInput.value = "";
+            }
             document.getElementById("addClassModal").style.display = "block";
         }
 
@@ -1163,42 +1236,49 @@
         }
 
         function newProject(override) {
-            elem = document.getElementById("newFileNameInput")
+            const fileNameInput = document.getElementById("newFileNameInput").value;
+
             fetch("/newproject", {
-                method: "Post",
+                method: "POST",
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    filename: elem.value,
+                    filename: fileNameInput,
                     override_file: override
                 })
-            }).then(resp => {
-                if (resp.status >= 400) {
-                    return resp.json()
-                } else {
-                    fileName = elem.value;
-                    document.getElementById("saveFileNameInput").value = fileName;
-                    closeNewModal();
-                    getClassList();
-                    getRelationList();
-                }
             })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        // Clear old project elements only after confirmation
+                        clearOldProjectElements();
+                        fileName = fileNameInput;
+                        document.getElementById("saveFileNameInput").value = fileName;
+                        closeNewModal();
+                        getClassList();
+                        getRelationList();
+                    }
+                })
                 .then(data => {
                     if (data.action) {
-                        yes_callback = () => newProject(true);
+                        yes_callback = () => {
+                            //clear elements for confirm
+                            clearOldProjectElements();
+                            newProject(true);
+                        };
                         no_callback = () => {
                             document.getElementById("newFileNameInput").value = "";
                         };
 
                         handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
-                    }
-                    else if (data.error) {
+                    } else if (data.error) {
                         snackbar(data.error);
                     }
                 })
-                .catch(error => console.log(error))
+                .catch(error => console.error("Error creating new project:", error));
         }
 
         /**
@@ -1246,24 +1326,25 @@
                 });
         }
 
+        function clearOldProjectElements() {
+            document.getElementById("ClassTable").innerHTML = ""; 
+            document.getElementById("RelationTable").innerHTML = ""; 
+            const classDetails = document.querySelectorAll(".ClassDetails");
+            classDetails.forEach(details => details.remove());
+            lines.forEach(line => line.remove());
+            lines = [];
+        }
+
         function loadProject(override) {
             fileName = document.getElementById("loadFileNameInput").value;
-            // let loadError = document.getElementById("loadError");
-
-            // if (!fileName.endsWith(".json")) {
-            //     loadError.style.display = "block";
-            //     return;
-            // }
 
             fetch(`/loadfile?filename=${fileName}&override=${override}`)
                 .then(resp => {
-                    // if (!response.ok) {
-                    //     throw new Error("File not found");
-                    // }
-                    // return response.json();
                     if (resp.status >= 400) {
                         return resp.json();
                     } else {
+                        // Clear old project elements only after confirmation
+                        clearOldProjectElements();
                         closeLoadModal();
                         document.getElementById("saveFileNameInput").value = fileName;
                         getClassList();
@@ -1272,19 +1353,20 @@
                 })
                 .then(data => {
                     if (data.action) {
-                        yes_callback = () => loadProject(true);
+                        yes_callback = () => {
+                            clearOldProjectElements(); // Clear elements if user confirms
+                            loadProject(true);
+                        };
                         no_callback = () => {
                             document.getElementById("loadFileNameInput").value = "";
                         };
 
                         handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
-                    }
-                    else if (data.error) {
+                    } else if (data.error) {
                         snackbar(data.error);
                     }
                 })
                 .catch(error => {
-                    // loadError.style.display = "block";
                     console.error("Error loading project:", error);
                 });
         }
@@ -1479,73 +1561,92 @@
         let lines = []; // Store references to LeaderLine instances
 
         function drawLineByType(type, sourceElement, destinationElement) {
+            const isSelfRelation = sourceElement === destinationElement;
+            const baseOptions = {
+                color: '#04AA6D',
+                size: 4,
+                path: 'fluid',
+                startSocket: 'auto',
+                endSocket: 'auto',
+            };
+
+            // Self-relationship anchor positions (bottom arc)
+            const startAnchor = isSelfRelation
+                ? LeaderLine.pointAnchor(sourceElement, { x: '95%', y: '100%' })
+                : sourceElement;
+
+            const endAnchor = isSelfRelation
+                ? LeaderLine.pointAnchor(destinationElement, { x: '5%', y: '100%' })
+                : destinationElement;
+
             switch (type.toLowerCase()) {
                 case 'aggregation':
                     return new LeaderLine(
-                        sourceElement,
-                        destinationElement,
+                        startAnchor,
+                        endAnchor,
                         {
-                            color: '#04AA6D',
+                            ...baseOptions,
+                            endPlug: 'square',
                             endPlugOutline: true,
                             endPlugSize: 1.5,
-                            endPlugColor: "#000000",
+                            endPlugColor: '#000000',
                             outlineColor: '#04AA6D',
-                            size: 4,
-                            endPlug: 'square',
-                            path: 'fluid',
-                            startSocket: 'auto',
-                            endSocket: 'auto'
+                            path: isSelfRelation ? 'arc' : baseOptions.path,
+                            startSocket: isSelfRelation ? 'bottom' : baseOptions.startSocket,
+                            endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+
                 case 'composition':
                     return new LeaderLine(
-                        sourceElement,
-                        destinationElement,
+                        startAnchor,
+                        endAnchor,
                         {
-                            color: '#04AA6D',
-                            endPlugSize: 1.5,
-                            size: 4,
+                            ...baseOptions,
                             endPlug: 'square',
-                            path: 'fluid',
-                            startSocket: 'auto',
-                            endSocket: 'auto'
+                            endPlugSize: 1.5,
+                            path: isSelfRelation ? 'arc' : baseOptions.path,
+                            startSocket: isSelfRelation ? 'bottom' : baseOptions.startSocket,
+                            endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+
                 case 'inheritance':
                     return new LeaderLine(
-                        sourceElement,
-                        destinationElement,
+                        startAnchor,
+                        endAnchor,
                         {
+                            ...baseOptions,
                             color: '#000000',
                             outline: true,
-                            endPlugOutline: true,
-                            endPlugSize: 1.5,
-                            outlineColor: '#04AA6D',
-                            size: 4,
                             endPlug: 'arrow3',
-                            path: 'fluid',
-                            startSocket: 'auto',
-                            endSocket: 'auto'
+                            endPlugSize: 1.5,
+                            endPlugOutline: true,
+                            outlineColor: '#04AA6D',
+                            path: isSelfRelation ? 'arc' : baseOptions.path,
+                            startSocket: isSelfRelation ? 'bottom' : baseOptions.startSocket,
+                            endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+
                 case 'realization':
                     return new LeaderLine(
-                        sourceElement,
-                        destinationElement,
+                        startAnchor,
+                        endAnchor,
                         {
-                            color: '#04AA6D',
+                            ...baseOptions,
                             dash: { len: 10, gap: 15, animation: true },
-                            endPlugOutline: true,
-                            endPlugSize: 1.5,
-                            endPlugColor: "#000000",
-                            outlineColor: '#04AA6D',
-                            size: 4,
                             endPlug: 'arrow3',
-                            path: 'fluid',
-                            startSocket: 'auto',
-                            endSocket: 'auto'
+                            endPlugSize: 1.5,
+                            endPlugOutline: true,
+                            endPlugColor: '#000000',
+                            outlineColor: '#04AA6D',
+                            path: isSelfRelation ? 'arc' : baseOptions.path,
+                            startSocket: isSelfRelation ? 'bottom' : baseOptions.startSocket,
+                            endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+
                 default:
                     console.error(`Unknown relationship type: ${type}`);
                     return null;
@@ -1568,8 +1669,9 @@
                         const sourceElement = document.getElementById(`ClassDetails-${relation.source}`);
                         const destinationElement = document.getElementById(`ClassDetails-${relation.destination}`);
 
+                        // Skip relationships where either class is not in the DOM
                         if (!sourceElement || !destinationElement) {
-                            console.error(`One or both elements not found for relation:`, relation);
+                            console.log(`Skipping relation: ${relation.source} -> ${relation.destination}`);
                             return;
                         }
 
