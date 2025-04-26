@@ -14,13 +14,18 @@
 
 <body style="background-color: #0e1113;">
     <div id="toolbar">
-        <button onclick="toggleLists()">Lists</button>
-        <button onclick="showNewModal()">New</button>
-        <button onclick="showSaveModal()">Save</button>
-        <button onclick="showLoadModal()">Load</button>
-        <button onclick="confirmQuit()">Quit</button>
+        <div id="addButtons">
+            <button onclick="showAddClassModal()">Add Class</button>
+            <button onclick="showAddRelationModal()">Add Relationship</button>
+        </div>
+        <div id="otherButtons">
+            <button onclick="toggleLists()">Lists</button>
+            <button onclick="showNewModal()">New</button>
+            <button onclick="showSaveModal()">Save</button>
+            <button onclick="showLoadModal()">Load</button>
+            <button onclick="confirmQuit()">Quit</button>
+        </div>
     </div>
-
     <div id="content">
     </div>
 
@@ -38,16 +43,6 @@
     <div id="ClassDetails" style="display: none;">
         <button class="close" onclick="closeClassDetails()">&times;</button>
         <!-- Class details will be displayed here -->
-    </div>
-
-    <!-- The Modal for adding classes and relationships -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p id="modalPrompt">Enter Class Name:</p>
-            <input type="text" id="classNameInput" />
-            <button id="modalSubmitButton" onclick="addClass()">Submit</button>
-        </div>
     </div>
 
     <!-- The Modal for creating a new project -->
@@ -93,6 +88,37 @@
         </div>
     </div>
 
+    <!-- Add Class Modal -->
+    <div id="addClassModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddClassModal()">&times;</span>
+            <h2>Add Class</h2>
+            <p>Enter Class Name:</p>
+            <input type="text" id="addClassInput" />
+            <button onclick="addClassFromModal()">Add Class</button>
+        </div>
+    </div>
+
+    <!-- Add Relationship Modal -->
+    <div id="addRelationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddRelationModal()">&times;</span>
+            <h2>Add Relationship</h2>
+            <p>Select Relationship Type:</p>
+            <select id="relationTypeDropdown">
+                <option value="Inheritance">Inheritance</option>
+                <option value="Aggregation">Aggregation</option>
+                <option value="Composition">Composition</option>
+                <option value="Realization">Realization</option>
+            </select>
+            <p>Select Source Class:</p>
+            <select id="relationSourceDropdown"></select>
+            <p>Select Destination Class:</p>
+            <select id="relationDestinationDropdown"></select>
+            <button onclick="addRelationFromModal()">Add Relationship</button>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
@@ -108,8 +134,24 @@
             background-color: #333;
             color: white;
             padding: 10px;
-            text-align: center;
+            display: flex;
+            align-items: center;
             z-index: 2;
+        }
+
+        #addButtons {
+            display: flex;
+            gap: 10px;
+            margin-right: auto;
+        }
+
+        #otherButtons {
+            display: flex;
+            gap: 10px;
+            margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         #toolbar button {
@@ -117,7 +159,6 @@
             color: white;
             border: none;
             padding: 10px 20px;
-            margin: 5px;
             cursor: pointer;
             font-size: 16px;
         }
@@ -126,33 +167,6 @@
             background-color: #028a5e;
         }
 
-        #mySidenav {
-            position: fixed;
-            left: 0;
-            top: 60px;
-            /* Adjusted to be below the toolbar */
-            height: calc(100% - 60px);
-            /* Adjusted to be below the toolbar */
-            width: 125px;
-            background-color: #111;
-            padding-top: 20px;
-        }
-
-        #mySidenav button {
-            position: relative;
-            left: -75px;
-            transition: 0.3s;
-            padding: 15px;
-            width: 125px;
-            text-decoration: none;
-            font-size: 18px;
-            color: white;
-            border-radius: 0 5px 5px 0;
-        }
-
-        #mySidenav button:hover {
-            left: 0;
-        }
 
         #ClassList {
             top: 20px;
@@ -171,11 +185,8 @@
             color: white;
             margin-bottom: 20px;
             position: fixed;
-            /* Fix the position */
             left: 0;
-            /* Align to the left wall */
             width: 20%;
-            /* Adjust width as needed */
         }
 
         #ClassTable {
@@ -267,22 +278,6 @@
             font-size: 18px;
         }
 
-        .add-button {
-            background-color: #04AA6D;
-            color: white;
-            border: 2px solid #028a5e;
-            padding: 10px;
-            text-align: center;
-            width: 100%;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, box-shadow 0.3s;
-        }
-
-        .add-button:hover {
-            background-color: #028a5e;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
 
         /* Modal styles */
         .modal {
@@ -549,21 +544,20 @@
         function toggleVisibility(ids) {
             console.log("Toggle: " + ids);
             ids.forEach(id => {
-                elem = document.getElementById(id);
-                input = elem.getElementsByTagName("input")[0];
+                const elem = document.getElementById(id);
+                if (!elem) {
+                    console.error(`Element with ID '${id}' not found.`);
+                    return;
+                }
+                const input = elem.getElementsByTagName("input")[0];
                 console.log(elem.style.display, elem);
                 if (elem.style.display === "none" || elem.style.display === "" || elem.style.display === null) {
                     elem.style.display = "block";
-                    if (input) {
-                        input.focus();
-                    }
+                    if (input) input.focus();
                 } else {
                     elem.style.display = "none";
-                    if (input) {
-                        input.blur();
-                    }
                 }
-            })
+            });
         }
 
         /**
@@ -571,26 +565,14 @@
          * Sends a request to the server to get the list of relations.
          */
         function getRelationList() {
-            // fetch('/relationlist')
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         table = document.getElementById("RelationData");
-            //         table.innerHTML = "";
-            //         data.forEach(element => {
-            //             table.insertRow(0).insertCell(0).innerHTML = element;
-            //         });
-            //         // Add a row with a plus sign at the bottom
-            //         let plusRow = table.insertRow();
-            //         let plusCell = plusRow.insertCell(0);
-            //         plusCell.innerHTML = '<button class="add-button" onclick="showModal(\'relation\')"><span class="glyphicon glyphicon-plus-sign"></span> Add Relation</button>';
-            //     });
-
             fetch("/relationList")
                 .then(res => res.json())
                 .then(data => {
-                    container = document.getElementById("RelationTable");
-                    container.innerHTML = data.html;
+                    const container = document.getElementById("RelationTable");
+                    container.innerHTML = data.html; // Update the relation table
+                    drawRelationshipLines(); // Redraw the lines after updating the table
                 })
+                .catch(error => console.error("Error fetching relation list:", error));
         }
 
 
@@ -598,6 +580,8 @@
         var modal = document.getElementById("myModal");
         var saveModal = document.getElementById("saveModal");
         var newModal = document.getElementById("newModal");
+        var addClassModal = document.getElementById("addClassModal");
+        var addRelationModal = document.getElementById("addRelationModal");
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
@@ -633,7 +617,7 @@
          * Shows the new project modal.
          */
         function showNewModal() {
-            // document.getElementById("newFileNameInput").value = ".json"
+            closeAllModals();
             newModal.style.display = "block";
         }
 
@@ -648,8 +632,8 @@
          * Shows the save modal.
          */
         function showSaveModal() {
-            // document.getElementById("fileNameInput")
-            saveModal.style.display = "block";
+            closeAllModals();
+            document.getElementById("saveModal").style.display = "block";
         }
 
         /**
@@ -672,47 +656,47 @@
             let editModeState = false;
 
             if (isHidden) {
-                if(addFieldContainer){
+                if (addFieldContainer) {
                     addFieldContainer.classList.remove('hidden');
                 }
-               
-                if(deleteFieldbtn){
+
+                if (deleteFieldbtn) {
                     deleteFieldbtn.classList.remove('hidden');
                 }
 
-                if(addMethodContainer){
-                    addMethodContainer.classList.remove('hidden'); 
-                }
-                
-                if(fieldTextInpt){
-                    fieldTextInpt.readOnly = false; 
+                if (addMethodContainer) {
+                    addMethodContainer.classList.remove('hidden');
                 }
 
-                if(classTextInpt){
-                    classTextInpt.readOnly = false; 
+                if (fieldTextInpt) {
+                    fieldTextInpt.readOnly = false;
+                }
+
+                if (classTextInpt) {
+                    classTextInpt.readOnly = false;
                 }
                 editModeState = true; // Set edit mode to true
             } else {
-                if(addFieldContainer){
+                if (addFieldContainer) {
                     addFieldContainer.classList.add('hidden');
                 }
-               
-                if(deleteFieldbtn){
+
+                if (deleteFieldbtn) {
                     deleteFieldbtn.classList.add('hidden');
                 }
 
-                if(addMethodContainer){
-                    addMethodContainer.classList.add('hidden'); 
-                }
-                
-                if(fieldTextInpt){
-                    fieldTextInpt.readOnly = true; 
+                if (addMethodContainer) {
+                    addMethodContainer.classList.add('hidden');
                 }
 
-                if(classTextInpt){
-                    classTextInpt.readOnly = true; 
+                if (fieldTextInpt) {
+                    fieldTextInpt.readOnly = true;
                 }
-                
+
+                if (classTextInpt) {
+                    classTextInpt.readOnly = true;
+                }
+
                 editModeState = false; // Set edit mode to false
             }
 
@@ -754,7 +738,7 @@
             modal.style.display = "none";
             closeSaveModal();
         }
-        
+
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target == modal) {
@@ -763,59 +747,62 @@
             if (event.target == saveModal) {
                 saveModal.style.display = "none";
             }
-        }
-
-        /**
-         * Adds a new class.
-         * Adds the new class to the class list and updates the display.
-         */
-        function addClass() {
-            let className = document.getElementById("classNameInput").value;
-            // Add logic to handle the new class name
-            console.log("New class name:", className);
-            // Add the new class to the list above the "Add Class" button
-            let table = document.getElementById("Data");
-            let plusRow = table.rows[table.rows.length - 1];
-            let row = table.insertRow(table.rows.length - 1);
-            let cell = row.insertCell(0);
-            let button = document.createElement("button");
-            button.innerHTML = className;
-            button.className = "class-button";
-            button.onclick = function () {
-                displayClassDetails(className);
-            };
-            cell.appendChild(button);
-            modal.style.display = "none";
-        }
-
-        function addClass2(event, elem) {
-            if (event.key === "Enter") {
-
-                fetch("/addClass", {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        classname: elem.value
-                    })
-                })
-                    .then(resp => {
-                        if (resp.status >= 400) {
-                            elem.value = "";
-                            return resp.json();
-                        } else {
-                            getClassList();
-                            getRelationList();
-                        }
-                    })
-                    .then(data => {
-                        console.log(data);
-                        snackbar(data.error);
-                    })
-                    .catch(error => console.log(error))
+            if (event.target == loadModal) {
+                loadModal.style.display = "none";
             }
+            if (event.target == newModal) {
+                newModal.style.display = "none";
+            }
+            if (event.target == addClassModal) {
+                closeAddClassModal();
+            }
+            if (event.target == addRelationModal) {
+                closeAddRelationModal();
+            }
+        }
+
+        function closeAllModals() {
+            const modals = document.querySelectorAll(".modal");
+            modals.forEach(modal => {
+                modal.style.display = "none";
+            });
+        }
+
+        // Show Add Class Modal
+        function showAddClassModal() {
+            closeAllModals();
+            document.getElementById("addClassModal").style.display = "block";
+        }
+
+        // Close Add Class Modal
+        function closeAddClassModal() {
+            document.getElementById("addClassModal").style.display = "none";
+        }
+
+        // Add Class from Modal
+        function addClassFromModal() {
+            const className = document.getElementById("addClassInput").value;
+            if (!className) {
+                snackbar("Class name cannot be empty.");
+                return;
+            }
+
+            fetch("/addClass", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ classname: className })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        getClassList();
+                        closeAddClassModal();
+                    } else {
+                        snackbar("Failed to add class.");
+                    }
+                })
+                .catch(error => console.error("Error adding class:", error));
         }
 
         function deleteClass(classname, override) {
@@ -855,21 +842,67 @@
         }
 
 
-        /**
-         * Adds a new relation.
-         * Adds the new relation to the relation list and updates the display.
-         */
-        function addRelation() {
-            let input = document.getElementById("classNameInput").value;
-            let [sourceClass, targetClass] = input.split(" ");
-            // Add logic to handle the new relationship
-            console.log("New relationship:", sourceClass, "->", targetClass);
-            // Add the new relationship to the list
-            let table = document.getElementById("RelationData");
-            let row = table.insertRow(table.rows.length - 1);
-            let cell = row.insertCell(0);
-            cell.innerHTML = `${sourceClass} -> ${targetClass}`;
-            modal.style.display = "none";
+        // Show Add Relationship Modal
+        function showAddRelationModal() {
+            closeAllModals(); // Close any open modals
+            document.getElementById("addRelationModal").style.display = "block";
+
+            // Populate dropdowns with class names
+            fetch("/classlist")
+                .then(response => response.json())
+                .then(data => {
+                    const classNames = data.html.match(/<button.*?>(.*?)<\/button>/g).map(btn => btn.replace(/<.*?>/g, ''));
+                    const sourceDropdown = document.getElementById("relationSourceDropdown");
+                    const destinationDropdown = document.getElementById("relationDestinationDropdown");
+
+                    sourceDropdown.innerHTML = "";
+                    destinationDropdown.innerHTML = "";
+
+                    classNames.forEach(className => {
+                        const option = `<option value="${className}">${className}</option>`;
+                        sourceDropdown.innerHTML += option;
+                        destinationDropdown.innerHTML += option;
+                    });
+                });
+        }
+
+        // Close Add Relationship Modal
+        function closeAddRelationModal() {
+            document.getElementById("addRelationModal").style.display = "none";
+        }
+
+        // Add Relationship from Modal
+        function addRelationFromModal() {
+            const relationType = document.getElementById("relationTypeDropdown").value;
+            const sourceClass = document.getElementById("relationSourceDropdown").value;
+            const destinationClass = document.getElementById("relationDestinationDropdown").value;
+
+            if (!relationType || !sourceClass || !destinationClass) {
+                snackbar("All fields are required.");
+                return;
+            }
+
+            fetch("/addRelation", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: relationType,
+                    source: sourceClass,
+                    destination: destinationClass
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        getRelationList();
+                        drawRelationshipLines();
+                        closeAddRelationModal();
+                    } else {
+                        snackbar("Failed to add relationship.");
+                    }
+                })
+                .catch(error => console.error("Error adding relationship:", error));
         }
 
         /**
@@ -894,9 +927,9 @@
             }
         }
 
-        function addField2(event, elem1,elem2, className) {
+        function addField2(event, elem1, elem2, className) {
             if (event.key === "Enter") {
-                const fieldType = "string"; // Defaulted to string for temp fix
+                const fieldType = "string";
                 fetch("/addField", {
                     method: "POST",
                     headers: {
@@ -965,10 +998,11 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event, elem, className) {
+        function addMethod2(event, className) {
             if (event.key === "Enter") {
                 let methodname = document.getElementById('newMethodName-' + className);
-                let returntype = document.getElementById('newMethodType-' + className)
+                let returntype = document.getElementById('newMethodType-' + className);
+                let paramlist = document.getElementById('parameterListInpt-' + className)
                 fetch("/addMethod", {
                     method: "POST",
                     headers: {
@@ -978,6 +1012,7 @@
                     body: JSON.stringify({
                         methodname: methodname.value,
                         returntype: returntype.value,
+                        paramlist: paramlist.value,
                         classname: className
                     })
                 })
@@ -998,7 +1033,7 @@
             }
         }
 
-        function deleteMethod(methodName,arity,className) {
+        function deleteMethod(methodName, arity, className) {
             fetch("/deleteMethod", {
                 method: "DELETE",
                 headers: {
@@ -1049,7 +1084,7 @@
                 .catch(err => console.log(err));
         }
 
-        function deleteMethodParameter(methodName,arity,parametername,className) {
+        function deleteMethodParameter(methodName, arity, parametername, className) {
             fetch("/deleteMethodParam", {
                 method: "DELETE",
                 headers: {
@@ -1059,7 +1094,7 @@
                 body: JSON.stringify({
                     methodname: methodName,
                     arity: arity,
-                    parametername:parametername,
+                    parametername: parametername,
                     classname: className
                 })
             })
@@ -1075,7 +1110,7 @@
                 })
         }
 
-        function renameMethodParam(oldname,newname,methodname,arity,classname) {
+        function renameMethodParam(oldname, newname, methodname, arity, classname) {
             fetch("/renameMethodParam", {
                 method: "PUT",
                 headers: {
@@ -1085,8 +1120,8 @@
                 body: JSON.stringify({
                     oldname: oldname,
                     newname: newname,
-                    methodname:methodname,
-                    arity:arity,
+                    methodname: methodname,
+                    arity: arity,
                     classname: classname
                 })
             })
@@ -1255,6 +1290,7 @@
         }
 
         function showLoadModal() {
+            closeAllModals()
             document.getElementById("loadModal").style.display = "block";
         }
 
@@ -1294,7 +1330,7 @@
                 })
         }
 
-        function renameMethod(oldname,newname,arity,className) {
+        function renameMethod(oldname, newname, arity, className) {
             fetch("/renameMethod", {
                 method: "PUT",
                 headers: {
@@ -1304,7 +1340,7 @@
                 body: JSON.stringify({
                     oldname: oldname,
                     newname: newname,
-                    arity:arity,
+                    arity: arity,
                     classname: className
                 })
             })
@@ -1376,39 +1412,6 @@
             }
         }
 
-        function addRelation() {
-            let sourceClass = document.getElementById("newRelationSource").value;
-            let targetClass = document.getElementById("newRelationDestination").value;
-            let relationType = document.getElementById("newRelationType").value;
-
-            fetch("/addRelation", {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    source: sourceClass,
-                    destination: targetClass,
-                    type: relationType
-                })
-            })
-                .then(resp => {
-                    if (resp.status >= 400) {
-                        return resp.json();
-                    } else {
-                        getRelationList();
-                    }
-                })
-                .then(data => {
-                    if (data && data.error) {
-                        snackbar(data.error);
-                    }
-                })
-                .catch(error => console.log(error));
-
-            toggleVisibility(['cntrAddRelationship']);
-        }
 
         function deleteRelation(source, destination) {
             console.log(source, destination);
@@ -1460,53 +1463,94 @@
                 offsetY = initialY - e.clientY;
                 initialX = e.clientX;
                 initialY = e.clientY;
+                element.style.top = (element.offsetTop - offsetY) + "px";
+                element.style.left = (element.offsetLeft - offsetX) + "px";
 
-                // Calculate new position
-                let newTop = element.offsetTop - offsetY;
-                let newLeft = element.offsetLeft - offsetX;
-
-                // Get viewport dimensions
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                // Get element dimensions
-                const elementWidth = element.offsetWidth;
-                const elementHeight = element.offsetHeight;
-
-                // Define additional margins for the right and bottom edges
-                const rightMargin = 150; // Increase this value to allow more space on the right
-                const bottomMargin = 120; // Increase this value to allow more space at the bottom
-
-                // Constrain the element within the viewport
-                if (newTop < 190) {
-                    newTop = 190;
-                }
-                if (newTop + elementHeight > viewportHeight + bottomMargin) {
-                    newTop = viewportHeight - elementHeight + bottomMargin;
-                }
-
-                if (newLeft < 150) {
-                    newLeft = 150;
-                }
-                if (newLeft + elementWidth > viewportWidth + rightMargin) {
-                    newLeft = viewportWidth - elementWidth + rightMargin;
-                }
-
-                element.style.top = `${newTop}px`;
-                element.style.left = `${newLeft}px`;
-
+                //for auto updating lines to make them dynamic
                 lines.forEach(line => line.position());
             }
 
             function closeDragElement() {
-                //save class pos each time this happens, since its when mouse drag stops
-                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }
         }
 
         let lines = []; // Store references to LeaderLine instances
+
+        function drawLineByType(type, sourceElement, destinationElement) {
+            switch (type.toLowerCase()) {
+                case 'aggregation':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'composition':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            endPlugSize: 1.5,
+                            size: 4,
+                            endPlug: 'square',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'inheritance':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#000000',
+                            outline: true,
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                case 'realization':
+                    return new LeaderLine(
+                        sourceElement,
+                        destinationElement,
+                        {
+                            color: '#04AA6D',
+                            dash: { len: 10, gap: 15, animation: true },
+                            endPlugOutline: true,
+                            endPlugSize: 1.5,
+                            endPlugColor: "#000000",
+                            outlineColor: '#04AA6D',
+                            size: 4,
+                            endPlug: 'arrow3',
+                            path: 'fluid',
+                            startSocket: 'auto',
+                            endSocket: 'auto'
+                        }
+                    );
+                default:
+                    console.error(`Unknown relationship type: ${type}`);
+                    return null;
+            }
+        }
 
         function drawRelationshipLines() {
             console.log("Drawing relationship lines...");
@@ -1524,30 +1568,15 @@
                         const sourceElement = document.getElementById(`ClassDetails-${relation.source}`);
                         const destinationElement = document.getElementById(`ClassDetails-${relation.destination}`);
 
-                        console.log("Source ID:", `ClassDetails-${relation.source}`, "Destination ID:", `ClassDetails-${relation.destination}`); // Debug log
+                        if (!sourceElement || !destinationElement) {
+                            console.error(`One or both elements not found for relation:`, relation);
+                            return;
+                        }
 
-                        if (sourceElement && destinationElement) {
-                            const line = new LeaderLine(
-                                LeaderLine.pointAnchor(sourceElement, { x: '50%', y: '10%' }),
-                                LeaderLine.pointAnchor(destinationElement, { x: '50%', y: '10%' }),
-                                {
-                                    color: 'red',
-                                    size: 2,
-                                    dash: { animation: true },
-                                    startPlug: 'disc',
-                                    endPlug: 'arrow3'
-                                }
-                            );
-
-                            // Attach metadata to the line
-                            line.sourceElement = sourceElement;
-                            line.destinationElement = destinationElement;
-
-                            console.log("Line created:", line); // Debug log
+                        const line = drawLineByType(relation.relation_type, sourceElement, destinationElement);
+                        if (line) {
                             lines.push(line);
-                            console.log("Line drawn between:", relation.source, "and", relation.destination); // Debug log
-                        } else {
-                            console.log("One or both elements not found:", relation.source, relation.destination); // Debug log
+                            console.log("Line drawn between:", relation.source, "and", relation.destination);
                         }
                     });
                 })
@@ -1572,8 +1601,7 @@
                         // if class of same name exists when a new project is loaded,
                         // this will get called here since a new div is not currently
                         // created when loading a project if the names match
-                        if (saved_x_pos != 0 || saved_y_pos != 0)
-                        {
+                        if (saved_x_pos != 0 || saved_y_pos != 0) {
                             existingDetailsDiv.style.left = `${saved_x_pos}px`;
                             existingDetailsDiv.style.top = `${saved_y_pos}px`;
                         }
@@ -1586,8 +1614,7 @@
                         document.body.appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
                         // only update the pos from saved if the class was moved
-                        if (saved_x_pos != 0 || saved_y_pos != 0)
-                        {
+                        if (saved_x_pos != 0 || saved_y_pos != 0) {
                             detailsDiv.style.left = `${saved_x_pos}px`;
                             detailsDiv.style.top = `${saved_y_pos}px`;
                         }
@@ -1602,8 +1629,8 @@
             //strip extra characters
             //13 should be leading "classname"
             let className = elementId.slice(13)
-            let x_Pos = leftPos.slice(0, leftPos.length-2)
-            let y_Pos = topPos.slice(0, topPos.length-2)
+            let x_Pos = leftPos.slice(0, leftPos.length - 2)
+            let y_Pos = topPos.slice(0, topPos.length - 2)
             fetch("/updateClassPosition", {
                 method: "POST",
                 headers: {
