@@ -10,6 +10,7 @@ from umlclass import UmlClass, UmlMethod
 from umlrelationship import RelationshipType, UmlRelationship
 
 class UmlShell(cmd.Cmd):
+    """Cmd descendent for handling tab completion and prompting"""
     def set_view(self, view:UmlViewCliObserver):
         self.view = view
         self.prompt = view.prompt
@@ -31,6 +32,9 @@ class UmlShell(cmd.Cmd):
             print(f"ERROR: Something went wrong. ({e})")
         self.prompt = self.view.prompt
         return not self.view.running
+
+    def do_help(self, arg):
+        return self.default('help ' + arg)
 
     # The following functions are needed for tab completion of the first token.
     def do_class(self, arg):
@@ -80,9 +84,7 @@ class UmlShell(cmd.Cmd):
 
 
 class UmlViewCliObserver(UmlViewObserver):
-    """"""
-    import utilities.cli_utils as cli
-    _ec = cli.get_escape_char()
+    """View observer for CLI"""
 
     DEFAULT_PROMPT = "BS-uml"
     active_class:UmlClass = None
@@ -124,16 +126,16 @@ class UmlViewCliObserver(UmlViewObserver):
     @property
     def prompt(self) -> str:
         """The CLI prompt to display each loop."""
-        prompt = f"{self._ec}[1;31m{self.DEFAULT_PROMPT}{self._ec}[0m"
+        prompt = f"{self.DEFAULT_PROMPT}"
         if self.active_class:
             classname = self.active_class.class_name
-            prompt += f"{self._ec}[36m[{classname}]{self._ec}[0m"
+            prompt += f"[{classname}]"
         if self.active_method:
             methodname = self.active_method.name
             paramlist = ",".join(self.active_method.overloadID.split(" "))
             rtype = self.active_method.return_type
-            prompt += f"{self._ec}[33m[+{methodname}({paramlist}) -> {rtype}]{self._ec}[0m"
-        return rf"{prompt}{self._ec}[1;31m>{self._ec}[0m "
+            prompt += f"[+{methodname}({paramlist}) -> {rtype}]"
+        return rf"{prompt}> "
 
     def _calculate_tab_completion_list(self) -> list[str]:
         """Calculates the available options for tab completion."""
@@ -272,18 +274,6 @@ class UmlViewCliObserver(UmlViewObserver):
         shell = UmlShell()
         shell.set_view(self)
         shell.cmdloop()
-
-        # while self.running:
-        #     try:
-        #         tcompletes = self._calculate_tab_completion_list()
-        #         cmd_string = self.get_user_input(tcompletes)
-        #         if cmd_string:
-        #             _command = self.parse_command(cmd_string)
-        #             self.handle_command(_command)
-        #             self.handle_command_result(_command)
-        #     except Exception as e:
-        #         print(f"ERROR: Something went wrong. ({e})")
-        #         # raise e
 
     def shutdown(self):
         """Logic needed to shutdown and stop the UmlViewObserver from running."""
