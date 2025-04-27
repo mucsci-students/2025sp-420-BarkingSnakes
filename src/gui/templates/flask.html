@@ -23,6 +23,7 @@
             <button onclick="showNewModal()">New</button>
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
+            <button onclick="showExportModal()">Export</button>
             <button onclick="confirmQuit()">Quit</button>
         </div>
     </div>
@@ -66,7 +67,7 @@
             <button onclick="saveProject(false)">Save</button>
         </div>
     </div>
-
+    <!-- Modal for load -->
     <div id="loadModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLoadModal()">&times;</span>
@@ -77,6 +78,19 @@
             <p id="loadError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
+    <!-- Modal for exporting -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeExportModal()">&times;</span>
+            <h2>Export File</h2>
+            <p>Enter File Name:</p>
+            <input type="text" id="exportFileNameInput" />
+            <!-- add Onclick export function move closeExportModal to export func -->
+            <button  onclick="document.getElementById('exportFileNameInput').value='';closeExportModal()">Export</button>
+            <p id="exportError" style="color: red; display: none;">Incorrect file name/type</p>
+        </div>
+    </div>
+
     <!-- Modal for asking the user if they want to override an existing file. -->
     <div id="yesNoModal" class="modal">
         <div class="modal-content">
@@ -1398,9 +1412,24 @@
             document.getElementById("loadModal").style.display = "block";
         }
 
+        function showExportModal() {
+            closeAllModals()
+            document.getElementById("exportModal").style.display = "block";
+        }
+
+        function closeLoadModal() {
+            document.getElementById("exportModal").style.display = "none";
+            document.getElementById("loadError").style.display = "none";
+        }
+
         function closeLoadModal() {
             document.getElementById("loadModal").style.display = "none";
             document.getElementById("loadError").style.display = "none";
+        }
+
+        function closeExportModal() {
+            document.getElementById("exportModal").style.display = "none";
+            document.getElementById("exportError").style.display = "none";
         }
 
         function renameField(target, elem, className, fieldName) {
