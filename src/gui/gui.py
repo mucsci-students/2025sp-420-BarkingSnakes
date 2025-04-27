@@ -403,3 +403,16 @@ def delete_relation():
         app.controller.execute_command(["relation", "delete", source, destination])
         return Response(status=202)
     return Response(status=406)
+
+@app.post("/updateRelationType")
+@handle_umlexception
+def update_relation_type():
+    data = request.get_json()
+    source = data.get("source")
+    destination = data.get("destination")
+    new_type = data.get("type").upper()
+
+    if source and destination and new_type:
+        app.controller.execute_command(["relation", "set", source, destination, new_type])
+        return jsonify({"message": "Relationship type updated successfully"}), 200
+    return jsonify({"error": "Invalid input"}), 406
