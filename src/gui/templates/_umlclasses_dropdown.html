@@ -1,5 +1,5 @@
 <select id="{{ tagId }}" name="class-list-dropdown">
-    {% for c in class_names %}
-    <option value="{{ c }}" {% if selected_type == c %} selected {% endif %}>{{ c }}</option>
+    {% for c in model.classes %}
+    <option value="{{ c.class_name }}" {% if selected_type == c.class_name %} selected {% endif %}>{{ c.class_name }}</option>
     {% endfor %}
 </select>

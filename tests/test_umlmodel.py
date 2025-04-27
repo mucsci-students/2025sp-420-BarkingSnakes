@@ -1,6 +1,6 @@
 # Filename: test_umlmodel.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Creation Date: 04-06-2025, Last Edit Date: 04-18-2025
+# Creation Date: 04-06-2025, Last Edit Date: 04-07-2025
 # Description: Unit Tests for umlmodel.py
 import os
 import sys
@@ -30,21 +30,23 @@ def test_rename_umlclass_nonexistant_class():
 
     try:
         test_proj.rename_umlclass("testclass1","testclass2")
-        assert False
     except Exception as e:
-        assert e == errors.NoSuchObjectException()
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchObjectError"]
 
 def test_rename_umlclass_existing_class():
-    """Tests rename umlclass duplicateclasserror"""
+    """Tests rename umlclass duplicateclasserro"""
     test_proj = UmlProject()
     test_proj.add_umlclass("testclass")
     test_proj.add_umlclass("car")
 
     try:
         test_proj.rename_umlclass("testclass","car")
-        assert False
     except Exception as e:
-        assert e == errors.DuplicateClassException()
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateClassError"]
 
 # delete class tests
 def test_delete_umlclass():
@@ -62,9 +64,10 @@ def test_delete_umlclass_nonexistant_class():
     
     try:
         test_proj.delete_umlclass("van")
-        assert False
     except Exception as e:
-        assert e == errors.NoSuchObjectException()
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["NoSuchObjectError"]
     
 def test_add_field():
     """Tests add_field"""
@@ -84,9 +87,10 @@ def test_add_field():
     
     try:
         test_proj.add_field("car","MaxSpeed","mph")
-        assert False
     except Exception as e:
-        assert e == errors.DuplicateFieldException()
+        test_val_error = e.get_num()
+    finally:
+        assert test_val_error == errors.error_list["DuplicateFieldError"]
 
 def test_rename_field():
     """Tests rename_field"""

@@ -39,7 +39,7 @@ class UmlClass:
             # check the type is valid
             errors.valid_name(type)
         except Exception as e:
-            if e == errors.InvalidNameException():
+            if e.get_num() == errors.error_list["InvalidNameError"]:
                 raise errors.InvalidTypeNameException()
             
         self.class_fields[name] = UmlField(name, type)

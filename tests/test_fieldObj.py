@@ -26,5 +26,5 @@ def test_rename_field_valid():
     try:
         test_field.rename_field("NewName")
     except Exception as e:
-        assert e == errors.InvalidNameException()
+        assert e.get_num() == errors.error_list["InvalidNameError"]
     assert test_field.name == "NewName"

@@ -659,12 +659,12 @@ class UmlProject:
             UMLException:ExistingRelationshipError if a relationship  with the specified source and destination already exists
         """
         if source is None or destination is None or relationship_type is None:
-            raise errors.NullObjectException()
+            raise errors.UMLException("NullObjectError")
 
         if not self.contains_umlclass(source) or not self.contains_umlclass(
             destination
         ):
-            raise errors.NoSuchObjectException()
+            raise errors.UMLException("NoSuchObjectError")
 
         source_class = self.get_umlclass(source)
         destination_class = self.get_umlclass(destination)

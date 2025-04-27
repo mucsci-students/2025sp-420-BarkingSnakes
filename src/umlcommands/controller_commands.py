@@ -138,8 +138,7 @@ class AddClassCommand(ControllerCommand):
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.InvalidNameException as name_ex:
-            error_text = "The name provided cannot be used as a class name. \
-                \nClass names must start with a letter."
+            error_text = "The name provided cannot be used as a class name."
             self.set_result(CommandOutcome.FAILED, name_ex, error_text)
         except errors.UMLException as uml_e:
             self.set_result(CommandOutcome.FAILED, uml_e)

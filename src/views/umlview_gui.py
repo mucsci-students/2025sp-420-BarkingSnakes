@@ -107,6 +107,9 @@ class UmlGuiView(UmlView):
         except errors.FileHasUnsavedChangesException:
             prompt = "Warning: The current project has unsaved changes.  Do you want to continue without saving?"
             self.prompt_user(prompt, None)
+        except errors.UmlClassDeletionErrorException:
+            prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
+            self.prompt_user(prompt, None)
         except errors.UMLException as uml_e:
             self.handle_exceptions(f"Operation failed:UML Error:{uml_e}")
         except EOFError:

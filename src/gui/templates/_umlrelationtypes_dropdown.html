@@ -1,5 +1,5 @@
 <select id="{{ tagId }}" name="relation-type-dropdown">
-    {% for t in relation_types %}
-    <option value="{{ t }}" {% if selected_type == t %} selected {% endif %}>{{ t|capitalize }}</option>
+    {% for c in relation_types %}
+    <option value="{{ c }}" {% if selected_type == c.capitalize() %} selected {% endif %}>{{ c.capitalize() }}</option>    
     {% endfor %}
 </select>

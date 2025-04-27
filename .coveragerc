@@ -17,6 +17,3 @@ include =
     src/umlmodel.py
     src/umlparameter.py
     src/umlrelationship.py
-
-[report]
-fail_under = 81

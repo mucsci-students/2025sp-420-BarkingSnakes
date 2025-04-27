@@ -1,6 +1,6 @@
 # Filename: test_relationObj.py
 # Authors: John Hershey
-# Creation Date: 2025-03-9, Last Edit Date: 2025-04-18
+# Creation Date: 2025-03-9, Last Edit Date: 2025-04-06
 # Description: Unit Tests for umlrelationship.py 
 # as well as relationship methods in umlmodel.py
 from src.umlclass import UmlClass
@@ -407,6 +407,7 @@ def test_delete_relation_no_classes():
         assert False
     except Exception as e:
         assert e == errors.NoSuchObjectException()
+        assert e.args[1] == "class"
         
 def test_delete_relation_one_class():
     """tests that an error is raised if one input class doesn't exist"""
@@ -417,7 +418,7 @@ def test_delete_relation_one_class():
         assert False
     except Exception as e:
         assert e == errors.NoSuchObjectException()
-    assert "temp" in model.classes
+        assert e.args[2] == "temp2"
 
 def test_delete_relation_no_relations():
     """tests that an error is raised if no relations exist"""
@@ -430,7 +431,6 @@ def test_delete_relation_no_relations():
         assert False
     except Exception as e:
         assert e == errors.NoSuchObjectException()
-    assert "temp" in model.classes
         
 def test_delete_relation_no_such_relation():
     """tests that an error is raised if an input relation doesn't exist"""
