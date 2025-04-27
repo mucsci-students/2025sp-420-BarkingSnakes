@@ -89,8 +89,10 @@ class UmlShell(cmd.Cmd):
     
     #maybe put help stuff here possibly dont know lol 
     def help_help(self):
-        print("\nhelp: Display help menu\n\
+        print("\nhelp\n\
+        Display help menu\n\
         \nYou can also use the command \"help <command>\" to get help on a specific command.\n")
+
     def help_class(self):
         print("\nclass <classname>\n\
         Enters the context for the class with the specified <classname> or prompts you\n\
@@ -103,7 +105,12 @@ class delete\n\
         Issues a Y/N prompt to confirm the action.\n\n\
 rename <new name>\n\
         Renames the class to the provided <new name> or if one was not provided,\n\
-        prompts for a new name\n")
+        prompts for a new name\n\n\
+list\n\
+        Displays the current class and its fields, methods and parameters\n\
+        in a box.\n\n\
+list\n\
+        In the project context, displays all classes and their fields, methods and parameter.\n")
 
     def help_relation(self):
         print("\nrelation add <source class> <destination class> <relationship type>\n\
@@ -175,15 +182,12 @@ parameter delete <parameter name>\n\
         Displays the current class and its fields, methods and parameters\n\
         in a box.\n\n\
 list\n\
-        In the project context, displays all classes and their fields, methods and paramete.\n") 
-    #TODO: Add this to help_class??? maybe not sure and other ones that are available in other contexts ..
+        In the project context, displays all classes and their fields, methods and parameter.\n") 
         
     def help_load(self):
         print("\nload <filename>\n\
         Load the file at <filename>\n\
         If a project file is open, will prompt to save.\n")
-    
-    #TODO: change order of this to match help.txt
         
     def help_new(self):
         print("\nnew <filename>\n\
@@ -192,10 +196,10 @@ list\n\
 
     def help_save(self):
         print("\nsave\n\
-        Save the file that was loaded with the load command\n")
+        Save the current file\n")
 
     def help_quit(self):
-        print("\nquit\n\
+        print("\nquit or Ctrl+D\n\
         Quits the program. Prompts to save any unsaved changes.\n")
     
     
