@@ -90,6 +90,8 @@ class UmlShell(cmd.Cmd):
 
 class UmlViewCliObserver(UmlViewObserver):
     """View observer for CLI"""
+    import utilities.cli_utils as cli
+    _ec = cli.get_escape_char()
 
     DEFAULT_PROMPT = "BS-uml"
     active_class:UmlClass = None
