@@ -167,3 +167,10 @@ def test_get_position_class_exists():
     except Exception as e:
         assert e == None
     assert pos == (1.0,2.0)
+
+def test_():
+    """tests that a """
+    try:
+        UmlProject()
+    except Exception as e:
+        assert e == None

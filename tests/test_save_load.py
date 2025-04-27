@@ -159,7 +159,62 @@ def test_new_old_file_exists():
 
 
 ### schema validation tests
+def test_validate_schema_valid():
+    """test that a schema matching the template raises no errors"""
+    try:
+        data = {"classes": [],"relationships": []}
+        assert UmlProject().validate_json_schema(data)
+    except Exception as e:
+        assert e == None
 
+def test_validate_schema_valid_with_class():
+    """test that a schema matching the template raises no errors"""
+    try:
+        data = {"classes": [{"name": "temp", "fields": [],"methods": [],
+                "position": {"x": 0.0,"y": 0.0}}],"relationships": []}
+        assert UmlProject().validate_json_schema(data)
+    except Exception as e:
+        assert e == None
+
+def test_validate_schema_missing_class():
+    """test that a schema missing one of the basic fields will error"""
+    try:
+        data = {"relationships": []}
+        UmlProject().validate_json_schema(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_validate_schema_missing_class_pos():
+    """test that a schema with one of the classes missing data crashes"""
+    try:
+        data = {"classes": [{"name": "temp", "fields": [],"methods": []}],
+                "relationships": []}
+        UmlProject().validate_json_schema(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_validate_schema_extra_data():
+    """test that a schema with an extra field raises an error"""
+    try:
+        data = {"classes": [],"relationships": [], "extra": "data"}
+        UmlProject().validate_json_schema(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_validate_schema_wrong_class_data():
+    """test that a schema with the wrong class data errors"""
+    try:
+        data = {"classes": [{"name": "temp", "fields": [],"methods": [],
+                "position": {"x": 0.0,"y": 0.0}}, {"wrong"}],"relationships": []}
+        UmlProject().validate_json_schema(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+    
+### delete test file 
 def test_delete():
     """delete the file after other tests are run"""
     os.remove("test.json")

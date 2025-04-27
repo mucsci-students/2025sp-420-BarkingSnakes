@@ -115,9 +115,10 @@ class UmlProject:
         try:
             validator = jsonschema.Draft7Validator(schema)
             validator.validate(instance=data)
+        # this is only raised if our schema template is invalid, so handling is unset currently
+        #except jsonschema.exceptions.SchemaError:
+        #    raise errors.NoSuchErrorException()
         except jsonschema.exceptions.ValidationError:
-            raise errors.InvalidJsonSchemaException()
-        except jsonschema.exceptions.SchemaError:
             raise errors.InvalidJsonSchemaException()
         return True
 
