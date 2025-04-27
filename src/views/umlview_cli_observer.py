@@ -35,8 +35,8 @@ class UmlShell(cmd.Cmd):
         self.prompt = self.view.prompt
         return not self.view.running
 
-    def do_help(self, arg):
-        return self.default('help ' + arg)
+    #def do_help(self, arg):
+    #    return self.default('help ' + arg)
 
     # The following functions are needed for tab completion of the first token.
     def do_class(self, arg):
@@ -86,6 +86,119 @@ class UmlShell(cmd.Cmd):
     
     def do_back(self, arg):
         return self.default('back ' + arg)
+    
+    #maybe put help stuff here possibly dont know lol 
+    def help_help(self):
+        print("\nhelp: Display help menu\n\
+        \nYou can also use the command \"help <command>\" to get help on a specific command.\n")
+    def help_class(self):
+        print("\nclass <classname>\n\
+        Enters the context for the class with the specified <classname> or prompts you\n\
+        to add if it is not an existing class\n\n\
+class add <classname>\n\
+        Adds the class and enters the context for the class. If a name is not provided,\n\
+        it prompts for a name\n\n\
+class delete\n\
+        Removes the class from the project and all of its relationships.\n\
+        Issues a Y/N prompt to confirm the action.\n\n\
+rename <new name>\n\
+        Renames the class to the provided <new name> or if one was not provided,\n\
+        prompts for a new name\n")
+
+    def help_relation(self):
+        print("\nrelation add <source class> <destination class> <relationship type>\n\
+        Adds a relationship of type <relationship type> from <source class>\n\
+        to <destination class>\n\n\
+<relation type> is one of:\n\
+        \"aggregation\", \"composition\", \"inheritance\", or \"realization\"\n\n\
+relation delete <source class> <destination class>\n\
+        Deletes a relationship of from <source class> to <destination class>\n\
+        if it exists\n\n\
+relation set <source class> <destination class> <relationship type>\n\
+        Finds the relationship with the specified source and destination, and sets its type.\n\n\
+relation list\n\
+        Lists all relations in the current project.\n")
+
+    def help_field(self):
+        print("\nfield add <field name> <field type>\n\
+        Adds the field with name <field name> and <field type> to the class.\n\n\
+field delete <field name>\n\
+        Deletes the field with name <field name> from the class.\n\n\
+field rename <old field name> <new field name>\n\
+        Renames the field on the class with <old field name>\n\
+        to <new field name>\n")
+    
+    def help_method(self):
+        print("\nmethod add <method name> <method return type> <param1 name>:<param1 type> <param2 name>:<param2 type>...\n\
+        Adds the method with name <method name> to the class.\n\n\
+method rename <old method name> <new method name> arity <arity>\n\
+        Renames the method on the class with <old method name>\n\
+        to <new method name>, arity must be specified\n\n\
+method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>...\n\
+        Deletes the method with name <method name> from the class.\n\n\
+method <method name> <parameter1 type> <parameter2 type> <parameter2 type>...\n\
+        Enters the context for the specified method\n")
+
+    def help_parameter(self):
+        print("\nparameter add <parameter name>:<parameter type>\n\
+        Adds the parameter with name <parameter name> to the class.\n\n\
+parameter rename <old parameter name> <new parameter name>\n\
+        Renames the parameter on the class with <old parameter name>\n\n\
+parameter delete <parameter name>\n\
+        Deletes the parameter with name <parameter name> from the class.\n")
+
+    def help_back(self):
+        print("\nback\n\
+        Exits the current context and returns to the previous one\n")
+
+    def help_undo(self):
+        print("\nundo\n\
+        Undoes the last command\n")
+
+    def help_redo(self):
+        print("\nredo\n\
+        Redoes the last command\n")
+    #TODO: add this to help.txt
+
+    def help_delete(self):
+        print("\ndelete\n\
+        Removes the class from the project and all of its relationships.\n\
+        Issues a Y/N prompt to confirm the action.\n")
+
+    def help_rename(self):
+        print("\nrename <new name>\n\
+        Renames the class to the provided <new name> or if one was not provided,\n\
+        prompts for a new name\n")
+
+    def help_list(self):
+        print("\nlist\n\
+        Displays the current class and its fields, methods and parameters\n\
+        in a box.\n\n\
+list\n\
+        In the project context, displays all classes and their fields, methods and paramete.\n") 
+    #TODO: Add this to help_class??? maybe not sure and other ones that are available in other contexts ..
+        
+    def help_load(self):
+        print("\nload <filename>\n\
+        Load the file at <filename>\n\
+        If a project file is open, will prompt to save.\n")
+    
+    #TODO: change order of this to match help.txt
+        
+    def help_new(self):
+        print("\nnew <filename>\n\
+        Create a new project file at <filename>\n\
+        If a project file is open, will prompt to save.\n")
+
+    def help_save(self):
+        print("\nsave\n\
+        Save the file that was loaded with the load command\n")
+
+    def help_quit(self):
+        print("\nquit\n\
+        Quits the program. Prompts to save any unsaved changes.\n")
+    
+    
 
 
 class UmlViewCliObserver(UmlViewObserver):
