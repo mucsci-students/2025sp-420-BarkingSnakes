@@ -628,9 +628,8 @@
             fetch("/relationList")
                 .then(res => res.json())
                 .then(data => {
-                    const container = document.getElementById("RelationTable");
-                    container.innerHTML = data.html; // Update the relation table
-                    drawRelationshipLines(); // Redraw the lines after updating the table
+                    document.getElementById("RelationTable").innerHTML = data.html;
+                    drawRelationshipLines();
                 })
                 .catch(error => console.error("Error fetching relation list:", error));
         }
@@ -976,6 +975,29 @@
                     }
                 })
                 .catch(error => console.error("Error adding relationship:", error));
+        }
+
+        function updateRelationType(source, destination, newType) {
+            fetch("/updateRelationType", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination,
+                    type: newType
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        getRelationList();
+                        drawRelationshipLines();
+                    } else {
+                        snackbar("Failed to update relationship type.");
+                    }
+                })
+                .catch(error => console.error("Error updating relationship type:", error));
         }
 
         /**
@@ -1327,8 +1349,8 @@
         }
 
         function clearOldProjectElements() {
-            document.getElementById("ClassTable").innerHTML = ""; 
-            document.getElementById("RelationTable").innerHTML = ""; 
+            document.getElementById("ClassTable").innerHTML = "";
+            document.getElementById("RelationTable").innerHTML = "";
             const classDetails = document.querySelectorAll(".ClassDetails");
             classDetails.forEach(details => details.remove());
             lines.forEach(line => line.remove());
