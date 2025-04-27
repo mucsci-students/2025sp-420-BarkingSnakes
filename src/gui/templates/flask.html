@@ -86,7 +86,7 @@
             <p>Enter File Name:</p>
             <input type="text" id="exportFileNameInput" />
             <!-- add Onclick export function move closeExportModal to export func -->
-            <button  onclick="document.getElementById('exportFileNameInput').value='';closeExportModal()">Export</button>
+            <button onclick="document.getElementById('exportFileNameInput').value='';closeExportModal()">Export</button>
             <p id="exportError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
@@ -1584,6 +1584,14 @@
 
             function dragMouseDown(e) {
                 e.preventDefault();
+
+                // Get current screen position BEFORE removing transform
+                const rect = element.getBoundingClientRect();
+
+                // Set explicit top and left to keep it exactly in the same place
+                element.style.left = rect.left + "px";
+                element.style.top = rect.top + "px";
+                element.style.transform = "none";
                 initialX = e.clientX;
                 initialY = e.clientY;
                 document.onmouseup = closeDragElement;
@@ -1596,10 +1604,33 @@
                 offsetY = initialY - e.clientY;
                 initialX = e.clientX;
                 initialY = e.clientY;
-                element.style.top = (element.offsetTop - offsetY) + "px";
-                element.style.left = (element.offsetLeft - offsetX) + "px";
 
-                //for auto updating lines to make them dynamic
+                const toolbarHeight = document.getElementById('toolbar').offsetHeight;
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+
+                let newLeft = element.offsetLeft - offsetX;
+                let newTop = element.offsetTop - offsetY;
+
+                // WALL: Left side
+                if (newLeft < 0) {
+                    newLeft = 0;
+                }
+                // WALL: Top side (below toolbar)
+                if (newTop < toolbarHeight) {
+                    newTop = toolbarHeight;
+                }
+                // WALL: Right side
+                if (newLeft + element.offsetWidth > windowWidth) {
+                    newLeft = windowWidth - element.offsetWidth;
+                }
+                // WALL: Bottom side
+                if (newTop + element.offsetHeight > windowHeight) {
+                    newTop = windowHeight - element.offsetHeight;
+                }
+                element.style.left = newLeft + "px";
+                element.style.top = newTop + "px";
+
                 lines.forEach(line => line.position());
             }
 
