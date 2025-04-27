@@ -14,6 +14,9 @@ new <filename>
     If a project file is open, will prompt to save.
 save
     Save the current file
+    if new, load, or save has not yet been used, will prompt for <filename>
+save <filename>
+    Save the current file to <filename>
 quit
     Quits the program. Prompts to save any unsaved changes.
 list

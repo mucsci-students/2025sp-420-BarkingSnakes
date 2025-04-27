@@ -749,7 +749,8 @@ class SaveCommand(PromptingCommand, CallbackCommand):
         try:
             if not self.driver.model._save_path:
                 """Prompt for a save path."""
-                filepath = self._get_filepath()
+                # if user entered filepath use that, otherwise ask
+                filepath = self.filepath or self._get_filepath()
                 if self.driver.model._filepath_exists(filepath):
                     if not self._ask_overwrite_file():
                         self.set_result(CommandOutcome.DEFERRED)
@@ -776,6 +777,13 @@ class SaveCommand(PromptingCommand, CallbackCommand):
             if not self.driver.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
             return filepath
+    
+    @property
+    def filepath(self) -> str:
+        prop_index = 1
+        if len(self._args) == 1:
+            return None
+        return self._args[1]
     
     def _ask_overwrite_file(self) -> bool:
         requester = self.get_prompt_requester()
@@ -993,7 +1001,7 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^load(\s.+\..+)*$": LoadCommand,
     r"^new(\s.+\..+)*$": NewCommand,
     r"^quit$": QuitCommand,
-    r"^save$": SaveCommand,
+    r"^save(\s.+\..+)*$": SaveCommand,
     r"^controller back$": BackCommand,
     r"^undo$": UndoCommand,
     r"^redo$": RedoCommand,
