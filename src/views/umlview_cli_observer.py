@@ -1,5 +1,12 @@
+# Filename: umlview_cli_observer.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
+# Date: 2025-02-25, Last edit date: 2025-04-26
+# Description: cli observer implementation
+from __future__ import annotations
 import sys
 import re
+import cmd
+import os
 
 from umlcommands.base_commands import CommandOutcome, CommandResult, CallbackCommand
 from views.umlview_observer import UmlViewObserver, UmlCommand, CommandSubject, errors
@@ -7,85 +14,94 @@ import umlcommands.controller_commands as c_cmd
 from umlclass import UmlClass, UmlMethod
 from umlrelationship import RelationshipType, UmlRelationship
 
+class UmlShell(cmd.Cmd):
+    """Cmd descendent for handling tab completion and prompting"""
+    def set_view(self, view:UmlViewCliObserver):
+        self.view = view
+        self.prompt = view.prompt
+
+    def completedefault(self, text, line, begidx, endidx):
+        offset = len(line) - len(text)
+        tcompletes = self.view._calculate_tab_completion_list()
+        return [s[offset:] for s in tcompletes if s.startswith(line)]
+
+    def default(self, line):
+        try:
+            _command = self.view.parse_command(line)
+            self.view.handle_command(_command)
+            self.view.handle_command_result(_command)
+        except Exception as e:
+            print(f"ERROR: Something went wrong. ({e})")
+        self.prompt = self.view.prompt
+        return not self.view.running
+
+    def do_help(self, arg):
+        return self.default('help ' + arg)
+
+    # The following functions are needed for tab completion of the first token.
+    def do_class(self, arg):
+        return self.default('class ' + arg)
+
+    def do_relation(self, arg):
+        return self.default('relation ' + arg)
+
+    def do_load(self, arg):
+        return self.default('load ' + arg)
+
+    def do_new(self, arg):
+        return self.default('new ' + arg)
+
+    def do_save(self, arg):
+        return self.default('save ' + arg)
+
+    def do_quit(self, arg):
+        return self.default('quit ' + arg)
+
+    def do_list(self, arg):
+        return self.default('list ' + arg)
+
+    def do_undo(self, arg):
+        return self.default('undo ' + arg)
+    
+    def do_redo(self, arg):
+        return self.default('redo ' + arg)
+
+    def do_EOF(self, arg):
+        quit()
+    
+    def do_terminalclear(self, arg):
+        os.system('clear')
+
+    # Though these should only be accessible in certain contexts, to have the words
+    # tab complete, we need these here, but that means they will also be options
+    # in the other contexts.
+    def do_parameter(self, arg):
+        return self.default('parameter ' + arg)
+
+    def do_field(self, arg):
+        return self.default('field ' + arg)
+
+    def do_method(self, arg):
+        return self.default('method ' + arg)
+    
+    def do_back(self, arg):
+        return self.default('back ' + arg)
+
+
 class UmlViewCliObserver(UmlViewObserver):
-    """"""
+    """View observer for CLI"""
     import utilities.cli_utils as cli
     _ec = cli.get_escape_char()
-    _getch = cli.getch
 
     DEFAULT_PROMPT = "BS-uml"
     active_class:UmlClass = None
     active_method:UmlMethod = None
 
-    def get_user_input(self, tcompletes:list[str]) -> str:
-        """"""
-        user_input = ""
-        predict = ""
-        s_idx = 0
-        offset_left = 0
-
-        sys.stdout.write(self.prompt)
-        sys.stdout.flush()
-        while True:
-            c = self._getch().decode()
-            if self._char_is_special(c):
-                c = self._getch().decode()
-                if c == "K": # left arrow
-                    """Move left"""
-                    if s_idx > 0:
-                        sys.stdout.write(f"{self._ec}[D")
-                        offset_left += 1
-                    s_idx = max(0, s_idx - 1)
-            elif c == "\r": # enter (readline)
-                sys.stdout.write("\r" + self.prompt + user_input + "\n")
-                sys.stdout.flush()
-                return user_input
-            elif c == "\t": # tab
-                user_input += predict
-                sys.stdout.write("\r" + self.prompt + user_input)
-                sys.stdout.flush()
-                s_idx = len(user_input)
-                offset_left = 0
-            elif c == "\u0008" or c == "\x7f": # backspace
-                if user_input != "":
-                    user_input = user_input[:-1]
-                    s_idx = len(user_input)
-                sys.stdout.write(f"{self._ec}[2K\r" + self.prompt + user_input) # \033 is oct for \u001b
-                sys.stdout.flush()
-            elif c == "\x03": # ctrl+c
-                user_input += "ctrl+c"
-            elif c == "\x04": # ctrl+d
-                user_input = "quit"
-                return user_input
-            else:
-                user_input = user_input[:s_idx] + c + user_input[s_idx:]
-                # s += c
-                s_idx += 1
-                sys.stdout.write("\r" + self.prompt + user_input)
-                if offset_left > 0:
-                    sys.stdout.write(f"{self._ec}[{offset_left}D")
-                sys.stdout.flush()
-        
-            if user_input != "":
-                    for tcomplete in tcompletes:
-                        if tcomplete.startswith(user_input):
-                            predict = tcomplete[len(user_input):]
-                            sys.stdout.write(f"{self._ec}[K{self._ec}[90m" + predict + f"{self._ec}[0m" + "\u0008" * len(predict))
-                            break
-                        sys.stdout.write(f"{self._ec}[K")
-
-    def _char_is_special(self, char:str) -> bool:
-        """Checks if the first keypress was a special character."""
-        return char == '\000' or char == '\xe0'
 
     def parse_command(self, cmd_string:str) -> UmlCommand:
         """Logic to parse command strings and return an appropriate UmlCommand."""
-        # if cmd_string == "quit":
-        #     cmd = self.COMMANDS.ExitCommand()
-        #     cmd.set_driver(self)
-        #     return cmd
-        # else:
-        cmd_args = tuple(cmd_string.split(" "))
+        cmd_string = cmd_string.strip()
+        cmd_args = tuple(cmd_string.split())# Changed from .split(" "), revert if needed.
         for regex, cmd in c_cmd.UMLCOMMANDS.items():
             if re.search(regex, cmd_string):
                 _cmd = cmd(*cmd_args)
@@ -117,16 +133,16 @@ class UmlViewCliObserver(UmlViewObserver):
     @property
     def prompt(self) -> str:
         """The CLI prompt to display each loop."""
-        prompt = f"{self._ec}[1;31m{self.DEFAULT_PROMPT}{self._ec}[0m"
+        prompt = f"{self.DEFAULT_PROMPT}"
         if self.active_class:
             classname = self.active_class.class_name
-            prompt += f"{self._ec}[36m[{classname}]{self._ec}[0m"
+            prompt += f"[{classname}]"
         if self.active_method:
             methodname = self.active_method.name
             paramlist = ",".join(self.active_method.overloadID.split(" "))
             rtype = self.active_method.return_type
-            prompt += f"{self._ec}[33m[+{methodname}({paramlist}) -> {rtype}]{self._ec}[0m"
-        return rf"{prompt}{self._ec}[1;31m>{self._ec}[0m "
+            prompt += f"[+{methodname}({paramlist}) -> {rtype}]"
+        return rf"{prompt}> "
 
     def _calculate_tab_completion_list(self) -> list[str]:
         """Calculates the available options for tab completion."""
@@ -163,8 +179,6 @@ class UmlViewCliObserver(UmlViewObserver):
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.COMPOSITION.name.lower()}")
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.INHERITANCE.name.lower()}")
                     t_base.append(f"relation add {c1.class_name} {c2.class_name} {RelationshipType.REALIZATION.name.lower()}")
-        
-
 
         # options available when not in a class context
         if not self.active_class:
@@ -214,7 +228,6 @@ class UmlViewCliObserver(UmlViewObserver):
                 
                 t_base.extend(method_context_base)
                 
-
         return t_base
             
     def handle_command_result(self, cmd:UmlCommand):
@@ -264,17 +277,10 @@ class UmlViewCliObserver(UmlViewObserver):
         self._prompt_requester = self.COMMANDS.CliPromptRequester()
 
         self.running = True
-        while self.running:
-            try:
-                tcompletes = self._calculate_tab_completion_list()
-                cmd_string = self.get_user_input(tcompletes)
-                if cmd_string:
-                    _command = self.parse_command(cmd_string)
-                    self.handle_command(_command)
-                    self.handle_command_result(_command)
-            except Exception as e:
-                print(f"ERROR: Something went wrong. ({e})")
-                # raise e
+        
+        shell = UmlShell()
+        shell.set_view(self)
+        shell.cmdloop()
 
     def shutdown(self):
         """Logic needed to shutdown and stop the UmlViewObserver from running."""
