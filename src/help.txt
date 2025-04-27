@@ -4,6 +4,8 @@
 #BS-uml Commands:
 help
     Display this help menu
+help <command>
+    Get help on a specific command
 load <filename>
     Load the file at <filename>
     If a project file is open, will prompt to save.
@@ -11,7 +13,7 @@ new <filename>
     Create a new project file at <filename>
     If a project file is open, will prompt to save.
 save
-    Save the file that was loaded with the load command
+    Save the current file
 quit
     Quits the program. Prompts to save any unsaved changes.
 list
@@ -74,8 +76,9 @@ relation list
                 parameter delete <parameter name>
                     Deletes the parameter with name <parameter name> from the class.
         
-
--when naming classes, fields, methods or parameters, they will be invalid if any of these keywords, or python 
+Important notes:
+-when naming classes, fields, methods or parameters, they 
+    will be invalid if any of these keywords, or python 
     language keywords, and no action will be taken
--input will also be invalid if classname specified does not
+-input will also be invalid if classname specified does not 
     exist for delete, rename, or relation actions
