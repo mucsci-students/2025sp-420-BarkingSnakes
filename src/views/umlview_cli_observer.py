@@ -1,7 +1,12 @@
+# Filename: umlview_cli_observer.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
+# Date: 2025-02-25, Last edit date: 2025-04-25
+# Description: cli observer implementation
 from __future__ import annotations
 import sys
 import re
 import cmd
+import os
 
 from umlcommands.base_commands import CommandOutcome, CommandResult, CallbackCommand
 from views.umlview_observer import UmlViewObserver, UmlCommand, CommandSubject, errors
@@ -66,6 +71,9 @@ class UmlShell(cmd.Cmd):
 
     def do_EOF(self, arg):
         quit()
+    
+    def do_terminalclear(self, arg):
+        os.system('clear')
 
     # Though these should only be accessible in certain contexts, to have the words
     # tab complete, we need these here, but that means they will also be options
