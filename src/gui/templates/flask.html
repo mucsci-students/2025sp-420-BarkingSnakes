@@ -496,6 +496,22 @@
             cursor: pointer;
         }
 
+        .add-button {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .add-button:hover {
+            background-color: #028a5e;
+            transform: scale(1.05);
+        }
+
         /* Animations to fade the snackbar in and out */
         @-webkit-keyframes fadein {
             from {
@@ -555,6 +571,14 @@
             font-weight: bold;
             text-align: center;
             border: none;
+            transition: all 0.3s ease;
+        }
+
+        input.class-name.editable {
+            background: #444;
+            border: 2px solid #04AA6D;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(4, 170, 109, 0.8);
         }
     </style>
 
@@ -746,7 +770,10 @@
 
                 if (classTextInpt) {
                     classTextInpt.readOnly = false;
+                    classTextInpt.classList.add('editable');
+                    classTextInpt.focus();
                 }
+
                 editModeState = true; // Set edit mode to true
             } else {
                 if (addFieldContainer) {
@@ -767,6 +794,7 @@
 
                 if (classTextInpt) {
                     classTextInpt.readOnly = true;
+                    classTextInpt.classList.remove('editable');
                 }
 
                 editModeState = false; // Set edit mode to false
@@ -774,7 +802,6 @@
 
             setTimeout(drawRelationshipLines, 100);
         }
-
         /**
          * Closes the class details.
          */
@@ -1106,7 +1133,7 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event,methodName,returntype,paramlist, className) {
+        function addMethod2(event, methodName, returntype, paramlist, className) {
             if (event.key === "Enter") {
                 // let methodname = document.getElementById('newMethodName-' + className);
                 // let returntype = document.getElementById('newMethodType-' + className);
