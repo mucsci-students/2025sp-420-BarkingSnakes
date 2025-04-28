@@ -202,6 +202,8 @@ class DeleteClassCommand(ActiveClassCommand):
                     self.driver.model.relationships.remove(r)
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
+            self.driver.active_class = None # Assumes `delete` in class context
+            self.driver.active_method = None # is the only way to delete a class.
         except errors.NoActiveClassException as nac_e:
             return
         except errors.UMLException as uml_e:
