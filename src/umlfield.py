@@ -12,7 +12,7 @@ class UmlField:
     type:str
 
     def rename_field(self,name:str) -> int:
-         """ Renames the Field
+        """ Renames the Field
         Params:   
             name: new name for the field
         Returns:
@@ -20,9 +20,21 @@ class UmlField:
         Exceptions:
             InvalidNameError: if the name is invalid
         """
-         errors.valid_name(name)
-         self.name = name
-         return 0
+        errors.valid_name(name)
+        self.name = name
+        return 0
+     
+    def change_type(self,type:str):
+        """changes the field's type
+        Params:   
+            type: the type of the field
+        Returns:
+            None
+        Exceptions:
+            InvalidNameError: if the type is invalid
+        """
+        errors.valid_name(type)
+        self.type = type
     
     def to_dict(self) -> dict:
         return {
