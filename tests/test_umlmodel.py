@@ -1,15 +1,7 @@
 # Filename: test_umlmodel.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Creation Date: 04-06-2025, Last Edit Date: 04-18-2025
+# Creation Date: 04-06-2025, Last Edit Date: 04-27-2025
 # Description: Unit Tests for umlmodel.py
-import os
-import sys
-import logging
-
-from src.umlclass import UmlClass
-from src.umlfield import UmlField
-from src.umlmethod import UmlMethod
-from src.umlparameter import UmlParameter
 from src.umlmodel import UmlProject
 from src import errors
 
@@ -98,6 +90,16 @@ def test_rename_field():
 
     assert "MinSpeed" in  test_proj.classes.get("car").class_fields
     assert "MaxSpeed" not in  test_proj.classes.get("car").class_fields
+    
+def test_change_field_type():
+    """Tests change_field_type"""
+    test_proj = UmlProject()
+    test_proj.add_umlclass("car")
+    test_proj.add_field("car","MaxSpeed","mph")
+
+    test_proj.change_field_type("car","MaxSpeed","kmph")
+    umlclass = test_proj.classes.get("car")
+    assert "kmph" == umlclass.class_fields.get("MaxSpeed").type
 
 def test_delete_field():
     """Tests delete_field"""
@@ -167,3 +169,15 @@ def test_get_position_class_exists():
     except Exception as e:
         assert e == None
     assert pos == (1.0,2.0)
+
+### method tests
+
+def test_change_method_type():
+    """Tests change_method_type"""
+    test_proj = UmlProject()
+    test_proj.add_umlclass("car")
+    test_proj.add_method("car","MaxSpeed","mph", [])
+
+    test_proj.change_method_type("car","MaxSpeed","kmph", "")
+    umlclass = test_proj.classes.get("car")
+    assert "kmph" == umlclass.class_methods.get("MaxSpeed").get("").return_type
