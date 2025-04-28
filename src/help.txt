@@ -59,6 +59,9 @@ relation list
         field rename <old field name> <new field name>
             Renames the field on the class with <old field name>
             to <new field name>
+        field type <field name> <new type>
+            changes the type of field with <field name> 
+            to <new type>
         method add <method name> <method return type> <paramameter1 name>:<parameter1 type> <paramameter2 name>:<parameter2 type>...
             Adds the method with name <method name> to the class.
         method rename <old method name> <new method name> arity <arity>
