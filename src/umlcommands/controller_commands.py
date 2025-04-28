@@ -264,6 +264,7 @@ class AddFieldCommand(ActiveClassCommand):
         return self._args[prop_index]
 
 class RenameFieldCommand(ActiveClassCommand):
+    """command for renaming fields"""
     def execute(self):
         try:
             self.raise_NoActiveClass()
@@ -292,6 +293,39 @@ class RenameFieldCommand(ActiveClassCommand):
 
     @property
     def newname(self) -> str:
+        prop_index = 3
+        return self._args[prop_index]
+
+class ChangeFieldTypeCommand(ActiveClassCommand):
+    """command for changing the field's type"""
+    def execute(self):
+        try:
+            self.raise_NoActiveClass()
+            self.raise_InvalidName(self.name, "field")
+            self.raise_InvalidName(self.newtype, "field")
+            classname = self.driver.active_class.class_name
+            self.driver.model.change_field_type(classname, self.name, self.newtype)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.NoSuchObjectException as nso_e:
+            error_text = f"The field {self.name} does not exist on class {classname}."
+            self.set_result(CommandOutcome.FAILED, nso_e, error_text)
+        except errors.InvalidNameException as name_ex:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    @property
+    def name(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
+
+    @property
+    def newtype(self) -> str:
         prop_index = 3
         return self._args[prop_index]
 
@@ -984,6 +1018,7 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^delete$": DeleteClassCommand,
     r"^field add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)$": AddFieldCommand,
     r"field rename ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)": RenameFieldCommand,
+    r"field type ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)": ChangeFieldTypeCommand,
     r"field delete ([A-Za-z0-9_]*)$": DeleteFieldCommand,
     r"^method add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*):([A-Za-z0-9_]*))*$": MethodAddCommand,
     r"^method rename ([A-Za-z0-9_]*)": MethodRenameCommand,
