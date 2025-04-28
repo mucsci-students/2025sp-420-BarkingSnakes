@@ -32,6 +32,18 @@ class UmlMethod:
             in order, space separated.
         """
         return " ".join([param.umltype for param in self.params])
+    
+    def change_type(self, new_type:str):
+        """Changes the type of the method
+        Params:
+            new_type: the new type of the method
+        Returns:
+            None
+        Exceptions:
+            InvalidNameError
+        """
+        errors.valid_name(new_type)
+        self.return_type = new_type
 
     def add_parameter(self, parameter_name:str, parameter_type:str) -> int:
         """Adds an UmlParameter the UmlMethod.
