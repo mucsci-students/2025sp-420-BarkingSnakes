@@ -500,10 +500,17 @@ class UmlProject:
         return 0
 
     @_has_changed
-    def rename_field(self, classname: str, oldname: str, newname: str) -> int:
+    def rename_field(self, classname: str, oldname: str, newname: str):
         uml_class = self.get_umlclass(classname)
 
         uml_class.rename_field(oldname, newname)
+        
+    @_has_changed
+    def change_field_type(self, classname: str, fieldname: str, newtype: str):
+        """changes the type of the field with name field name"""
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.change_field_type(fieldname, newtype)
 
     @_has_changed
     def delete_field(self, classname: str, fieldname: str) -> int:
@@ -534,6 +541,12 @@ class UmlProject:
     def rename_method(self, classname:str, oldname:str, newname:str, overload_id:str):
         if self.classes.get(classname):
             self.classes.get(classname).rename_method(oldname, overload_id, newname)
+    
+    @_has_changed
+    def change_method_type(self, classname:str, name:str, newtype:str, overload_id:str):
+        """changes the method type"""
+        uml_class = self.classes.get(classname)
+        uml_class.change_method_type(name, overload_id, newtype)
 
     @_has_changed
     def delete_method(self, classname:str, methodname:str, overload_id:str):
