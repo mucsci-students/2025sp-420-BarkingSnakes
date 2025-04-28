@@ -76,13 +76,6 @@ class AStar:
                         heapq.heappush(heap, (new_f, new_g, nx, ny, new_direction, path + [(x, y)]))
         # print("End A*", start, goal, count)
         return None  # no path found
-    
-    def calc_dist(self, p1, p2) -> int:
-        x1,y1 = p1
-        x2,y2 = p2
-        
-        math.dist(p1, p2)
-        return math.sqrt((x2 - x1)**2 + ())
 
     def get_optimal_path(self) -> PATH:
         paths:list[PATH] = []

@@ -5,7 +5,6 @@
 
 from abc import ABC, abstractmethod
 import math
-import traceback
 
 from utilities import svg
 from utilities.model_utils import UmlClassNT, UmlModelNT
@@ -161,12 +160,6 @@ class UmlClassSvgBuilder(SvgBuilder):
             m.x = self.rect.x + self.field_x_offset
             m.y = offset_y
             offset_y += m.box_size.height + self.padding_y
-        
-        # self.width = self.width + self.padding_x
-        # self.height = self.height + self.padding_y * 3
-
-        # self.image.width = max(self.image.width, self.width)
-        # self.image.height = max(self.image.height, self.height)
 
 class UmlRelationshipBuilder(SvgBuilder):
     def __init__(self, image:svg.SvgImage, source:UmlClassSvgBuilder, dest:UmlClassSvgBuilder):
@@ -188,29 +181,29 @@ class UmlRelationshipBuilder(SvgBuilder):
         rect1 = self.source.rect
         rect2 = self.dest.rect
 
-        r1d = (
-            math.floor(rect1.x - self.box_buffer),
-            math.floor(rect1.y - self.box_buffer),
-            math.floor(rect1.width + self.box_buffer),
-            math.floor(rect1.height + self.box_buffer)
-        )
+        # r1d = (
+        #     math.floor(rect1.x - self.box_buffer),
+        #     math.floor(rect1.y - self.box_buffer),
+        #     math.floor(rect1.width + self.box_buffer),
+        #     math.floor(rect1.height + self.box_buffer)
+        # )
 
-        r2d = (
-            math.floor(rect2.x - self.box_buffer),
-            math.floor(rect2.y - self.box_buffer),
-            math.floor(rect2.width + (self.box_buffer * 1)),
-            math.floor(rect2.height + (self.box_buffer * 1))
-        )
+        # r2d = (
+        #     math.floor(rect2.x - self.box_buffer),
+        #     math.floor(rect2.y - self.box_buffer),
+        #     math.floor(rect2.width + (self.box_buffer * 1)),
+        #     math.floor(rect2.height + (self.box_buffer * 1))
+        # )
 
-        new_rect1 = svg.SvgRect(None, *r1d)
-        new_rect2 = svg.SvgRect(None, *r2d)
+        # new_rect1 = svg.SvgRect(None, *r1d)
+        # new_rect2 = svg.SvgRect(None, *r2d)
 
-        search = AStar(self.grid, new_rect1.anchors(), new_rect2.anchors())
+        # search = AStar(self.grid, new_rect1.anchors(), new_rect2.anchors())
 
-        path = search.get_optimal_path()
+        # path = search.get_optimal_path()
 
         self.relation = svg.SvgRelation(elem_id, rect1, rect2)
-        self.relation.set_path(path)
+        # self.relation.set_path(path)
 
         self.image.add(self.relation)
 
@@ -301,38 +294,7 @@ class UmlDiagramSvgBuilder(SvgBuilder):
                 if j != i:
                     b = builders[j]
                     if b.rect.intersects(builder.rect):
-                        print(b.umlclass.name, "intersects", builder.umlclass.name)
                         b.x = builder.x + builder.width + self.padding
-                        # if b.y > builder.y:
-                        #     b.y = builder.y + builder.width + self.padding
                         b.reset()
                         b.produce_svg_part()
-    
-    # def _handle_class_relationships(self):
-    #     """"""
-    #     for (source, dest, rtype) in self.model.relationships:
-    #         rect1 = self.class_builder_map.get(source).rect
-    #         rect2 = self.class_builder_map.get(dest).rect
-
-    #         r1d = (
-    #             math.floor(rect1.x - self.border_padding),
-    #             math.floor(rect1.y - self.border_padding),
-    #             math.floor(rect1.width + self.border_padding),
-    #             math.floor(rect1.height + self.border_padding)
-    #         )
-
-    #         r2d = (
-    #             math.floor(rect2.x - self.border_padding),
-    #             math.floor(rect2.y - self.border_padding),
-    #             math.floor(rect2.width + self.border_padding),
-    #             math.floor(rect2.height + self.border_padding)
-    #         )
-
-    #         new_rect1 = svg.SvgRect(None, *r1d)
-    #         new_rect2 = svg.SvgRect(None, *r2d)
-
-    #         grid  = [[0 for _ in range(self.width)] for _ in self.height]
-
-    #         search = AStar(grid, new_rect1.anchors(), new_rect2.anchors())
-    #         path = search.get_optimal_path()
 
