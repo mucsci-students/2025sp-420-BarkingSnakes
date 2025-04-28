@@ -98,19 +98,13 @@ class UmlShell(cmd.Cmd):
         Enters the context for the class with the specified <classname> or prompts you\n\
         to add if it is not an existing class\n\n\
 class add <classname>\n\
-        Adds the class and enters the context for the class. If a name is not provided,\n\
-        it prompts for a name\n\n\
+        Adds the class with the specified name.\n\n\
 class delete\n\
         Removes the class from the project and all of its relationships.\n\
         Issues a Y/N prompt to confirm the action.\n\n\
 rename <new name>\n\
         Renames the class to the provided <new name> or if one was not provided,\n\
-        prompts for a new name\n\n\
-list\n\
-        Displays the current class and its fields, methods and parameters\n\
-        in a box.\n\n\
-list\n\
-        In the project context, displays all classes and their fields, methods and parameter.\n")
+        prompts for a new name\n")
 
     def help_relation(self):
         print("\nrelation add <source class> <destination class> <relationship type>\n\
