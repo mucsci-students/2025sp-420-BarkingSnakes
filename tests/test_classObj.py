@@ -85,9 +85,9 @@ def test_remove_field_not_found():
        assert e == errors.NoSuchObjectException()
     assert len(test_class.class_fields) == 1
 
-# Rename an field
+## renaming fields
 def test_rename_field_valid():
-    """"""
+    """test renaming a field normally"""
     test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
     
@@ -97,8 +97,7 @@ def test_rename_field_valid():
         pass
     assert "MinSpeed" in test_class.class_fields
 
-# Rename an field to a no longer invalid name
-def test_rename_field_invalid():
+def test_rename_field_not_invalid():
     """make sure that naming a field to a keyword does not raise an error"""
     test_field = UmlField("MaxSpeed","speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
@@ -109,10 +108,22 @@ def test_rename_field_invalid():
         assert e == None
     assert "MaxSpeed" not in test_class.class_fields
     assert "relation" in test_class.class_fields
+    
+def test_rename_field_invalid():
+    """make sure that naming a field to a number does raise an error"""
+    test_field = UmlField("MaxSpeed","speed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
+    
+    try:
+        test_class.rename_field("MaxSpeed","9th")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidNameException()
+    assert "MaxSpeed" in test_class.class_fields
+    assert "9th" not in test_class.class_fields
 
-# Rename a field to an existing field
 def test_rename_field_existing():
-    """"""
+    """test that renaming a field to an existing field errors"""
     test_field = UmlField("MaxSpeed","top_speed")
     test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
@@ -123,8 +134,62 @@ def test_rename_field_existing():
         assert e == errors.DuplicateFieldException()
     assert "MaxSpeed" in test_class.class_fields
     assert "MinSpeed" in test_class.class_fields
+    
+def test_rename_field_not_existing():
+    """make sure that renaming a nonexistent field errors"""
+    test_field = UmlField("MaxSpeed","speed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
+    
+    try:
+        test_class.rename_field("MinSpeed","name")
+        assert False
+    except Exception as e:
+        assert e == errors.NoSuchObjectException()
+    assert "MaxSpeed" in test_class.class_fields
+    assert "name" not in test_class.class_fields
+    
+## change type method tests
+def test_change_field_type_valid():
+    """test that changing a field type works"""
+    test_field = UmlField("MaxSpeed","top_speed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
 
-# test adding method
+    try:
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.change_field_type("MinSpeed","mph")
+    except Exception as e:
+        assert e == None
+    assert "MinSpeed" in test_class.class_fields
+    assert "mph" == test_class.class_fields["MinSpeed"].type
+    
+def test_change_field_type_no_field():
+    """test that changing a field type when the field doesn't exist errors"""
+    test_class = UmlClass("Car",{},{})
+    try:
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.change_field_type("MaxSpeed","mph")
+        assert False
+    except Exception as e:
+        assert e == errors.NoSuchObjectException()
+    assert "MaxSpeed" not in test_class.class_fields
+    assert "MinSpeed" in test_class.class_fields
+    assert "slow_speed" == test_class.class_fields["MinSpeed"].type
+    
+def test_change_field_type_invalid_name():
+    """test that changing a field type errors if the type is invalid"""
+    test_field = UmlField("MaxSpeed","top_speed")
+    test_class = UmlClass("Car",{"MaxSpeed":test_field},{})
+
+    try:
+        test_class.add_field("MinSpeed","slow_speed")
+        test_class.change_field_type("MinSpeed","9th")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidNameException()
+    assert "MinSpeed" in test_class.class_fields
+    assert "slow_speed" == test_class.class_fields["MinSpeed"].type
+
+## test adding method
 def test_add_method_not_invalid_name():
     """tests that a keyword doesn't raise an error"""
     test_class = UmlClass("Car", {}, {})
@@ -335,6 +400,50 @@ def test_rename_method_overload_invalid():
     except Exception as e:
         assert e == errors.DuplicateMethodOverloadException()
     assert test_class.class_methods == test_val_methods
+    
+## changing method return type
+def test_change_method_type_valid():
+    """test that the method type changes if the type is valid"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "", "int")
+    except Exception as e:
+        assert e == None
+    assert "int" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_invalid_name():
+    """test that the method type changes if the type is invalid"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "", "9th")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidNameException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_no_method():
+    """test that the change method type errors if no such method"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Park", "", "int")
+        assert False
+    except Exception as e:
+        assert e == errors.MethodNameNotExistsException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_no_overload():
+    """test that change type errors if no overload"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "test", "int")
+        assert False
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
 
 # test removing method
 #   - invalid name case

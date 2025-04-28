@@ -14,6 +14,9 @@ new <filename>
     If a project file is open, will prompt to save.
 save
     Save the current file
+    if new, load, or save has not yet been used, will prompt for <filename>
+save <filename>
+    Save the current file to <filename>
 quit
     Quits the program. Prompts to save any unsaved changes.
 list
@@ -56,25 +59,30 @@ relation list
         field rename <old field name> <new field name>
             Renames the field on the class with <old field name>
             to <new field name>
+        field type <field name> <new type>
+            changes the type of field with <field name> 
+            to <new type>
         method add <method name> <method return type> <paramameter1 name>:<parameter1 type> <paramameter2 name>:<parameter2 type>...
             Adds the method with name <method name> to the class.
-        method rename <old method name> <new method name> arity <arity>
-            Renames the method on the class with <old method name>
-            to <new method name>, arity must be specified
-        method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>...
-            Deletes the method with name <method name> from the class.
         method <method name> <parameter1 type> <parameter2 type> <parameter2 type>...
             Enters the context for the specified method
         
             method context commands:
                 back
                     When inside a class context, returns to the project context.
+                rename <old method name> <new method name>
+                    Renames the method on the class with <old method name>
+                    to <new method name>
+                delete <method name> 
+                    Deletes the method with name <method name> from the class.
+                type <new type>
+                    changes the method's type to <new type>
                 parameter add <parameter name>:<parameter type>
-                    Adds the parameter with name <parameter name> to the class.
+                    Adds the parameter with name <parameter name> to the method.
                 parameter rename <old parameter name> <new parameter name>
                     Renames the parameter on the class with <old parameter name>
                 parameter delete <parameter name>
-                    Deletes the parameter with name <parameter name> from the class.
+                    Deletes the parameter with name <parameter name> from the method.
         
 Important notes:
 -when naming classes, fields, methods or parameters, they 
