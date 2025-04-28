@@ -259,3 +259,51 @@ def test_rename_parameter():
     method = model.get_umlmethod("temp", "method1", "string")
 
     assert len(method.params) == 1 and method.params[0].name == "param2"
+
+def test_clear_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.clear_all_parameters("temp", "method1", "string")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+
+    method = model.get_umlmethod("temp", "method1", "")
+
+    assert len(method.params) == 0
+
+def test_replace_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.replace_all_parameters("temp", "method1", "string", [("param2", "int")])
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method1", "int")
+
+    assert method is not None
+
+def test_replace_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.delete_parameter("temp", "method1", "string", "param1")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method1", "")
+
+    assert method is not None
