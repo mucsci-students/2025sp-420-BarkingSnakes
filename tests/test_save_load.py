@@ -1,12 +1,10 @@
 # Filename: test_save_load.py
 # Authors: Steven Barnes, John Hershey
-# Date: 2025-02-25, Last edit date: 2025-04-06
+# Date: 2025-02-25, Last edit date: 2025-04-25
 # Description: Unit tests for the saving and loading json,
 #   as well as schema validation and json dict parsing
 
 import os
-import json
-import jsonschema
 import json
 
 from src import errors
@@ -156,7 +154,133 @@ def test_new_old_file_exists():
     assert not var
 
 ### parsing tests
+#parse_uml_data
+def test_parse_data_valid_empty():
+    """test that data containing proper components doesn't error"""
+    try:
+        data = {"classes": [],"relationships": []}
+        model = UmlProject()
+        model._parse_uml_data(data)
+    except Exception as e:
+        assert e == None
+        
+def test_parse_data_valid():
+    """test that data containing proper components doesn't error"""
+    try:
+        data = {"classes":[{"name": "temp","fields": [],"methods": [],"position": {"x": 0.0,"y": 0.0}}],
+         "relationships": [{"source": "temp","destination": "temp","type": "Aggregation"}]}
+        model = UmlProject()
+        model._parse_uml_data(data)
+    except Exception as e:
+        assert e == None
+        
+def test_parse_data_missing_class_entry():
+    """test that data missing the classes field has an error"""
+    try:
+        data = {"relationships": []}
+        model = UmlProject()
+        model._parse_uml_data(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_parse_data_valid_duplicate_class():
+    """test that data containing an extra class errors"""
+    try:
+        data = {"classes": [{"name": "temp","fields": [],"methods": [],"position": {"x": 0.0,"y": 0.0}},
+                            {"name": "temp","fields": [],"methods": [],"position": {"x": 3.0,"y": 7.0}}],
+                "relationships": []}
+        model = UmlProject()
+        model._parse_uml_data(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_parse_data_valid_duplicate_relations():
+    """test that data containing proper components doesn't error"""
+    try:
+        data = {"classes":[{"name": "temp","fields": [],"methods": [],"position": {"x": 0.0,"y": 0.0}}],
+         "relationships": [{"source": "temp","destination": "temp","type": "Aggregation"}, 
+                           {"source": "temp","destination": "temp","type": "Aggregation"}]}
+        model = UmlProject()
+        model._parse_uml_data(data)
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        assert len(model.relationships) == 1
+        
+# parse_uml_class
+def test_parse_data_valid_empty():
+    """test that umlclass data containing proper components doesn't error"""
+    try:
+        data = {"name": "temp","fields": [],"methods": [],"position": {"x": 0.0,"y": 0.0}}
+        model = UmlProject()
+        umlclass = model._parse_uml_class(data)
+    except Exception as e:
+        assert e == None
+    assert umlclass.class_name == "temp"
+    
+def test_parse_data_valid_empty_brackets():
+    """test that umlclass data containing proper components doesn't error"""
+    try:
+        data = {"name": "temp","fields": [{}],"methods": [{}],"position": {"x": 0.0,"y": 0.0}}
+        model = UmlProject()
+        umlclass = model._parse_uml_class(data)
+    except Exception as e:
+        assert e == None
+    #assert not umlclass.class_fields
 
+#parse_uml_relationship
+def test_parse_relation_data_valid_one_class():
+    """test that data containing proper components doesn't error"""
+    try:
+        data = {"source": "temp","destination": "temp","type": "Aggregation"}
+        model = UmlProject()
+        model.add_umlclass("temp")
+        model._parse_uml_relationship(data)
+    except Exception as e:
+        assert e == None
+        
+def test_parse_relation_data_valid_two_classes():
+    """test that data containing proper components with two classes doesn't error"""
+    try:
+        data = {"source": "temp","destination": "temp2","type": "Aggregation"}
+        model = UmlProject()
+        model.add_umlclass("temp")
+        model.add_umlclass("temp2")
+        model._parse_uml_relationship(data)
+    except Exception as e:
+        assert e == None
+        
+def test_parse_relation_data_missing_class():
+    """test that data with a class that doesn't exist errors"""
+    try:
+        data = {"source": "temp","destination": "temp","type": "Aggregation"}
+        model = UmlProject()
+        model._parse_uml_data(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_parse_relation_data_invalid_type():
+    """test that data containing the wrong type has an error"""
+    try:
+        data = {"source": "temp","destination": "temp","type": "Wrong"}
+        model = UmlProject()
+        model.add_umlclass("temp")
+        model._parse_uml_data(data)
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+        
+def test_parse_relation_data_valid_one_class():
+    """test that data containing a class that doesn't exist raises an error"""
+    try:
+        data = {"source": "temp","destination": "temp2","type": "Aggregation"}
+        model = UmlProject()
+        model.add_umlclass("temp")
+        model._parse_uml_data(data)
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
 
 ### schema validation tests
 def test_validate_schema_valid():
@@ -213,6 +337,13 @@ def test_validate_schema_wrong_class_data():
         assert False
     except Exception as e:
         assert e == errors.InvalidJsonSchemaException()
+        
+def test_validate_filepath_dir():
+    """tests that a dir raises an error"""
+    try:
+        UmlProject()._validate_filepath("/src")
+    except Exception as e:
+        assert e == errors.InvalidFileException()
     
 ### delete test file 
 def test_delete():
