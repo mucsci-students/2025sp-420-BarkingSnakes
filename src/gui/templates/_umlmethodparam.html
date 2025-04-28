@@ -2,7 +2,7 @@
     <td>
         <div style="margin-left: 30px;">
             - <input class="input-mode-view" style=" width: 50%" type="text"
-                id="umlmethod-{{ m.name }}-param-{{ p.name }}" value="{{ p.name }}"
+                id="umlmethod-{{ m.name }}-param-{{ p.name }}" value="{{ p.name }}:{{p.type}}"
                 onblur="renameMethodParam('{{ p.name }}' ,this.value,'{{m.name}}', '{{ m.params|length }}','{{dto.name}}')"
                 onkeydown="onkeydown_enter(event, () => this.blur())""/>
                 <td>

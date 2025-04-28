@@ -1107,11 +1107,11 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event, className) {
+        function addMethod2(event,methodName,returntype,paramlist, className) {
             if (event.key === "Enter") {
-                let methodname = document.getElementById('newMethodName-' + className);
-                let returntype = document.getElementById('newMethodType-' + className);
-                let paramlist = document.getElementById('parameterListInpt-' + className)
+                // let methodname = document.getElementById('newMethodName-' + className);
+                // let returntype = document.getElementById('newMethodType-' + className);
+                // let paramlist = document.getElementById('parameterListInpt-' + className)
                 fetch("/addMethod", {
                     method: "POST",
                     headers: {
@@ -1119,15 +1119,14 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        methodname: methodname.value,
-                        returntype: returntype.value,
-                        paramlist: paramlist.value,
+                        methodname: methodName,
+                        returntype: returntype,
+                        paramlist: paramlist,
                         classname: className
                     })
                 })
                     .then(resp => {
                         if (resp.status >= 400) {
-                            elem.value = "";
                             return resp.json();
                         } else {
                             displayClassDetails(className);
