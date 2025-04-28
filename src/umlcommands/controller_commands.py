@@ -941,8 +941,19 @@ class UndoCommand(ControllerCommand):
     def execute(self):
         try:
             self.driver.caretaker.undo()
-            self.driver.active_class = None
-            self.driver.active_method = None
+            if self.driver.active_class:
+                try:
+                    self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
+                except:
+                    self.driver.active_class = None
+                    self.driver.active_method = None
+            else:
+                self.driver.active_method = None
+            if self.driver.active_class and self.driver.active_method:
+                try:
+                    self.driver.active_method = self.driver.active_class.class_methods[self.driver.active_method.name][self.driver.active_method.overloadID]
+                except:
+                    self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
@@ -951,18 +962,19 @@ class RedoCommand(ControllerCommand):
     def execute(self):
         try:
             self.driver.caretaker.redo()
-            self.driver.active_class = None
-            self.driver.active_method = None
-            #if self.driver.active_class:
-            #    try:
-            #        self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
-            #    except:
-            #        self.driver.active_class = None
-            #    if self.driver.active_class and self.driver.active_method:
-            #        try:
-            #            self.driver.active_method = self.driver.model.get_umlmethod(self.driver.active_method.name, self.driver.active_method.overloadID)
-            #        except:
-            #            self.driver.active_method = None
+            if self.driver.active_class:
+                try:
+                    self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
+                except:
+                    self.driver.active_class = None
+                    self.driver.active_method = None
+            else:
+                self.driver.active_method = None
+            if self.driver.active_class and self.driver.active_method:
+                try:
+                    self.driver.active_method = self.driver.active_class.class_methods[self.driver.active_method.name][self.driver.active_method.overloadID]
+                except:
+                    self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
