@@ -181,3 +181,142 @@ def test_change_method_type():
     test_proj.change_method_type("car","MaxSpeed","kmph", "")
     umlclass = test_proj.classes.get("car")
     assert "kmph" == umlclass.class_methods.get("MaxSpeed").get("").return_type
+def test_get_umlmethod_exists():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    method = model.get_umlmethod("temp", "method1", "string")
+
+    assert method is not None
+
+def test_get_umlmethod_raises_notexists_exception():
+    model = UmlProject()
+    model.add_umlclass("temp")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodNameNotExistsException()
+
+def test_get_umlmethod_raises_overloadnotexists_exception():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    try:
+        model.get_umlmethod("temp", "method1", "int")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+
+def test_add_method():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    method = model.get_umlmethod("temp", "method1", "string")
+
+    assert method is not None
+
+def test_rename_method():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.rename_method("temp", "method1", "method2", "string")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodNameNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method2", "string")
+
+    assert method is not None
+
+def test_delete_method():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.delete_method("temp", "method1", "string")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodNameNotExistsException()
+
+def test_add_parameter():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.add_parameter("temp", "method1", "string", "param2", "int")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method1", "string int")
+
+    assert method is not None
+
+def test_rename_parameter():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.rename_parameter("temp", "method1", "string", "param1", "param2")
+
+    method = model.get_umlmethod("temp", "method1", "string")
+
+    assert len(method.params) == 1 and method.params[0].name == "param2"
+
+def test_clear_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.clear_all_parameters("temp", "method1", "string")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+
+    method = model.get_umlmethod("temp", "method1", "")
+
+    assert len(method.params) == 0
+
+def test_replace_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.replace_all_parameters("temp", "method1", "string", [("param2", "int")])
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method1", "int")
+
+    assert method is not None
+
+def test_replace_all_parameters():
+    model = UmlProject()
+    model.add_umlclass("temp")
+    model.add_method("temp", "method1", "int", [("param1", "string")])
+
+    model.delete_parameter("temp", "method1", "string", "param1")
+
+    try:
+        model.get_umlmethod("temp", "method1", "string")
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    
+    method = model.get_umlmethod("temp", "method1", "")
+
+    assert method is not None
