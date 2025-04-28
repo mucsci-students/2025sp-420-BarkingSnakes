@@ -501,6 +501,40 @@ class MethodRenameCommand(ActiveMethodCommand):
     def newname(self) -> str:
         prop_index = 2
         return self._args[prop_index]
+    
+class ChangeMethodTypeCommand(ActiveMethodCommand):
+    def execute(self):
+        try:
+            self.raise_NoActiveMethod()
+            self.raise_InvalidName(self.newtype, "method")
+
+            classname = self.umlclass.class_name
+            methodname = self.umlmethod.name
+            overload_id = self.umlmethod.overloadID
+            self.driver.model.change_method_type(classname, methodname, self.newtype, overload_id)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.NoActiveMethodException as nam_e:
+            return
+        except errors.InvalidNameException as name_e:
+            return
+        except errors.MethodNameNotExistsException as mnne_e:
+            error_text = f"The method {self.name} does not exist on the class {classname}."
+            self.set_result(CommandOutcome.FAILED, mnne_e, error_text)
+        except errors.MethodOverloadNotExistsException as mone_e:
+            error_text = f"The method signature {self.overload_id} does not exists for method {self.name} on class {classname}."
+            self.set_result(CommandOutcome.FAILED, mone_e, error_text)
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    @property
+    def newtype(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
 
 class ParameterAddCommand(ActiveMethodCommand):
     def execute(self):
@@ -1022,6 +1056,7 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"field delete ([A-Za-z0-9_]*)$": DeleteFieldCommand,
     r"^method add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*):([A-Za-z0-9_]*))*$": MethodAddCommand,
     r"^method rename ([A-Za-z0-9_]*)": MethodRenameCommand,
+    r"^method type ([A-Za-z0-9_]*)": ChangeMethodTypeCommand,
     r"^method delete ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodDeleteCommand,
     r"^method ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodContextCommand,
     r"^parameter add ([A-Za-z0-9_]*):([A-Za-z0-9_]*)$": ParameterAddCommand,
