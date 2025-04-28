@@ -219,15 +219,24 @@ def test_parse_data_valid_empty():
         assert e == None
     assert umlclass.class_name == "temp"
     
-def test_parse_data_valid_empty_brackets():
-    """test that umlclass data containing proper components doesn't error"""
+def test_parse_data_invalid_empty_brackets_fields():
+    """test that umlclass data containing proper components does error"""
     try:
-        data = {"name": "temp","fields": [{}],"methods": [{}],"position": {"x": 0.0,"y": 0.0}}
+        data = {"name": "temp","fields": [{}],"methods": [],"position": {"x": 0.0,"y": 0.0}}
         model = UmlProject()
         umlclass = model._parse_uml_class(data)
     except Exception as e:
-        assert e == None
-    #assert not umlclass.class_fields
+        assert e == errors.InvalidJsonSchemaException()
+    
+def test_parse_data_invalid_empty_brackets_methods():
+    """test that umlclass data containing proper components does error"""
+    try:
+        data = {"name": "temp","fields": [],"methods": [{}],"position": {"x": 0.0,"y": 0.0}}
+        model = UmlProject()
+        umlclass = model._parse_uml_class(data)
+    except Exception as e:
+        assert e == errors.InvalidJsonSchemaException()
+    assert not umlclass.class_fields
 
 #parse_uml_relationship
 def test_parse_relation_data_valid_one_class():

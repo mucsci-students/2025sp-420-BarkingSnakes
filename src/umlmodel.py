@@ -192,8 +192,7 @@ class UmlProject:
             if data:
                 field = UmlField(data.get("name"), data.get("type"))
                 return field
-
-            return None
+            raise errors.InvalidJsonSchemaException()
 
         def _parse_uml_method(data: dict) -> UmlMethod:
             """"""
@@ -202,8 +201,7 @@ class UmlProject:
                 if data:
                     param = UmlParameter(data.get("name"), data.get("type"))
                     return param
-
-                return None
+                raise errors.InvalidJsonSchemaException()
 
             params: list[UmlParameter] = []
             if data.get("params"):
@@ -279,7 +277,7 @@ class UmlProject:
             None
         """
         # make a list of every "name" in each dict in the list
-        nameList = [obj["name"] for obj in data]
+        nameList = [(obj["name"] if "name" in obj else "") for obj in data]
         # convert the name list to a set to remove duplicate names 
         # and compare lengths: if different then a dupe was removed
         return len(set(nameList)) != len(data)
