@@ -320,6 +320,3 @@ def test_replace_all_parameters():
     method = model.get_umlmethod("temp", "method1", "")
 
     assert method is not None
-
-def test_github_action_failure():
-    assert False
