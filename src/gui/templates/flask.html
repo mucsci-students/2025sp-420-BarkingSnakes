@@ -24,8 +24,8 @@
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
             <button onclick="showExportModal()">Export HTML</button>
-            <button onclick="confirmQuit()">Quit</button>
         </div>
+        <button id="quitButton" onclick="confirmQuit()">Quit</button>
     </div>
     <div id="content">
     </div>
@@ -177,6 +177,23 @@
         }
 
         #toolbar button:hover {
+            background-color: #028a5e;
+        }
+
+        #quitButton {
+            position: absolute;
+            right: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #quitButton:hover {
             background-color: #028a5e;
         }
 
@@ -1062,9 +1079,17 @@
             }
         }
 
-        function addField2(event, elem1, elem2, className) {
+        function addField2(event, fieldName, fieldType, className) {
             if (event.key === "Enter") {
-                const fieldType = "string";
+                if (!fieldName.trim()) {
+                    snackbar("Field name cannot be empty.");
+                    return;
+                }
+                if (!fieldType.trim()) {
+                    snackbar("Field type is required.");
+                    return;
+                }
+
                 fetch("/addField", {
                     method: "POST",
                     headers: {
@@ -1072,24 +1097,24 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fieldname: elem1,
+                        fieldname: fieldName,
                         classname: className,
-                        type: elem2
+                        type: fieldType
                     })
                 })
                     .then(resp => {
                         if (resp.status >= 400) {
-                            elem.value = "";
                             return resp.json();
                         } else {
                             displayClassDetails(className);
                         }
                     })
                     .then(data => {
-                        console.log(data);
-                        snackbar(data.error);
+                        if (data && data.error) {
+                            snackbar(data.error);
+                        }
                     })
-                    .catch(error => console.log(error))
+                    .catch(error => console.log(error));
             }
         }
 
@@ -1135,9 +1160,15 @@
 
         function addMethod2(event, methodName, returntype, paramlist, className) {
             if (event.key === "Enter") {
-                // let methodname = document.getElementById('newMethodName-' + className);
-                // let returntype = document.getElementById('newMethodType-' + className);
-                // let paramlist = document.getElementById('parameterListInpt-' + className)
+                if (!methodName.trim()) {
+                    snackbar("Method name cannot be empty.");
+                    return;
+                }
+                if (!returntype.trim()) {
+                    snackbar("Return type is required.");
+                    return;
+                }
+
                 fetch("/addMethod", {
                     method: "POST",
                     headers: {
@@ -1163,7 +1194,7 @@
                             snackbar(data.error);
                         }
                     })
-                    .catch(error => console.log(error))
+                    .catch(error => console.log(error));
             }
         }
 
