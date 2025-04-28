@@ -1609,7 +1609,9 @@
                         };
                         const no_callback = () => {
                             const modal = document.getElementById("yesNoModal");
-                            modal.style.display = "none";
+                            if (modal) {
+                                modal.style.display = "none";
+                            }
                         };
                         handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
                     }
