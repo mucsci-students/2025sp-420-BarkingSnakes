@@ -48,9 +48,13 @@ def index():
 @app.post("/quit")
 @handle_umlexception
 def quit():
+    if app.controller.model.has_unsaved_changes:
+        return jsonify({
+            "action": "showModal",
+            "tagId": "yesNoModal",
+            "error": "You have unsaved changes. Are you sure you want to quit?"
+        }), 400
     app.view.set_command("quit")
-    # sys.exit(0)
-    # app.controller.execute_command(["quit"])
     return Response(status=200)
 
 
@@ -202,14 +206,15 @@ def rename_field():
 def add_method():
     data = request.get_json()
     methodname = data.get("methodname")
-    methodtype = data.get("methodtype")
-    paramlist = data.get("paramlist")
+    methodtype = data.get("returntype")
+    paramlist = data.get("paramlist").split()
     classname = data.get("classname")
     
-
     if methodname and classname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["method", "add", methodname, methodtype,paramlist])
+        thecmd = ["method", "add", methodname, "returns" ,methodtype]
+        thecmd.extend(paramlist)
+        app.controller.execute_command(thecmd)
         return jsonify({"message": "Method added successfully"}), 202
     return jsonify({"error": "Missing method name or class name"}), 406
 
@@ -403,3 +408,16 @@ def delete_relation():
         app.controller.execute_command(["relation", "delete", source, destination])
         return Response(status=202)
     return Response(status=406)
+
+@app.post("/updateRelationType")
+@handle_umlexception
+def update_relation_type():
+    data = request.get_json()
+    source = data.get("source")
+    destination = data.get("destination")
+    new_type = data.get("type").upper()
+
+    if source and destination and new_type:
+        app.controller.execute_command(["relation", "set", source, destination, new_type])
+        return jsonify({"message": "Relationship type updated successfully"}), 200
+    return jsonify({"error": "Invalid input"}), 406
