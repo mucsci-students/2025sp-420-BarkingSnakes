@@ -700,6 +700,7 @@ class UmlController:
     @_requires_active_class
     def command_method(self, args:list[str]):
         """"""
+        print(args)
         command = " ".join(args)
         umlcommand:UmlCommand = None
         command_match = False
@@ -721,10 +722,15 @@ class UmlController:
 
         if umlcommand == UmlCommands.UmlMethodCommands.AddMethod:
             methodname = args[2]
-            returntype = args[3]
-            methodparams = args[4:]
-            
-            self.model.add_method(active_class, methodname, returntype , methodparams)
+            returntype = args[4]
+            methodparams = args[5:]
+
+            paramlist = []
+            for i in range(0,len(methodparams),2):
+                paramlist.append((methodparams[i],methodparams[i+1]))
+            print(methodparams)
+            print(paramlist)
+            self.model.add_method(active_class, methodname, returntype , paramlist)
         elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
             oldname = args[2]
             newname = args[3]
@@ -819,9 +825,9 @@ class UmlController:
         
         def get_method_data_object(umlmethod:UmlMethod) -> UmlMethodData:
             def get_param_data_model(umlparam:UmlParameter) -> UmlMethodParamData:
-                return UmlMethodParamData(umlparam.name)
-            params = list(map(get_param_data_model, umlmethod.params.values()))
-            return UmlMethodData(umlmethod.name, params)
+                return UmlMethodParamData(umlparam.name,umlparam.umltype)
+            params = list(map(get_param_data_model, umlmethod.params))
+            return UmlMethodData(umlmethod.name,umlmethod.return_type ,params)
         
         fields = list(map(get_field_data_object, umlclass.class_fields.values()))
         methods = []

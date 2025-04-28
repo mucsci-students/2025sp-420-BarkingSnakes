@@ -14,9 +14,11 @@ class UmlFieldData(NamedTuple):
 
 class UmlMethodParamData(NamedTuple):
     name:str
+    type:str
 
 class UmlMethodData(NamedTuple):
     name:str
+    return_type:str
     params:list[UmlMethodParamData]
         
 

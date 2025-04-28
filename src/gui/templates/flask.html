@@ -23,7 +23,7 @@
             <button onclick="showNewModal()">New</button>
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
-            <button onclick="showExportModal()">Export</button>
+            <button onclick="showExportModal()">Export HTML</button>
             <button onclick="confirmQuit()">Quit</button>
         </div>
     </div>
@@ -85,8 +85,7 @@
             <h2>Export File</h2>
             <p>Enter File Name:</p>
             <input type="text" id="exportFileNameInput" />
-            <!-- add Onclick export function move closeExportModal to export func -->
-            <button onclick="document.getElementById('exportFileNameInput').value='';closeExportModal()">Export</button>
+            <button onclick="exportHTML()">Export</button>
             <p id="exportError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
@@ -497,6 +496,22 @@
             cursor: pointer;
         }
 
+        .add-button {
+            background-color: #04AA6D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .add-button:hover {
+            background-color: #028a5e;
+            transform: scale(1.05);
+        }
+
         /* Animations to fade the snackbar in and out */
         @-webkit-keyframes fadein {
             from {
@@ -556,6 +571,14 @@
             font-weight: bold;
             text-align: center;
             border: none;
+            transition: all 0.3s ease;
+        }
+
+        input.class-name.editable {
+            background: #444;
+            border: 2px solid #04AA6D;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(4, 170, 109, 0.8);
         }
     </style>
 
@@ -747,7 +770,10 @@
 
                 if (classTextInpt) {
                     classTextInpt.readOnly = false;
+                    classTextInpt.classList.add('editable');
+                    classTextInpt.focus();
                 }
+
                 editModeState = true; // Set edit mode to true
             } else {
                 if (addFieldContainer) {
@@ -768,6 +794,7 @@
 
                 if (classTextInpt) {
                     classTextInpt.readOnly = true;
+                    classTextInpt.classList.remove('editable');
                 }
 
                 editModeState = false; // Set edit mode to false
@@ -775,7 +802,6 @@
 
             setTimeout(drawRelationshipLines, 100);
         }
-
         /**
          * Closes the class details.
          */
@@ -1107,11 +1133,11 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event, className) {
+        function addMethod2(event, methodName, returntype, paramlist, className) {
             if (event.key === "Enter") {
-                let methodname = document.getElementById('newMethodName-' + className);
-                let returntype = document.getElementById('newMethodType-' + className);
-                let paramlist = document.getElementById('parameterListInpt-' + className)
+                // let methodname = document.getElementById('newMethodName-' + className);
+                // let returntype = document.getElementById('newMethodType-' + className);
+                // let paramlist = document.getElementById('parameterListInpt-' + className)
                 fetch("/addMethod", {
                     method: "POST",
                     headers: {
@@ -1119,15 +1145,14 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        methodname: methodname.value,
-                        returntype: returntype.value,
-                        paramlist: paramlist.value,
+                        methodname: methodName,
+                        returntype: returntype,
+                        paramlist: paramlist,
                         classname: className
                     })
                 })
                     .then(resp => {
                         if (resp.status >= 400) {
-                            elem.value = "";
                             return resp.json();
                         } else {
                             displayClassDetails(className);
@@ -1536,13 +1561,31 @@
         }
 
         function confirmQuit() {
-            var result = confirm("Are you sure you want to quit?")
-            if (result) {
-                fetch("/quit", { method: "POST" })
-                    .then(res => window.close())
-                    .catch(error => console.log(error))
-
-            }
+            fetch("/quit", { method: "POST" })
+                .then(resp => {
+                    if (resp.status >= 400) {
+                        return resp.json();
+                    } else {
+                        window.close();
+                    }
+                })
+                .then(data => {
+                    if (data && data.action === "showModal") {
+                        const yes_callback = () => {
+                            fetch("/quit", { method: "POST", body: JSON.stringify({ override: true }) })
+                                .then(() => window.close())
+                                .catch(error => console.log(error));
+                        };
+                        const no_callback = () => {
+                            const modal = document.getElementById("yesNoModal");
+                            if (modal) {
+                                modal.style.display = "none";
+                            }
+                        };
+                        handleErrorAction(data.action, data.tagId, data.error, yes_callback, no_callback);
+                    }
+                })
+                .catch(error => console.log(error));
         }
 
 
@@ -1842,6 +1885,36 @@
                     }
                 })
                 .catch(error => console.log(error))
+        }
+
+        function exportHTML() {
+            const fileNameInput = document.getElementById("exportFileNameInput").value.trim();
+
+            if (!fileNameInput) {
+                snackbar("File name cannot be empty.");
+                return;
+            }
+
+            const fileName = fileNameInput.endsWith(".html") ? fileNameInput : `${fileNameInput}.html`;
+
+            const exportModal = document.getElementById("exportModal");
+            const previousDisplay = exportModal.style.display;
+            exportModal.style.display = "none";
+
+            const htmlContent = document.documentElement.outerHTML;
+
+            exportModal.style.display = previousDisplay;
+
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+
+            link.click();
+
+            URL.revokeObjectURL(link.href);
+            closeExportModal();
+            document.getElementById("exportFileNameInput").value = "";
         }
     </script>
 </body>
