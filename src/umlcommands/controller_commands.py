@@ -138,7 +138,8 @@ class AddClassCommand(ControllerCommand):
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.InvalidNameException as name_ex:
-            error_text = "The name provided cannot be used as a class name."
+            error_text = "The name provided cannot be used as a class name. \
+                \nClass names must start with a letter."
             self.set_result(CommandOutcome.FAILED, name_ex, error_text)
         except errors.UMLException as uml_e:
             self.set_result(CommandOutcome.FAILED, uml_e)
@@ -201,12 +202,39 @@ class DeleteClassCommand(ActiveClassCommand):
                     self.driver.model.relationships.remove(r)
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
+            self.driver.active_class = None # Assumes `delete` in class context
+            self.driver.active_method = None # is the only way to delete a class.
         except errors.NoActiveClassException as nac_e:
             return
         except errors.UMLException as uml_e:
             self.set_result(CommandOutcome.FAILED, uml_e)
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
+
+class SetClassPositionCommand(ActiveClassCommand):
+    def execute(self):
+        try:
+            self.raise_NoActiveClass()
+            classname = self.umlclass.class_name
+            self.driver.model.update_position_umlclass(classname, self.x_pos, self.y_pos)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+    
+    @property
+    def x_pos(self) -> float:
+        prop_index = 3
+        return float(self._args[prop_index])
+
+    @property
+    def y_pos(self) -> float:
+        prop_index = 4
+        return float(self._args[prop_index])
 
 class AddFieldCommand(ActiveClassCommand):
     def execute(self):
@@ -238,6 +266,7 @@ class AddFieldCommand(ActiveClassCommand):
         return self._args[prop_index]
 
 class RenameFieldCommand(ActiveClassCommand):
+    """command for renaming fields"""
     def execute(self):
         try:
             self.raise_NoActiveClass()
@@ -269,13 +298,45 @@ class RenameFieldCommand(ActiveClassCommand):
         prop_index = 3
         return self._args[prop_index]
 
+class ChangeFieldTypeCommand(ActiveClassCommand):
+    """command for changing the field's type"""
+    def execute(self):
+        try:
+            self.raise_NoActiveClass()
+            self.raise_InvalidName(self.name, "field")
+            self.raise_InvalidName(self.newtype, "field")
+            classname = self.driver.active_class.class_name
+            self.driver.model.change_field_type(classname, self.name, self.newtype)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.NoSuchObjectException as nso_e:
+            error_text = f"The field {self.name} does not exist on class {classname}."
+            self.set_result(CommandOutcome.FAILED, nso_e, error_text)
+        except errors.InvalidNameException as name_ex:
+            return
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    @property
+    def name(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
+
+    @property
+    def newtype(self) -> str:
+        prop_index = 3
+        return self._args[prop_index]
+
 class DeleteFieldCommand(ActiveClassCommand):
     def execute(self):
         try:
             self.raise_NoActiveClass()
             classname = self.driver.active_class.class_name
             self.driver.model.delete_field(classname, self.name)
-            self.driver.active_class = None
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.NoActiveClassException as nac_e:
@@ -440,6 +501,40 @@ class MethodRenameCommand(ActiveMethodCommand):
 
     @property
     def newname(self) -> str:
+        prop_index = 2
+        return self._args[prop_index]
+    
+class ChangeMethodTypeCommand(ActiveMethodCommand):
+    def execute(self):
+        try:
+            self.raise_NoActiveMethod()
+            self.raise_InvalidName(self.newtype, "method")
+
+            classname = self.umlclass.class_name
+            methodname = self.umlmethod.name
+            overload_id = self.umlmethod.overloadID
+            self.driver.model.change_method_type(classname, methodname, self.newtype, overload_id)
+            self.set_result(CommandOutcome.SUCCESS)
+            self.driver.caretaker.backup()
+        except errors.NoActiveClassException as nac_e:
+            return
+        except errors.NoActiveMethodException as nam_e:
+            return
+        except errors.InvalidNameException as name_e:
+            return
+        except errors.MethodNameNotExistsException as mnne_e:
+            error_text = f"The method {self.name} does not exist on the class {classname}."
+            self.set_result(CommandOutcome.FAILED, mnne_e, error_text)
+        except errors.MethodOverloadNotExistsException as mone_e:
+            error_text = f"The method signature {self.overload_id} does not exists for method {self.name} on class {classname}."
+            self.set_result(CommandOutcome.FAILED, mone_e, error_text)
+        except errors.UMLException as uml_e:
+            self.set_result(CommandOutcome.FAILED, uml_e)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
+    @property
+    def newtype(self) -> str:
         prop_index = 2
         return self._args[prop_index]
 
@@ -724,7 +819,8 @@ class SaveCommand(PromptingCommand, CallbackCommand):
         try:
             if not self.driver.model._save_path:
                 """Prompt for a save path."""
-                filepath = self._get_filepath()
+                # if user entered filepath use that, otherwise ask
+                filepath = self.filepath or self._get_filepath()
                 if self.driver.model._filepath_exists(filepath):
                     if not self._ask_overwrite_file():
                         self.set_result(CommandOutcome.DEFERRED)
@@ -751,6 +847,13 @@ class SaveCommand(PromptingCommand, CallbackCommand):
             if not self.driver.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
             return filepath
+    
+    @property
+    def filepath(self) -> str:
+        prop_index = 1
+        if len(self._args) == 1:
+            return None
+        return self._args[1]
     
     def _ask_overwrite_file(self) -> bool:
         requester = self.get_prompt_requester()
@@ -916,8 +1019,19 @@ class UndoCommand(ControllerCommand):
     def execute(self):
         try:
             self.driver.caretaker.undo()
-            self.driver.active_class = None
-            self.driver.active_method = None
+            if self.driver.active_class:
+                try:
+                    self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
+                except:
+                    self.driver.active_class = None
+                    self.driver.active_method = None
+            else:
+                self.driver.active_method = None
+            if self.driver.active_class and self.driver.active_method:
+                try:
+                    self.driver.active_method = self.driver.active_class.class_methods[self.driver.active_method.name][self.driver.active_method.overloadID]
+                except:
+                    self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
@@ -926,18 +1040,19 @@ class RedoCommand(ControllerCommand):
     def execute(self):
         try:
             self.driver.caretaker.redo()
-            self.driver.active_class = None
-            self.driver.active_method = None
-            #if self.driver.active_class:
-            #    try:
-            #        self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
-            #    except:
-            #        self.driver.active_class = None
-            #    if self.driver.active_class and self.driver.active_method:
-            #        try:
-            #            self.driver.active_method = self.driver.model.get_umlmethod(self.driver.active_method.name, self.driver.active_method.overloadID)
-            #        except:
-            #            self.driver.active_method = None
+            if self.driver.active_class:
+                try:
+                    self.driver.active_class = self.driver.model.get_umlclass(self.driver.active_class.class_name)
+                except:
+                    self.driver.active_class = None
+                    self.driver.active_method = None
+            else:
+                self.driver.active_method = None
+            if self.driver.active_class and self.driver.active_method:
+                try:
+                    self.driver.active_method = self.driver.active_class.class_methods[self.driver.active_method.name][self.driver.active_method.overloadID]
+                except:
+                    self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
@@ -951,9 +1066,11 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^delete$": DeleteClassCommand,
     r"^field add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)$": AddFieldCommand,
     r"field rename ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)": RenameFieldCommand,
+    r"field type ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)": ChangeFieldTypeCommand,
     r"field delete ([A-Za-z0-9_]*)$": DeleteFieldCommand,
     r"^method add ([A-Za-z0-9_]*) ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*):([A-Za-z0-9_]*))*$": MethodAddCommand,
     r"^method rename ([A-Za-z0-9_]*)": MethodRenameCommand,
+    r"^method type ([A-Za-z0-9_]*)": ChangeMethodTypeCommand,
     r"^method delete ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodDeleteCommand,
     r"^method ([A-Za-z0-9_]*)(\s([A-Za-z0-9_]*))*$": MethodContextCommand,
     r"^parameter add ([A-Za-z0-9_]*):([A-Za-z0-9_]*)$": ParameterAddCommand,
@@ -968,8 +1085,9 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^load(\s.+\..+)*$": LoadCommand,
     r"^new(\s.+\..+)*$": NewCommand,
     r"^quit$": QuitCommand,
-    r"^save$": SaveCommand,
+    r"^save(\s.+\..+)*$": SaveCommand,
     r"^controller back$": BackCommand,
     r"^undo$": UndoCommand,
-    r"^redo$": RedoCommand
+    r"^redo$": RedoCommand,
+    r"^class position set [0-9]+(\.[0-9]+){0,1} [0-9]+(\.[0-9]+){0,1}$": SetClassPositionCommand
 }

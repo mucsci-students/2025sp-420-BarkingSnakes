@@ -1,5 +1,8 @@
-<select id="{{ tagId }}" name="relation-type-dropdown">
-    {% for c in relation_types %}
-    <option value="{{ c }}" {% if selected_type == c.capitalize() %} selected {% endif %}>{{ c.capitalize() }}</option>    
+<select id="{{ tagId }}" name="relation-type-dropdown"
+    onchange="updateRelationType('{{ r.source }}', '{{ r.destination }}', this.value)">
+    {% for t in relation_types %}
+    <option value="{{ t|lower }}" {% if selected_type|lower==t|lower %} selected {% endif %}>
+        {{ t|capitalize }}
+    </option>
     {% endfor %}
 </select>

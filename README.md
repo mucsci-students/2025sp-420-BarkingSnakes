@@ -13,6 +13,7 @@
 2. Install a python virtual environment with `python -m venv venv`
 3. Activate the virtual environment with `.\venv\scripts\activate`
 4. Install required packages with `pip install -r requirements.txt`
+5. You may need to install pyreadline3 by running `pip install pyreadline3`
 
 ## Linux Installation Instructions
 1. Install python3 a version >= 3.9 if not present https://docs.python.org/3/using/unix.html
@@ -48,43 +49,50 @@ Use on-screen buttons and menu options to add new classes, define fields/methods
 The interface includes options for saving your current diagram or loading a previously saved diagram.
 
 ### How-to GUI
-#### NOTICE: To be able to save project, must click 'new' button to start
-Upper Tool Bar includes: new, save, load, quit
+#### Toolbar
+##### Tool Bar includes: Add Class, Add Relationship, Lists, New, Save, Load, Export HTML, Quit
+Add Class
+    Opens a new class modal
+Add Relationship
+    Opens a new relationship modal
+Lists
+    View all classes and relationships
 New
-    Create a new project file with a <filename.json> provided 
+    Create a new project file with a <filename.json> provided
 Load
     Load the file at the <filename.json> given
 Save
     Save the file with the given name
+Export HTML
+    Type desired file name and click export 
 Quit
     Quits the program. Prompts 'Are you sure?'
 
-#### Navigation
-Side pop buttons:
-ClassList
-    View current classes, or add more
-RelationList
-    View all relationships in the current project.
-Within ClassList:
-To enter the details of that class, click on the class name and you can view: fields, methods and parameters. 
+#### Navigating a class
+How to add a class:
+    Click the text box to type and click the Add Class button to add your new named
+    Click the 'x' to exit creating a class
 
-Adding, renaming, and deleting - classes, fields, methods, and parameters:
-      add
-            click on appropriately labeled button
-      rename
-            Click on the field, method, or parameter 'name' to reveal a textbox where you can rename it
-      delete
-            Click on the red x box on the right of the field, method, or parameter you want to delete
+Editing a class:
+    Click the edit button on the top-left of the class details box
+    Edit the any name by clicking on the name itself while in edit mode
+    Click the corresponding button to:
+        Add a field
+        Add a method
+    Add a parameter
+        *After a class is added the corresponding button to add a parameter is visible
+    Close a class by click the grey 'x'
+    Delete fields and methods by clicking the corresponding red 'x'
+    Delete a class by clicking the red 'x' on the class list (view by clicking Lists)
 
-Within RelationList:
-Shows list of existing relationships by displaying type, source class, and target class.
-      add
-            Choose type from drop down and classes from drop downs
-      edit
-            Use appropriate drop downs to edit existing relationships
-      remove
-            Click red x box on the right of the relationship to remove
-            
+Adding a relationship:
+    Use the drop down menus to select the type, source class and destination class
+    Remove with red 'x' button
+
+Editing a relationship:
+    While view the Lists, edit the relationship type with the drop down
+    Edit by clicking on edit button to add fields and methods
+
 
 ## Running tests
 - Use for specific test 
@@ -111,6 +119,10 @@ Shows list of existing relationships by displaying type, source class, and targe
     - Used for communication between the controller and the view can be found in umlcontroller_observer.py and umlview_observer.py
 - Decorator
     - Used to add functionality in different places can be found in umlmodel.py
+- Chain of command 
+    - Example: Change method, calls a different version of itself in different classes
+- Builder
+    - SVG exporter 
 
 ## Using BS-uml program
 - Type the `help` commmand to see a list of possible commands and their use

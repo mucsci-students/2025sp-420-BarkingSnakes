@@ -50,11 +50,9 @@ def test_load_invalid_Json_file(tmp_path):
             json.dump(invalid_data, f)
 
             UmlProject().load(str(invalid_file))
-
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["InvalidJsonSchemaError"]
+        assert e == errors.InvalidJsonSchemaException()
     
 
 def test_make_no_new_file():
@@ -97,10 +95,9 @@ def test_save_no_save_path():
         proj._save_path = None
         #save does not need a filename if path is already set
         proj.save()
+        assert False
     except Exception as e:
-        test_val_error = e.get_num()
-    finally:
-        assert test_val_error == errors.error_list["NoActiveProjectError"]
+        assert e == errors.NoActiveProjectException()
 
 def test_load_existing_file():
     """test a file that exists can be loaded"""

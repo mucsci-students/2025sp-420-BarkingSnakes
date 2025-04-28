@@ -18,6 +18,9 @@ class UmlClass:
     """
     class_methods:dict[str, dict[str, UmlMethod]] = field(default_factory= lambda: {})
 
+    class_pos_x:float = 0.0
+    class_pos_y:float = 0.0
+    
     def add_field(self, name:str, type:str) -> int:
         """
         Adds a field to the UmlClass
@@ -36,7 +39,7 @@ class UmlClass:
             # check the type is valid
             errors.valid_name(type)
         except Exception as e:
-            if e.get_num() == errors.error_list["InvalidNameError"]:
+            if e == errors.InvalidNameException():
                 raise errors.InvalidTypeNameException()
             
         self.class_fields[name] = UmlField(name, type)
@@ -83,6 +86,28 @@ class UmlClass:
         field_type = self.class_fields.pop(oldname).type
         self.add_field(newname,field_type)
         return 0
+    
+    def change_field_type(self,fieldname:str,newtype:str):
+        """ changes the specified field's type
+
+        Params: 
+            fieldname: existing field to change type of
+            newtype: type to replace the current type
+        Returns:
+            None
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            UMLException:NoSuchObjectError if the field does not exist
+            UMLException:DuplicateFieldError if newname exist in class_fields
+        """
+        if fieldname not in self.class_fields.keys():
+            #return error code for nonexistent field
+            raise errors.NoSuchObjectException(object_type="field")
+
+        errors.valid_name(newtype)
+        #get the field from the list
+        field = self.class_fields.get(fieldname)
+        field.change_type(newtype)
 
     def rename_umlclass(self,name:str) -> int:
         """Renames the UmlClass
@@ -175,6 +200,31 @@ class UmlClass:
 
             return self.remove_method(name, overloadID)
 
+        raise errors.MethodOverloadNotExistsException()
+    
+    def change_method_type(self, name:str, overloadID:str, newtype:str):
+        """Changes a umlmethod's type
+
+        Params:
+            name: name for the method to add
+            overloadID: ID of the relevant overload to be renamed
+            newtype: new type to change the method to
+        Returns:
+            None
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            MethodOverloadNotExistsException: if the overload doesn't exist
+        """
+        if not self.class_methods.get(name):
+            raise errors.MethodNameNotExistsException()
+
+        if self._overload_exists(name, overloadID):
+            uml_method = self.class_methods.get(name).get(overloadID)
+
+            # add_method handles logic of checking in class_method for missing
+            # top level keys and handles name validation
+            uml_method.change_type(newtype)
+            return
         raise errors.MethodOverloadNotExistsException()
         
     def remove_method(self, name:str, overloadID:str) -> int:
@@ -368,6 +418,26 @@ class UmlClass:
         self.class_methods.get(methodname).pop(overloadID)
         self.class_methods.get(methodname)[uml_method.overloadID] = uml_method
 
+    def set_umlclass_position(self, x_pos:float, y_pos:float):
+        """updates class position based on a 2-element float list of coordinates
+        Args:
+            x_pos:float, x position or equivalent on screen
+            y_pos:float, y position or equivalent on screen
+        Returns:
+            None
+        Exceptions:
+            InvalidPositionArgsException: if x_pos or y_pos are not floats
+        """
+        if type(x_pos) != float or type(y_pos) != float:
+            raise errors.InvalidPositionArgsException()
+        #update x and y positions
+        self.class_pos_x = x_pos
+        self.class_pos_y = y_pos
+    
+    def get_umlclass_position(self) -> tuple[float,float]:
+        """get current position of the umlclass as a 2-element list
+        """
+        return self.class_pos_x, self.class_pos_y
 
     def to_dict(self) -> dict:
         methods = set()
@@ -377,7 +447,11 @@ class UmlClass:
         return {
             'name': self.class_name,
             'fields': [f.to_dict() for f in self.class_fields.values()],
-            'methods': [m.to_dict() for m in methods]
+            'methods': [m.to_dict() for m in methods],
+            'position':{
+                'x':self.class_pos_x,
+                'y':self.class_pos_y
+            }
         }
         
         

@@ -3,8 +3,9 @@
     <button class="edit-button" id="btnEdit-{{ dto.name }}" onclick="toggleEditMode('{{ dto.name }}')">Edit</button>
     <button class="close" data-classname="{{ dto.name }}" onclick="closeClassDetails('{{ dto.name }}')">&times;</button>
     <div style="text-align: center;">
-        <input id="classname-{{dto.name}}" class="class-name" value="{{ dto.name }}" onkeydown="onkeydown_enter(event, () => this.blur())"
-            onblur="renameClass(event.target, '{{ dto.name }}')" readonly/>
+        <input id="classname-{{dto.name}}" class="class-name" value="{{ dto.name }}"
+            onkeydown="if (this.classList.contains('editable')) onkeydown_enter(event, () => this.blur())"
+            onblur="if (this.classList.contains('editable')) renameClass(event.target, '{{ dto.name }}')" readonly />
     </div>
     <hr>
     <h3>Fields</h3>
@@ -18,7 +19,7 @@
         <div style="text-align: center;" id="addFieldContainer-{{ dto.name }}" class="hidden">
             <button style="display: block;" id="btnAddField-{{ dto.name }}" class="add-button"
                 onclick="toggleVisibility(['btnAddField-{{ dto.name }}', 'fieldinpts-{{ dto.name }}'])">
-                <span class="glyphicon glyphicon-plus-sign"></span> Add Field
+                <i class="fa-solid fa-plus" style="margin-right: 5px;"></i> Add Field
             </button>
             <div id="fieldinpts-{{ dto.name }}" style="width: 100%; display:none;">
                 <!-- Field Name Label and Input -->
@@ -63,14 +64,25 @@
     <div style="text-align: center;" id="addMethodContainer-{{ dto.name }}" class="hidden">
         <button style="display: block;" id="btnAddMethod-{{ dto.name }}" class="add-button"
             onclick="toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}'])">
-            <span class="glyphicon glyphicon-plus-sign"></span> Add Method
+            <i class="fa-solid fa-plus" style="margin-right: 5px;"></i> Add Method
         </button>
 
         <div id="methodinpts-{{ dto.name }}" style="padding-top: 10px; display: none;">
             <!-- Method input -->
-            <label for="newMethodName-{{ dto.name }}" style="display: block; margin-bottom: 5px;">Method Name:</label>
+            <label for="newMethodName-{{ dto.name }}"
+                style="padding-top: 10px;display: block; margin-bottom: 5px;">Method Name:</label>
             <input class="input-mode-view" id="newMethodName-{{ dto.name }}" type="text"
-                style="width: 85%; padding: 5px;background-color: #04AA6D">
+                style="width: 85%; padding: 5px;background-color: #04AA6D" />
+            <!-- Method type inpt -->
+            <label for="newMethodType-{{ dto.name }}"
+                style="display: block; margin-bottom: 5px;padding-top: 10px;">Return Type:</label>
+            <input class="input-mode-view" id="newMethodType-{{ dto.name }}" type="text"
+                style="width: 85%; padding: 5px;background-color: #04AA6D" />
+            <!-- Parameter list inpt -->
+            <label for="parameterListInpt-{{ dto.name }}"
+                style="display: block; margin-bottom: 5px;padding-top: 10px;">Parameter List:</label>
+            <input class="input-mode-view" id="parameterListInpt-{{ dto.name }}" type="text"
+                style="width: 85%; padding: 5px;background-color: #04AA6D" />
 
             <div style="padding-top: 10px;">
                 <!-- Submit btn -->
@@ -78,13 +90,13 @@
                     style="color: white; font-size: 18px; transition: all 0.2s ease-in-out;"
                     onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
                     onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
-                    onclick="addMethod2({key:'Enter'},document.getElementById('newMethodName-{{ dto.name }}'),'{{ dto.name }}');toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}'])"></i>
+                    onclick="addMethod2({key:'Enter'},document.getElementById('newMethodName-{{dto.name}}').value,document.getElementById('newMethodType-{{dto.name}}').value,document.getElementById('parameterListInpt-{{dto.name}}').value,'{{ dto.name }}');toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}'])"></i>
                 <!-- Cancel btn -->
                 <i class="fa-solid fa-circle-xmark"
                     style="color: red; font-size: 18px; transition: all 0.2s ease-in-out; cursor: pointer;"
                     onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)';"
                     onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
-                    onclick="toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}']), document.getElementById('newMethodName-{{ dto.name }}').value=''">
+                    onclick="toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}']), document.getElementById('newMethodName-{{ dto.name }}').value='' , document.getElementById('newMethodType-{{ dto.name }}').value='' , document.getElementById('parameterListInpt-{{ dto.name }}').value=''">
                 </i>
             </div>
         </div>

@@ -493,6 +493,17 @@ class UmlController:
 
     @_backup_memento
     @_requires_active_class
+    def command_update_umlclass_position(self, x_pos:float, y_pos:float):
+        """moves the UmlClass in the current context to the specified position
+        """
+        # may want to move this typechecking later
+        if type(x_pos) != float or type(y_pos) != float:
+            raise errors.InvalidPositionArgsException()
+        #use model method
+        self.model.update_position_umlclass(self.view.active_class, x_pos, y_pos)
+        
+    
+    @_requires_active_class
     def command_delete_umlclass(self, override:bool = False):
         """Removes the UmlClass in the current context from the project.
         Prompts and informs the user to delete relationships.
@@ -503,8 +514,6 @@ class UmlController:
         # response is now a bool, equivalent to True=Y,False=N
         # if the user replied N, cancel action
         if not override:
-            if isinstance(self.view, UmlGuiView):
-                raise errors.UmlClassDeletionErrorException()
             # Confirm with user
             prompt = "Deleting a class will also remove its relationships. Do you want to continue?"
             # return self.view.prompt_user(prompt, lambda: self.command_delete_umlclass(True))
@@ -691,6 +700,7 @@ class UmlController:
     @_requires_active_class
     def command_method(self, args:list[str]):
         """"""
+        print(args)
         command = " ".join(args)
         umlcommand:UmlCommand = None
         command_match = False
@@ -712,8 +722,15 @@ class UmlController:
 
         if umlcommand == UmlCommands.UmlMethodCommands.AddMethod:
             methodname = args[2]
-            methodparams = args[3:]
-            self.model.add_method(active_class, methodname, methodparams)
+            returntype = args[4]
+            methodparams = args[5:]
+
+            paramlist = []
+            for i in range(0,len(methodparams),2):
+                paramlist.append((methodparams[i],methodparams[i+1]))
+            print(methodparams)
+            print(paramlist)
+            self.model.add_method(active_class, methodname, returntype , paramlist)
         elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
             oldname = args[2]
             newname = args[3]
@@ -808,17 +825,20 @@ class UmlController:
         
         def get_method_data_object(umlmethod:UmlMethod) -> UmlMethodData:
             def get_param_data_model(umlparam:UmlParameter) -> UmlMethodParamData:
-                return UmlMethodParamData(umlparam.name)
-            params = list(map(get_param_data_model, umlmethod.params.values()))
-            return UmlMethodData(umlmethod.name, params)
+                return UmlMethodParamData(umlparam.name,umlparam.umltype)
+            params = list(map(get_param_data_model, umlmethod.params))
+            return UmlMethodData(umlmethod.name,umlmethod.return_type ,params)
         
         fields = list(map(get_field_data_object, umlclass.class_fields.values()))
         methods = []
         for _m in umlclass.class_methods.values():
             for m in _m.values():
                 methods.append(get_method_data_object(m))
-
-        return UmlClassData(umlclass.class_name, fields, methods)
+        #new position values
+        x_pos = umlclass.class_pos_x
+        y_pos = umlclass.class_pos_y
+        
+        return UmlClassData(umlclass.class_name, fields, methods, x_pos, y_pos)
     
     def _get_relation_data_object(self, umlrelation:UmlRelationship) -> UmlRelationshipData:
         r = UmlRelationshipData(umlrelation.relationship_type.name.capitalize(), umlrelation.source_class.class_name, umlrelation.destination_class.class_name)

@@ -5,7 +5,7 @@ name: Python application for Tests
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["develop", "code-coverage-update"]
   pull_request:
     branches: ["develop"]
 
@@ -34,6 +34,11 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Test with pytest
+      - name: Test with pytest script
         run: |
-          pytest --cov
+          # this script calls pytest, but also serves to increase minimum required coverage when it improves
+          # if coverage on a pr were to increase to 82% compared to 80% on develop, 
+          # then all future merges will also need 82% coverage
+          python pytestscript.py
+        
+

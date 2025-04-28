@@ -48,9 +48,13 @@ def index():
 @app.post("/quit")
 @handle_umlexception
 def quit():
+    if app.controller.model.has_unsaved_changes:
+        return jsonify({
+            "action": "showModal",
+            "tagId": "yesNoModal",
+            "error": "You have unsaved changes. Are you sure you want to quit?"
+        }), 400
     app.view.set_command("quit")
-    # sys.exit(0)
-    # app.controller.execute_command(["quit"])
     return Response(status=200)
 
 
@@ -93,7 +97,9 @@ def classdetails():
         if not umlclass:
             raise errors.NoSuchObjectException(f"Class '{class_name}' does not exist.")
         dto = app.controller._get_class_data_object(umlclass)
-        data = {"html": render_template("/_umlclass.html", dto=dto)}
+        position = umlclass.get_umlclass_position()
+        # passes the position separate from the html, this may need changed
+        data = {"html": render_template("/_umlclass.html", dto=dto), "x_pos": position[0], "y_pos": position[1]}
         return jsonify(data)
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
@@ -139,7 +145,22 @@ def rename_umlclass():
         return app.view.response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
+@app.post("/updateClassPosition")
+@handle_umlexception
+def update_umlclass_position():
+    """updates the position in the model of the class the user just stopped dragging"""
+    data = request.get_json()
+    classname = data.get("classname")
+    
+    # enter class context
+    app.controller.execute_command(["class", classname])
+    x_pos = float(data.get("x_pos"))
+    y_pos = float(data.get("y_pos"))
+    
+    # tell controller to tell model to update position
+    app.controller.command_update_umlclass_position(x_pos, y_pos)
+    return jsonify({"message": "Class position updated successfully"}), 200
 
 @app.post("/addField")
 @handle_umlexception
@@ -185,10 +206,15 @@ def rename_field():
 def add_method():
     data = request.get_json()
     methodname = data.get("methodname")
+    methodtype = data.get("returntype")
+    paramlist = data.get("paramlist").split()
     classname = data.get("classname")
+    
     if methodname and classname:
         app.controller.execute_command(["class", classname])
-        app.controller.execute_command(["method", "add", methodname])
+        thecmd = ["method", "add", methodname, "returns" ,methodtype]
+        thecmd.extend(paramlist)
+        app.controller.execute_command(thecmd)
         return jsonify({"message": "Method added successfully"}), 202
     return jsonify({"error": "Missing method name or class name"}), 406
 
@@ -328,8 +354,24 @@ def relation_list():
     project_dto = app.controller._get_model_as_data_object()
     relation_types = list(filter(lambda n: n != "DEFAULT", RelationshipType._member_names_))
 
+    class_names = [c.name for c in project_dto.classes]
+
+    print("Classes in project:", class_names)
+    print("Relationships in project:", [
+        {
+            'source': r.source,
+            'destination': r.destination,
+            'relation_type': r.relation_type
+        } for r in project_dto.relationships
+    ])
+
     data = {
-        'html': render_template("_umlrelationshiplist.html", model=project_dto, relation_types=relation_types),
+        'html': render_template(
+            "_umlrelationshiplist.html",
+            model=project_dto,
+            relation_types=relation_types,
+            class_names=class_names
+        ),
         'model': {
             'relationships': [
                 {
@@ -337,7 +379,8 @@ def relation_list():
                     'destination': r.destination,
                     'relation_type': r.relation_type
                 } for r in project_dto.relationships
-            ]
+            ],
+            'classes': class_names
         }
     }
 
@@ -349,11 +392,11 @@ def add_relation():
     data = request.get_json()
     source = data.get('source')
     destination = data.get('destination')
-    relation_type = data.get('type')
+    relation_type = data.get('type').upper()
     if source and destination and relation_type:
         app.controller.execute_command(["relation", "add", source, destination, relation_type])
-        return Response(status=202)
-    return Response(status=406)
+        return jsonify({"message": "Relation added successfully"}), 202
+    return jsonify({"error": "Invalid input"}), 406
 
 @app.post("/deleteRelation")
 @handle_umlexception
@@ -365,3 +408,16 @@ def delete_relation():
         app.controller.execute_command(["relation", "delete", source, destination])
         return Response(status=202)
     return Response(status=406)
+
+@app.post("/updateRelationType")
+@handle_umlexception
+def update_relation_type():
+    data = request.get_json()
+    source = data.get("source")
+    destination = data.get("destination")
+    new_type = data.get("type").upper()
+
+    if source and destination and new_type:
+        app.controller.execute_command(["relation", "set", source, destination, new_type])
+        return jsonify({"message": "Relationship type updated successfully"}), 200
+    return jsonify({"error": "Invalid input"}), 406

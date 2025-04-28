@@ -4,6 +4,8 @@
 #BS-uml Commands:
 help
     Display this help menu
+help <command>
+    Get help on a specific command
 load <filename>
     Load the file at <filename>
     If a project file is open, will prompt to save.
@@ -11,9 +13,16 @@ new <filename>
     Create a new project file at <filename>
     If a project file is open, will prompt to save.
 save
-    Save the file that was loaded with the load command
+    Save the current file
+    if new, load, or save has not yet been used, will prompt for <filename>
+save <filename>
+    Save the current file to <filename>
 quit
     Quits the program. Prompts to save any unsaved changes.
+undo
+    Undoes the last change.
+redo
+    Redoes the last change.
 list
     In the project context, displays all classes and their fields, methods and paramete.
 class <classname>
@@ -47,35 +56,37 @@ relation list
         list
             Displays the current class and its fields, methods and parameters
             in a box.
-        field add <field name>
-            Adds the field with name <field name> to the class.
+        field add <field name> <field type>
+            Adds the field with name <field name> and <field type> to the class.
         field delete <field name>
             Deletes the field with name <field name> from the class.
         field rename <old field name> <new field name>
             Renames the field on the class with <old field name>
             to <new field name>
-        method add <method name>
+        field type <field name> <new type>
+            changes the type of field with <field name> 
+            to <new type>
+        method add <method name> <method return type> <paramameter1 name>:<parameter1 type> <paramameter2 name>:<parameter2 type>...
             Adds the method with name <method name> to the class.
-        method rename <old method name> <new method name> arity <arity>
-            Renames the method on the class with <old method name>
-            to <new method name>, arity must be specified
-        method delete <method name>
+        method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>... 
             Deletes the method with name <method name> from the class.
-        method <method name> arity <arity>
+        method <method name> <parameter1 type> <parameter2 type> <parameter2 type>...
             Enters the context for the specified method
         
             method context commands:
                 back
-                    When inside a class context, returns to the project context.
-                parameter add <parameter name>
-                    Adds the parameter with name <parameter name> to the class.
+                    When inside a method context, returns to the class context.
+                method rename <new method name>
+                    Renames the method to <new method name>
+                method type <new type>
+                    changes the method's return type to <new type>
+                parameter add <parameter name>:<parameter type>
+                    Adds the parameter with name <parameter name> to the method.
                 parameter rename <old parameter name> <new parameter name>
                     Renames the parameter on the class with <old parameter name>
                 parameter delete <parameter name>
-                    Deletes the parameter with name <parameter name> from the class.
+                    Deletes the parameter with name <parameter name> from the method.
         
-
--when naming classes, fields, methods or parameters, they will be invalid if any of these keywords, or python 
-    language keywords, and no action will be taken
--input will also be invalid if classname specified does not
+Important notes:
+-input will also be invalid if classname specified does not 
     exist for delete, rename, or relation actions

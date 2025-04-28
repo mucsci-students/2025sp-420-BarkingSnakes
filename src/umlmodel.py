@@ -226,7 +226,12 @@ class UmlProject:
                 data.get("return_type"),
                 params
             )
-
+        def _parse_uml_position(data:dict) -> tuple[float,float]:
+            """parses the position of the class"""
+            if data:
+                return data.get("x", 0), data.get("y", 0)
+            return 0, 0
+        
         uml_fields: list[UmlField] = []
         if data.get("fields"):
             uml_fields.extend(list(map(_parse_uml_fields, data.get("fields"))))
@@ -248,8 +253,14 @@ class UmlProject:
             
             methods[method.name][method.overloadID] = method
 
+        # gets the position
+        position = _parse_uml_position(data.get("position"))
         return UmlClass(
-            data.get("name"), {field.name: field for field in uml_fields}, methods
+            data.get("name"),
+            {field.name: field for field in uml_fields},
+            methods,
+            position[0],
+            position[1]
         )
 
     def _parse_uml_relationship(self, data: dict) -> UmlRelationship:
@@ -433,6 +444,39 @@ class UmlProject:
 
         raise errors.NoSuchObjectException()
 
+    @_has_changed
+    def update_position_umlclass(self,name:str, x_pos:float, y_pos:float):
+        """updates a umlclass's position in the model
+
+        Params:
+            name: name of the class to update position
+            x_pos: new x(left-right) position of the class
+            y_pos: new y(left-right) position of the class
+        Returns:
+            None
+        Exceptions:
+            NoSuchObjectException
+        """
+        if name not in self.classes.keys():
+            raise errors.NoSuchObjectException()
+        # update the pos using the class method
+        self.get_umlclass(name).set_umlclass_position(x_pos, y_pos)
+        
+    def get_position_umlclass(self,name:str) -> tuple[float, float]:
+        """gets a uml classes position
+
+        Params:
+            name: name of the class to update position
+        Returns:
+            tuple(float, float): x and y position of the class
+        Exceptions:
+            NoSuchObjectException
+        """
+        if name not in self.classes.keys():
+            raise errors.NoSuchObjectException()
+        # return the pos using the class's method
+        return self.get_umlclass(name).get_umlclass_position()
+    
     #field methods
     # @_regex_pattern(count=2)
     @_has_changed
@@ -447,7 +491,7 @@ class UmlProject:
         Exceptions:
             DuplicateFieldException
         """
-        # check if class exists, if so, throw and error
+        # check if field exists, if so, throw an error
         if self.classes.get(classname).class_fields.get(field_name):
             raise errors.DuplicateFieldException()
         #create the field
@@ -456,10 +500,17 @@ class UmlProject:
         return 0
 
     @_has_changed
-    def rename_field(self, classname: str, oldname: str, newname: str) -> int:
+    def rename_field(self, classname: str, oldname: str, newname: str):
         uml_class = self.get_umlclass(classname)
 
         uml_class.rename_field(oldname, newname)
+        
+    @_has_changed
+    def change_field_type(self, classname: str, fieldname: str, newtype: str):
+        """changes the type of the field with name field name"""
+        uml_class = self.get_umlclass(classname)
+
+        uml_class.change_field_type(fieldname, newtype)
 
     @_has_changed
     def delete_field(self, classname: str, fieldname: str) -> int:
@@ -490,6 +541,12 @@ class UmlProject:
     def rename_method(self, classname:str, oldname:str, newname:str, overload_id:str):
         if self.classes.get(classname):
             self.classes.get(classname).rename_method(oldname, overload_id, newname)
+    
+    @_has_changed
+    def change_method_type(self, classname:str, name:str, newtype:str, overload_id:str):
+        """changes the method type"""
+        uml_class = self.classes.get(classname)
+        uml_class.change_method_type(name, overload_id, newtype)
 
     @_has_changed
     def delete_method(self, classname:str, methodname:str, overload_id:str):
@@ -524,7 +581,7 @@ class UmlProject:
         uml_class.remove_all_parameters(methodname, overload_id)
     
     @_has_changed
-    def replace_all_parameters(self, classname:str, methodname:str, overload_id:str, parameters:list[str]):
+    def replace_all_parameters(self, classname:str, methodname:str, overload_id:str, parameters:list[tuple[str, str]]):
         """Replace all parameters from a method overload with a new parameter list.
 
         Params:
@@ -615,12 +672,12 @@ class UmlProject:
             UMLException:ExistingRelationshipError if a relationship  with the specified source and destination already exists
         """
         if source is None or destination is None or relationship_type is None:
-            raise errors.UMLException("NullObjectError")
+            raise errors.NullObjectException()
 
         if not self.contains_umlclass(source) or not self.contains_umlclass(
             destination
         ):
-            raise errors.UMLException("NoSuchObjectError")
+            raise errors.NoSuchObjectException()
 
         source_class = self.get_umlclass(source)
         destination_class = self.get_umlclass(destination)
