@@ -4,7 +4,8 @@
 # Description: execution class for actions to use to run pytest and update coverage
 # NOT FOR USERS: users should use "usertests.py" for test coverage to avoid manipulating coveragerc
 import pytest
-    
+import sys
+
 # try to open the archived file
 try:
     with open("../../coverage.txt", "r") as f:
@@ -29,7 +30,8 @@ with open(".coveragerc", "r") as currcov:
 
 #run pytest
 args =  ["--cov", "--cov-report", "xml"]
-pytest.main(args)
+# pytest.main(args)
+pytest_result = pytest.main(args)
 
 # access current project coverage rate
 with open("coverage.xml", "r") as cov:
@@ -45,3 +47,5 @@ if newpercent > oldmincov:
     with open("../../coverage.txt", "w") as f:
         f.write(str(newpercent))
 print(__file__)
+
+sys.exit(pytest_result.value)

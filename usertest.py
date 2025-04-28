@@ -4,10 +4,12 @@
 # Description: pytest script for user to run tests and update coverage requirements
 import pytest
 import os
+import sys
 
 #run pytest
 args =  ["--cov", "--cov-report", "xml", "--cov-report", "term-missing"]
-pytest.main(args)
+pytest_result = pytest.main(args)
+print("PYTEST EXIT CODE:", pytest_result, pytest_result.value)
 
 # access current project coverage rate
 with open("coverage.xml", "r") as cov:
@@ -34,3 +36,5 @@ with open(".coveragerc", "r") as currcov:
         print(f"Coverage updated to {newpercent}%")
 #get rid of old file    
 os.remove("coverage.xml")
+
+sys.exit(pytest_result.value)
