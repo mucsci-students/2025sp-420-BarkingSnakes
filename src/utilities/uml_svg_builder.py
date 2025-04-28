@@ -5,9 +5,11 @@
 
 from abc import ABC, abstractmethod
 import math
+import traceback
 
 from utilities import svg
 from utilities.model_utils import UmlClassNT, UmlModelNT
+from utilities.pathing_search import AStar
 
 
 class SvgBuilder(ABC):
@@ -39,24 +41,6 @@ class UmlClassSvgBuilder(SvgBuilder):
         self.padding_x:float = 5.0
         self.width = 0
         self.height = 0
-        self.anchors = {
-            "left": (
-                0,
-                0,
-            ),
-            "right": (
-                0,
-                0,
-            ),
-            "top": (
-                0,
-                0,
-            ),
-            "bottom": (
-                0,
-                0,
-            ),
-        }
 
         self.name_x_offset: float = 0.0
         self.name_y_offset: float = self.padding_y
@@ -93,7 +77,7 @@ class UmlClassSvgBuilder(SvgBuilder):
         self.name.add_style("font-size", "14px")
         self.name.add_style("font-weight", "bold")
         self.name.add_style("fill", "red")
-        self.name.add_style("stroke", "solid 1px red")
+        self.name.add_style("stroke", "solid 1px black")
         self.name.add_style("text-anchor", "middle")
         self.name.add_style("text-rendering", "optimizeLegibility")
         self.image.add(self.name)
@@ -184,17 +168,82 @@ class UmlClassSvgBuilder(SvgBuilder):
         # self.image.width = max(self.image.width, self.width)
         # self.image.height = max(self.image.height, self.height)
 
+class UmlRelationshipBuilder(SvgBuilder):
+    def __init__(self, image:svg.SvgImage, source:UmlClassSvgBuilder, dest:UmlClassSvgBuilder):
+        """"""
+        self.image = image
+        self.source = source
+        self.dest = dest
+        self.box_buffer = 5
+
+        self.relation:svg.SvgRelation = None
+
+    @property
+    def svg(self) -> None:
+        """Method to retreive the SVG."""
+
+    def produce_svg_part(self) -> None:
+        """Method to generate the SVG component."""
+        elem_id = f"r-{self.source.name.text}-{self.dest.name.text}"
+        rect1 = self.source.rect
+        rect2 = self.dest.rect
+
+        r1d = (
+            math.floor(rect1.x - self.box_buffer),
+            math.floor(rect1.y - self.box_buffer),
+            math.floor(rect1.width + self.box_buffer),
+            math.floor(rect1.height + self.box_buffer)
+        )
+
+        r2d = (
+            math.floor(rect2.x - self.box_buffer),
+            math.floor(rect2.y - self.box_buffer),
+            math.floor(rect2.width + (self.box_buffer * 1)),
+            math.floor(rect2.height + (self.box_buffer * 1))
+        )
+
+        new_rect1 = svg.SvgRect(None, *r1d)
+        new_rect2 = svg.SvgRect(None, *r2d)
+
+        search = AStar(self.grid, new_rect1.anchors(), new_rect2.anchors())
+
+        path = search.get_optimal_path()
+
+        self.relation = svg.SvgRelation(elem_id, rect1, rect2)
+        self.relation.set_path(path)
+
+        self.image.add(self.relation)
+
+    def set_grid(self, grid:list[list[int]]):
+        self.grid = grid
+
+    def reset(self) -> None:
+        """Method to reset the state of the builder."""
+
 class UmlDiagramSvgBuilder(SvgBuilder):
     """SvgBuilder for building a UML Diagram into a SVG element."""
     def __init__(self, model:UmlModelNT):
         self.model = model
         self.image = svg.SvgImage(0,0)
         self.class_builders:list[UmlClassSvgBuilder] = []
+        self.class_builder_map:dict[str, UmlClassSvgBuilder] = {}
+        self.relation_builders:list[UmlRelationshipBuilder] = []
+        self.padding = 50
+        self.border_padding = 5
+        self.box_buffer = 5
 
         for c in model.classes:
-            self.class_builders.append(UmlClassSvgBuilder(c, self.image))
+            builder = UmlClassSvgBuilder(c, self.image)
+            builder.x = max(c.x, self.border_padding)
+            builder.y = max(c.y, self.border_padding)
+            self.class_builders.append(builder)
+            self.class_builder_map[c.name] = builder
 
-        self.padding = 5
+        for r in model.relationships:
+            source = self.class_builder_map.get(r.source)
+            dest = self.class_builder_map.get(r.destination)
+            builder = UmlRelationshipBuilder(self.image, source, dest)
+            self.relation_builders.append(builder)
 
     @property
     def svg(self) -> None:
@@ -205,58 +254,40 @@ class UmlDiagramSvgBuilder(SvgBuilder):
         width = 0
         height = 0
 
-        class PixelMatrix:
-            def __init__(self, n, m):
-                self.w = math.ceil(n)
-                self.h = math.ceil(m)
-            
-            def get_matrix(self):
-                return [1 for i in range(self.w * self.h)]
-            
-        px_matrix = []
-        max_y = 0
-        max_x = 0
-
-        next_x = self.padding
-        next_y = self.padding
-
         for builder in self.class_builders:
             builder.produce_svg_part()
 
         self._handle_element_collisions()
-
-        #     max_y = math.ceil(max(max_y, builder.y + builder.height))
-        #     max_x = math.ceil(max(max_x, builder.x + builder.width))
-
-        #     if len(px_matrix) < max_y:
-        #         px_matrix.extend([[] for i in range(max_y - len(px_matrix))])
-            
-        #     x_start = math.floor(builder.x)
-        #     x_end = math.ceil(x_start + builder.width)
-        #     y_start = math.floor(builder.y)
-        #     y_end = y_start + math.ceil(builder.height)
-        #     for y in range(y_start, y_end):
-        #         row = px_matrix[y]
-        #         row.extend([0 for i in range(max_x - len(row))])
-
-
-        #         for x in range(x_start, x_end):
-        #             row[x] = 1
-            
-        #     next_y = y_end + self.padding
-        #     next_x = x_end + self.padding
-
-        # with open("px_matrix.txt", "w") as f:
-        #     for r in px_matrix:
-        #         f.write(f"{r}\n")
 
         # Calculate final image size
         for builder in self.class_builders:
             width = max(width, builder.x + builder.width)
             height = max(height, builder.y + builder.height)
 
-        self.image.width = width + self.padding
-        self.image.height = height + self.padding
+        self.image.width = width + self.border_padding
+        self.image.height = height + self.border_padding
+
+        grid = [[0 for _ in range(math.ceil(self.image.width))] for _ in range(math.ceil(self.image.height))]
+
+        for builder in self.class_builders:
+            rect1 = builder.rect
+
+            r1d = (
+                math.floor(rect1.x - self.box_buffer),
+                math.floor(rect1.y - self.box_buffer),
+                math.floor(rect1.width + self.box_buffer),
+                math.floor(rect1.height + self.box_buffer)
+            )
+
+            new_rect1 = svg.SvgRect(None, *r1d)
+
+            for i in range(new_rect1.y, new_rect1.y + new_rect1.height):
+                for j in range(new_rect1.x, new_rect1.x + new_rect1.width):
+                    grid[i][j] = 1
+
+        for builder in self.relation_builders:
+            builder.set_grid(grid)
+            builder.produce_svg_part()
     
     def reset(self) -> None:
         """"""
@@ -270,9 +301,38 @@ class UmlDiagramSvgBuilder(SvgBuilder):
                 if j != i:
                     b = builders[j]
                     if b.rect.intersects(builder.rect):
-                        # print(b.umlclass.name, "intersects", builder.umlclass.name)
+                        print(b.umlclass.name, "intersects", builder.umlclass.name)
                         b.x = builder.x + builder.width + self.padding
                         # if b.y > builder.y:
                         #     b.y = builder.y + builder.width + self.padding
                         b.reset()
                         b.produce_svg_part()
+    
+    # def _handle_class_relationships(self):
+    #     """"""
+    #     for (source, dest, rtype) in self.model.relationships:
+    #         rect1 = self.class_builder_map.get(source).rect
+    #         rect2 = self.class_builder_map.get(dest).rect
+
+    #         r1d = (
+    #             math.floor(rect1.x - self.border_padding),
+    #             math.floor(rect1.y - self.border_padding),
+    #             math.floor(rect1.width + self.border_padding),
+    #             math.floor(rect1.height + self.border_padding)
+    #         )
+
+    #         r2d = (
+    #             math.floor(rect2.x - self.border_padding),
+    #             math.floor(rect2.y - self.border_padding),
+    #             math.floor(rect2.width + self.border_padding),
+    #             math.floor(rect2.height + self.border_padding)
+    #         )
+
+    #         new_rect1 = svg.SvgRect(None, *r1d)
+    #         new_rect2 = svg.SvgRect(None, *r2d)
+
+    #         grid  = [[0 for _ in range(self.width)] for _ in self.height]
+
+    #         search = AStar(grid, new_rect1.anchors(), new_rect2.anchors())
+    #         path = search.get_optimal_path()
+

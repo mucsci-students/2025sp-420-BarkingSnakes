@@ -90,6 +90,11 @@ class SvgBoundary(SvgElement):
     @abstractmethod
     def intersects(self, elem:SvgElement) -> bool:
         """Checks whether the provided element intersects with this element."""
+    
+    @abstractmethod
+    def anchors(self) -> list[tuple[int, int]]:
+        """Returns anchor points for the boundry object in which arrows can path
+        to and from."""
 
 class SvgRect(SvgBoundary):
     """A SVG rectangle element."""
@@ -119,20 +124,31 @@ class SvgRect(SvgBoundary):
 
     def intersects(self, elem:SvgElement) -> bool:
         """Checks whether the provided element intersects with this element."""
-        min_x, min_y = (self.x, self.y)
-        max_x, max_y = (self.x+self.width, self.y+self.height)
+        r1l, r1t = (self.x, self.y)
+        r1r, r1b = (self.x+self.width, self.y+self.height)
 
-        min_x2, min_y2 = (elem.x, elem.y)
-        max_x2, max_y2 = (elem.x+elem.width, elem.y+elem.height)
+        r2l, r2t = (elem.x, elem.y)
+        r2r, r2b = (elem.x+elem.width, elem.y+elem.height)
 
-        points = [(min_x2, min_y2), (max_x2, min_y2), (max_x2, max_y2), (min_x2, max_y2)]
-        for (x,y) in points:
-            intersect_x = x >= min_x and x <= max_x
-            intersect_y = y >= min_y and y <= max_y
+        retval = not (r2l > r1r or r2r < r1l or r2t > r1b or r2b < r1t)
 
-            if intersect_x and intersect_y:
-                return True
-        return False
+        return retval
+
+    def anchors(self) -> list[tuple[int, int]]:
+        """Returns anchor points for the boundry object in which arrows can path
+        to and from."""
+        
+        x1, x2 = math.floor(self.x), math.floor(self.x + self.width)
+        y1, y2 = math.floor(self.y), math.floor(self.y + self.height)
+        mid_x = math.floor(self.x + (self.width * .5))
+        mid_y = math.floor(self.y + (self.height * .5))
+
+        top = (mid_x, y1)
+        bottom = (mid_x, y2)
+        left = (x1, mid_y)
+        right = (x2, mid_y)
+
+        return [left, top, right, bottom]
 
 class SvgText(SvgElement):
     """A SVG text element."""
@@ -223,7 +239,7 @@ class SvgText(SvgElement):
         return Boxsize(w, h)
 
 class SvgTriangle(SvgElement):
-    def __init__(self, points:tuple[tuple[int, int]], element_id:ElementId, x:float=None, y:float=None):
+    def __init__(self, points:tuple[tuple[int, int]], element_id:ElementId = "glyph", x:float=None, y:float=None):
         super().__init__(id, x, y)
         self.points = points
 
@@ -244,16 +260,52 @@ class SvgTriangle(SvgElement):
         return xml
 
 class SvgRelation(SvgElement):
-    def __init__(self, r1:SvgRect, r2:SvgRect, glyph_size:int = 5):
+    def __init__(self, element_id:ElementId, r1:SvgRect, r2:SvgRect, glyph_size:int = 5):
+        super().__init__(element_id, 0, 0)
         self.r1 = r1
         self.r2 = r2
         self.glyph_size = glyph_size
         self.avoids:list[SvgBoundary] = []
-    
+        self.path:list[tuple[int, int]] = []
+        self.use_path = False
+
+    def set_path(self, path:list[tuple[int, int]]):
+        self.path = path
+
+    def path_xml(self) -> str:
+        xml = ""
+        if self.use_path:
+            path = self.path.copy()
+            xml = '<path d="'
+            x1, y1 = path.pop(0)
+            xml += f'M {x1},{y1} L'
+            xml += ' '.join([f'{x},{y}' for x,y in path])
+            xml += '" stroke="white" />'
+        else:
+            r1_anchors = self.r1.anchors()
+            r2_anchors = self.r2.anchors()
+
+            shortest_dist = float('inf')
+            best_line = []
+            for start in r1_anchors:
+                for goal in r2_anchors:
+                    dist = math.dist(start, goal)
+                    if dist < shortest_dist:
+                        best_line = [start, goal]
+                    shortest_dist = min(dist, shortest_dist)
+
+            (x1,y1), (x2,y2) = best_line
+            xml = f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="white" />'
+
+        return xml
+
+
     @property
     def xml(self) -> str:
         """"""
-        return self.line_xml() + self.line_glyph()
+        return self.path_xml()
+        # return self.path_xml() + self.line_glyph()
+        # return self.line_xml() + self.line_glyph()
         # return self.line_xml()
 
     def line_vector(self) -> tuple[tuple[int,int]]:
@@ -275,7 +327,8 @@ class SvgRelation(SvgElement):
         return((p1_x, p1_y,), (p2_x,p2_y-self.glyph_size,),)
 
     def line_glyph(self) -> str:
-        (_,_), (x,y) = self.line_vector()
+        # (_,_), (x,y) = self.line_vector()
+        (x,y) = self.path[-1]
         points = (
             (x - self.glyph_size, y,),
             (x + self.glyph_size, y,),
@@ -321,3 +374,8 @@ class SvgRelation(SvgElement):
 
     def avoid(self, elem:SvgElement):
         self.avoids.append(elem)
+
+    @property
+    def box_size(self) -> Boxsize:
+        """Get the boxsize (width, height) of the element."""
+        return None
