@@ -90,7 +90,7 @@
                     style="color: white; font-size: 18px; transition: all 0.2s ease-in-out;"
                     onmouseover="this.style.textShadow='0 4px 12px rgba(255, 0, 0, 0.8)'; this.style.transform='scale(1.1)'; this.style.cursor='pointer';"
                     onmouseout="this.style.textShadow='none'; this.style.transform='scale(1)';"
-                    onclick="addMethod2({key:'Enter'},'{{ dto.name }}');toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}']),document.getElementById('newMethodName-{{ dto.name }}').value='' , document.getElementById('newMethodType-{{ dto.name }}').value='' , document.getElementById('parameterListInpt-{{ dto.name }}').value=''"></i>
+                    onclick="addMethod2({key:'Enter'},document.getElementById('newMethodName-{{dto.name}}').value,document.getElementById('newMethodType-{{dto.name}}').value,document.getElementById('parameterListInpt-{{dto.name}}').value,'{{ dto.name }}');toggleVisibility(['btnAddMethod-{{ dto.name }}', 'methodinpts-{{ dto.name }}'])"></i>
                 <!-- Cancel btn -->
                 <i class="fa-solid fa-circle-xmark"
                     style="color: red; font-size: 18px; transition: all 0.2s ease-in-out; cursor: pointer;"
