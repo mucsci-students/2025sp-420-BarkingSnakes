@@ -112,6 +112,10 @@ Shows list of existing relationships by displaying type, source class, and targe
     - Used for communication between the controller and the view can be found in umlcontroller_observer.py and umlview_observer.py
 - Decorator
     - Used to add functionality in different places can be found in umlmodel.py
+- Chain of command 
+    - Example: Change method, calls a different version of itself in different classes
+- Builder
+    - SVG exporter 
 
 ## Using BS-uml program
 - Type the `help` commmand to see a list of possible commands and their use
