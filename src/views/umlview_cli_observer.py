@@ -98,19 +98,13 @@ class UmlShell(cmd.Cmd):
         Enters the context for the class with the specified <classname> or prompts you\n\
         to add if it is not an existing class\n\n\
 class add <classname>\n\
-        Adds the class and enters the context for the class. If a name is not provided,\n\
-        it prompts for a name\n\n\
+        Adds the class with the specified name.\n\n\
 class delete\n\
         Removes the class from the project and all of its relationships.\n\
         Issues a Y/N prompt to confirm the action.\n\n\
 rename <new name>\n\
         Renames the class to the provided <new name> or if one was not provided,\n\
-        prompts for a new name\n\n\
-list\n\
-        Displays the current class and its fields, methods and parameters\n\
-        in a box.\n\n\
-list\n\
-        In the project context, displays all classes and their fields, methods and parameter.\n")
+        prompts for a new name\n")
 
     def help_relation(self):
         print("\nrelation add <source class> <destination class> <relationship type>\n\
@@ -127,60 +121,71 @@ relation list\n\
         Lists all relations in the current project.\n")
 
     def help_field(self):
-        print("\nfield add <field name> <field type>\n\
+        print("\nAll of the following require at least a class context\n\n\
+field add <field name> <field type>\n\
         Adds the field with name <field name> and <field type> to the class.\n\n\
 field delete <field name>\n\
         Deletes the field with name <field name> from the class.\n\n\
 field rename <old field name> <new field name>\n\
         Renames the field on the class with <old field name>\n\
-        to <new field name>\n")
+        to <new field name>\n\n\
+field type <field name> <new type>\n\
+        changes the type of field with <field name>\n\
+        to <new type>\n")
     
     def help_method(self):
-        print("\nmethod add <method name> <method return type> <param1 name>:<param1 type> <param2 name>:<param2 type>...\n\
+        print("\nAll of the following require at least a class context\n\n\
+method add <method name> <method return type> <param1 name>:<param1 type> <param2 name>:<param2 type>...\n\
         Adds the method with name <method name> to the class.\n\n\
-method rename <old method name> <new method name> arity <arity>\n\
-        Renames the method on the class with <old method name>\n\
-        to <new method name>, arity must be specified\n\n\
 method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>...\n\
         Deletes the method with name <method name> from the class.\n\n\
 method <method name> <parameter1 type> <parameter2 type> <parameter2 type>...\n\
-        Enters the context for the specified method\n")
+        Enters the context for the specified method\n\n\
+method rename <new method name>\n\
+        Renames the current method to <new method name>\n\
+        This requires a method context.\n\n\
+method type <new type>\n\
+        changes the method's return type to <new type>\n\
+        This requires a method context\n")
 
     def help_parameter(self):
-        print("\nparameter add <parameter name>:<parameter type>\n\
-        Adds the parameter with name <parameter name> to the class.\n\n\
+        print("\nAll of the following require a method context\n\n\
+\nparameter add <parameter name>:<parameter type>\n\
+        Adds the parameter with name <parameter name> to the method.\n\n\
 parameter rename <old parameter name> <new parameter name>\n\
         Renames the parameter on the class with <old parameter name>\n\n\
 parameter delete <parameter name>\n\
-        Deletes the parameter with name <parameter name> from the class.\n")
+        Deletes the parameter with name <parameter name> from the method.\n")
 
     def help_back(self):
         print("\nback\n\
-        Exits the current context and returns to the previous one\n")
+        From a method context, exits to the class context.\n\
+        From a class context, exits to the general context.\n")
 
     def help_undo(self):
         print("\nundo\n\
-        Undoes the last command\n")
+        Undoes the last change.\n")
 
     def help_redo(self):
         print("\nredo\n\
-        Redoes the last command\n")
-    #TODO: add this to help.txt
+        Redoes the last change.\n")
 
     def help_delete(self):
         print("\ndelete\n\
         Removes the class from the project and all of its relationships.\n\
-        Issues a Y/N prompt to confirm the action.\n")
+        Issues a Y/N prompt to confirm the action.\n\
+        Requires a class context.\n")
 
     def help_rename(self):
         print("\nrename <new name>\n\
         Renames the class to the provided <new name> or if one was not provided,\n\
-        prompts for a new name\n")
+        prompts for a new name\n\
+        Requires a class context.\n")
 
     def help_list(self):
         print("\nlist\n\
-        Displays the current class and its fields, methods and parameters\n\
-        in a box.\n\n\
+        In a class context displays the current class and its fields\n\
+        methods and parameters in a box.\n\n\
 list\n\
         In the project context, displays all classes and their fields, methods and parameter.\n") 
         
@@ -196,7 +201,10 @@ list\n\
 
     def help_save(self):
         print("\nsave\n\
-        Save the current file\n")
+        Save the current file\n\n\
+        if new, load, or save has not yet been used, will prompt for <filename>\
+save <filename>\n\
+        Save the current file to <filename>\n")
 
     def help_quit(self):
         print("\nquit or Ctrl+D\n\
@@ -349,7 +357,8 @@ class UmlViewCliObserver(UmlViewObserver):
             
             if self.active_method:
                 method_context_base = [
-                    "method rename ", 
+                    "rename ",
+                    "method type ",
                     "parameter add ", 
                     "parameter replace all",
                     "parameter clear all"
