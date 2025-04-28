@@ -23,7 +23,7 @@
             <button onclick="showNewModal()">New</button>
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
-            <button onclick="showExportModal()">Export</button>
+            <button onclick="showExportModal()">Export HTML</button>
             <button onclick="confirmQuit()">Quit</button>
         </div>
     </div>
@@ -85,8 +85,7 @@
             <h2>Export File</h2>
             <p>Enter File Name:</p>
             <input type="text" id="exportFileNameInput" />
-            <!-- add Onclick export function move closeExportModal to export func -->
-            <button onclick="document.getElementById('exportFileNameInput').value='';closeExportModal()">Export</button>
+            <button onclick="exportHTML()">Export</button>
             <p id="exportError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
@@ -1534,7 +1533,7 @@
                 func();
             }
         }
-        
+
         function confirmQuit() {
             fetch("/quit", { method: "POST" })
                 .then(resp => {
@@ -1860,6 +1859,36 @@
                     }
                 })
                 .catch(error => console.log(error))
+        }
+
+        function exportHTML() {
+            const fileNameInput = document.getElementById("exportFileNameInput").value.trim();
+
+            if (!fileNameInput) {
+                snackbar("File name cannot be empty.");
+                return;
+            }
+
+            const fileName = fileNameInput.endsWith(".html") ? fileNameInput : `${fileNameInput}.html`;
+
+            const exportModal = document.getElementById("exportModal");
+            const previousDisplay = exportModal.style.display;
+            exportModal.style.display = "none";
+
+            const htmlContent = document.documentElement.outerHTML;
+
+            exportModal.style.display = previousDisplay;
+
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+
+            link.click();
+
+            URL.revokeObjectURL(link.href);
+            closeExportModal();
+            document.getElementById("exportFileNameInput").value = "";
         }
     </script>
 </body>
