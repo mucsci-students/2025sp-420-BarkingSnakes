@@ -4,8 +4,8 @@
     <button class="close" data-classname="{{ dto.name }}" onclick="closeClassDetails('{{ dto.name }}')">&times;</button>
     <div style="text-align: center;">
         <input id="classname-{{dto.name}}" class="class-name" value="{{ dto.name }}"
-            onkeydown="onkeydown_enter(event, () => this.blur())" onblur="renameClass(event.target, '{{ dto.name }}')"
-            readonly />
+            onkeydown="if (this.classList.contains('editable')) onkeydown_enter(event, () => this.blur())"
+            onblur="if (this.classList.contains('editable')) renameClass(event.target, '{{ dto.name }}')" readonly />
     </div>
     <hr>
     <h3>Fields</h3>

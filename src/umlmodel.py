@@ -581,7 +581,7 @@ class UmlProject:
         uml_class.remove_all_parameters(methodname, overload_id)
     
     @_has_changed
-    def replace_all_parameters(self, classname:str, methodname:str, overload_id:str, parameters:list[str]):
+    def replace_all_parameters(self, classname:str, methodname:str, overload_id:str, parameters:list[tuple[str, str]]):
         """Replace all parameters from a method overload with a new parameter list.
 
         Params:
