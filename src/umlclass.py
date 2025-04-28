@@ -86,6 +86,28 @@ class UmlClass:
         field_type = self.class_fields.pop(oldname).type
         self.add_field(newname,field_type)
         return 0
+    
+    def change_field_type(self,fieldname:str,newtype:str):
+        """ changes the specified field's type
+
+        Params: 
+            fieldname: existing field to change type of
+            newtype: type to replace the current type
+        Returns:
+            None
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            UMLException:NoSuchObjectError if the field does not exist
+            UMLException:DuplicateFieldError if newname exist in class_fields
+        """
+        if fieldname not in self.class_fields.keys():
+            #return error code for nonexistent field
+            raise errors.NoSuchObjectException(object_type="field")
+
+        errors.valid_name(newtype)
+        #get the field from the list
+        field = self.class_fields.get(fieldname)
+        field.change_type(newtype)
 
     def rename_umlclass(self,name:str) -> int:
         """Renames the UmlClass
