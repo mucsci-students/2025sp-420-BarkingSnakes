@@ -13,6 +13,7 @@
 2. Install a python virtual environment with `python -m venv venv`
 3. Activate the virtual environment with `.\venv\scripts\activate`
 4. Install required packages with `pip install -r requirements.txt`
+5. You may need to install pyreadline3 by running `pip install pyreadline3`
 
 ## Linux Installation Instructions
 1. Install python3 a version >= 3.9 if not present https://docs.python.org/3/using/unix.html
