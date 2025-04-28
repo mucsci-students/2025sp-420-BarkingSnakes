@@ -127,7 +127,8 @@ relation list\n\
         Lists all relations in the current project.\n")
 
     def help_field(self):
-        print("\nfield add <field name> <field type>\n\
+        print("\nAll of the following require at least a class context\n\n\
+field add <field name> <field type>\n\
         Adds the field with name <field name> and <field type> to the class.\n\n\
 field delete <field name>\n\
         Deletes the field with name <field name> from the class.\n\n\
@@ -139,7 +140,8 @@ field type <field name> <new type>\n\
         to <new type>\n")
     
     def help_method(self):
-        print("\nmethod add <method name> <method return type> <param1 name>:<param1 type> <param2 name>:<param2 type>...\n\
+        print("\nAll of the following require at least a class context\n\n\
+method add <method name> <method return type> <param1 name>:<param1 type> <param2 name>:<param2 type>...\n\
         Adds the method with name <method name> to the class.\n\n\
 method delete <method name> <parameter1 type> <parameter2 type> <parameter2 type>...\n\
         Deletes the method with name <method name> from the class.\n\n\
@@ -153,7 +155,8 @@ method type <new type>\n\
         This requires a method context\n")
 
     def help_parameter(self):
-        print("\nparameter add <parameter name>:<parameter type>\n\
+        print("\nAll of the following require a method context\n\n\
+\nparameter add <parameter name>:<parameter type>\n\
         Adds the parameter with name <parameter name> to the method.\n\n\
 parameter rename <old parameter name> <new parameter name>\n\
         Renames the parameter on the class with <old parameter name>\n\n\
@@ -162,7 +165,8 @@ parameter delete <parameter name>\n\
 
     def help_back(self):
         print("\nback\n\
-        Exits the current context and returns to the previous one\n")
+        From a method context, exits to the class context.\n\
+        From a class context, exits to the general context.\n")
 
     def help_undo(self):
         print("\nundo\n\
@@ -175,17 +179,19 @@ parameter delete <parameter name>\n\
     def help_delete(self):
         print("\ndelete\n\
         Removes the class from the project and all of its relationships.\n\
-        Issues a Y/N prompt to confirm the action.\n")
+        Issues a Y/N prompt to confirm the action.\n\
+        Requires a class context.\n")
 
     def help_rename(self):
         print("\nrename <new name>\n\
         Renames the class to the provided <new name> or if one was not provided,\n\
-        prompts for a new name\n")
+        prompts for a new name\n\
+        Requires a class context.\n")
 
     def help_list(self):
         print("\nlist\n\
-        Displays the current class and its fields, methods and parameters\n\
-        in a box.\n\n\
+        In a class context displays the current class and its fields\n\
+        methods and parameters in a box.\n\n\
 list\n\
         In the project context, displays all classes and their fields, methods and parameter.\n") 
         
