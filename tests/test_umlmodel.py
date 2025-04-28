@@ -169,3 +169,15 @@ def test_get_position_class_exists():
     except Exception as e:
         assert e == None
     assert pos == (1.0,2.0)
+
+### method tests
+
+def test_change_method_type():
+    """Tests change_method_type"""
+    test_proj = UmlProject()
+    test_proj.add_umlclass("car")
+    test_proj.add_method("car","MaxSpeed","mph", [])
+
+    test_proj.change_method_type("car","MaxSpeed","kmph", "")
+    umlclass = test_proj.classes.get("car")
+    assert "kmph" == umlclass.class_methods.get("MaxSpeed").get("").return_type

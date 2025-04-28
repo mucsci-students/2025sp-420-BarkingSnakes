@@ -201,6 +201,31 @@ class UmlClass:
             return self.remove_method(name, overloadID)
 
         raise errors.MethodOverloadNotExistsException()
+    
+    def change_method_type(self, name:str, overloadID:str, newtype:str):
+        """Changes a umlmethod's type
+
+        Params:
+            name: name for the method to add
+            overloadID: ID of the relevant overload to be renamed
+            newtype: new type to change the method to
+        Returns:
+            None
+        Exceptions:
+            UMLException:InvalidNameError if the new name is invalid
+            MethodOverloadNotExistsException: if the overload doesn't exist
+        """
+        if not self.class_methods.get(name):
+            raise errors.MethodNameNotExistsException()
+
+        if self._overload_exists(name, overloadID):
+            uml_method = self.class_methods.get(name).get(overloadID)
+
+            # add_method handles logic of checking in class_method for missing
+            # top level keys and handles name validation
+            uml_method.change_type(newtype)
+            return
+        raise errors.MethodOverloadNotExistsException()
         
     def remove_method(self, name:str, overloadID:str) -> int:
         """Remove a UmlMethod from the UmlClass

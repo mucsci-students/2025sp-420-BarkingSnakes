@@ -400,6 +400,50 @@ def test_rename_method_overload_invalid():
     except Exception as e:
         assert e == errors.DuplicateMethodOverloadException()
     assert test_class.class_methods == test_val_methods
+    
+## changing method return type
+def test_change_method_type_valid():
+    """test that the method type changes if the type is valid"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "", "int")
+    except Exception as e:
+        assert e == None
+    assert "int" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_invalid_name():
+    """test that the method type changes if the type is invalid"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "", "9th")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidNameException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_no_method():
+    """test that the change method type errors if no such method"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Park", "", "int")
+        assert False
+    except Exception as e:
+        assert e == errors.MethodNameNotExistsException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
+    
+def test_change_method_type_no_overload():
+    """test that change type errors if no overload"""
+    test_class = UmlClass("Car", {}, {})
+    test_class.add_method("Drive", "bool", [])
+    try:
+        test_class.change_method_type("Drive", "test", "int")
+        assert False
+    except Exception as e:
+        assert e == errors.MethodOverloadNotExistsException()
+    assert "bool" == test_class.class_methods.get("Drive").get("").return_type
 
 # test removing method
 #   - invalid name case
