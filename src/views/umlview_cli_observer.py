@@ -253,12 +253,29 @@ class UmlViewCliObserver(UmlViewObserver):
         prompt = f"{self.DEFAULT_PROMPT}"
         if self.active_class:
             classname = self.active_class.class_name
-            prompt += f"[{classname}]"
+            cmd:c_cmd.ListClassesCommand = self.parse_command("class list")
+            self.handle_command(cmd)
+            result = cmd.get_result()
+            if result.outcome == CommandOutcome.SUCCESS and self.active_class in cmd.umlclasses:
+                prompt += f"[{classname}]"
+            else:
+                self.active_class = None
+                self.active_method = None
+        else:
+            self.active_method = None # Worth refactoring these branches at some point.
         if self.active_method:
-            methodname = self.active_method.name
-            paramlist = ",".join(self.active_method.overloadID.split(" "))
-            rtype = self.active_method.return_type
-            prompt += f"[+{methodname}({paramlist}) -> {rtype}]"
+            try:
+                potential_match = self.active_class.class_methods[self.active_method.name][self.active_method.overloadID]
+                if potential_match is self.active_method:
+                    methodname = self.active_method.name
+                    paramlist = ",".join(self.active_method.overloadID.split(" "))
+                    rtype = self.active_method.return_type
+                    prompt += f"[+{methodname}({paramlist}) -> {rtype}]"
+                else:
+                    self.active_method = None
+            except:
+                self.active_method = None
+            
         return rf"{prompt}> "
 
     def _calculate_tab_completion_list(self) -> list[str]:
