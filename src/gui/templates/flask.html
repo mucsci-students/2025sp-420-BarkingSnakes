@@ -1709,6 +1709,7 @@
             }
 
             function closeDragElement() {
+                updatePosition(elementId, element.style.left, element.style.top)
                 document.onmouseup = null;
                 document.onmousemove = null;
             }

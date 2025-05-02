@@ -1,3 +1,7 @@
+# Filename: controller_commands.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
+# Last Edit Date: 2025-04-27
+# Description: contains the list of all controller commands, and their execution
 from __future__ import annotations
 import copy
 from typing import Protocol, Literal
