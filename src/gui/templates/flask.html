@@ -2113,17 +2113,30 @@
 
             if (!classElement) return;
 
+            // Ensure content dimensions are updated
+            updateContentSize();
+
             const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
             const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
-            const centerX = (container.scrollLeft + container.clientWidth / 2) / scale;
-            const centerY = (container.scrollTop + container.clientHeight / 2) / scale;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            const centerX = (container.scrollLeft + containerWidth / 2) / scale;
+            const centerY = (container.scrollTop + containerHeight / 2) / scale;
 
             const classWidth = classElement.offsetWidth;
             const classHeight = classElement.offsetHeight;
 
-            const newLeft = centerX - classWidth / 2;
-            const newTop = centerY - classHeight / 2;
+            // Calculate new position
+            let newLeft = centerX - classWidth / 2;
+            let newTop = centerY - classHeight / 2;
+
+            const contentWidth = content.offsetWidth / scale;
+            const contentHeight = content.offsetHeight / scale;
+
+            newLeft = Math.max(0, Math.min(newLeft, contentWidth - classWidth));
+            newTop = Math.max(0, Math.min(newTop, contentHeight - classHeight));
 
             // Move the class
             classElement.style.left = `${newLeft}px`;
@@ -2142,6 +2155,8 @@
                 })
             })
                 .then(() => {
+                    const zoomSlider = document.getElementById("zoomSlider");
+                    adjustZoom(zoomSlider.value);
                     closeAllModals();
                 })
                 .catch(error => console.error("Error updating class position:", error));
