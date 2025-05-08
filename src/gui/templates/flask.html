@@ -17,6 +17,7 @@
         <div id="addButtons">
             <button onclick="showAddClassModal()">Add Class</button>
             <button onclick="showAddRelationModal()">Add Relationship</button>
+            <button onclick="showEditClassModal()">Edit Class</button> <!-- New Button -->
         </div>
         <div id="otherButtons">
             <button onclick="showRecenterModal()">Re-center Class</button>
@@ -35,6 +36,22 @@
     </div>
 
 
+
+    <div id="editClassModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditClassModal()">&times;</span>
+            <h2>Edit Class</h2>
+            <p>Select Class to Edit:</p>
+            <select id="editClassDropdown">
+                <!-- Options will be dynamically populated -->
+            </select>
+            <button onclick="confirmClassSelection()">Confirm</button> <!-- New Confirm Button -->
+            <hr>
+            <div id="editClassDetails">
+                <!-- Fields and methods for editing will be dynamically loaded here -->
+            </div>
+        </div>
+    </div>
 
     <div id="diagramContainer" style="overflow: auto; width: 100%; height: calc(100vh - 60px);">
         <div id="content" style="transform-origin: 0 0; transform: scale(1);">
@@ -812,63 +829,21 @@
          */
         function toggleEditMode(className) {
             const addFieldContainer = document.getElementById(`addFieldContainer-${className}`);
-            const deleteFieldbtn = document.getElementById(`deleteFieldbtn-${className}`);
-            const fieldTextInpt = document.getElementById(`umlfield-${className}`);
             const addMethodContainer = document.getElementById(`addMethodContainer-${className}`);
-            const classTextInpt = document.getElementById(`classname-${className}`);
+            const classTextInput = document.getElementById(`classname-${className}`);
             const isHidden = addFieldContainer.classList.contains('hidden');
-            let editModeState = false;
 
             if (isHidden) {
-                if (addFieldContainer) {
-                    addFieldContainer.classList.remove('hidden');
-                }
-
-                if (deleteFieldbtn) {
-                    deleteFieldbtn.classList.remove('hidden');
-                }
-
-                if (addMethodContainer) {
-                    addMethodContainer.classList.remove('hidden');
-                }
-
-                if (fieldTextInpt) {
-                    fieldTextInpt.readOnly = false;
-                }
-
-                if (classTextInpt) {
-                    classTextInpt.readOnly = false;
-                    classTextInpt.classList.add('editable');
-                    classTextInpt.focus();
-                }
-
-                editModeState = true; // Set edit mode to true
+                addFieldContainer.classList.remove('hidden');
+                addMethodContainer.classList.remove('hidden');
+                classTextInput.classList.add('editable');
+                classTextInput.readOnly = false;
             } else {
-                if (addFieldContainer) {
-                    addFieldContainer.classList.add('hidden');
-                }
-
-                if (deleteFieldbtn) {
-                    deleteFieldbtn.classList.add('hidden');
-                }
-
-                if (addMethodContainer) {
-                    addMethodContainer.classList.add('hidden');
-                }
-
-                if (fieldTextInpt) {
-                    fieldTextInpt.readOnly = true;
-                }
-
-                if (classTextInpt) {
-                    classTextInpt.readOnly = true;
-                    classTextInpt.classList.remove('editable');
-                }
-
-                editModeState = false; // Set edit mode to false
+                addFieldContainer.classList.add('hidden');
+                addMethodContainer.classList.add('hidden');
+                classTextInput.classList.remove('editable');
+                classTextInput.readOnly = true;
             }
-
-            setTimeout(drawRelationshipLines, 100);
         }
         /**
          * Closes the class details.
@@ -1161,7 +1136,7 @@
         }
 
         function addField2(event, fieldName, fieldType, className) {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" || event.type === "click") {
                 if (!fieldName.trim()) {
                     snackbar("Field name cannot be empty.");
                     return;
@@ -1184,10 +1159,16 @@
                     })
                 })
                     .then(resp => {
-                        if (resp.status >= 400) {
-                            return resp.json();
+                        if (resp.ok) {
+                            // Update the class container directly in the diagram
+                            displayClassDetails(className).then(() => {
+                                // Re-apply draggable functionality after the DOM is updated
+                                makeElementDraggable(`ClassDetails-${className}`, `draggableBar-${className}`);
+                            });
+                            snackbar("Field added successfully");
+                            toggleVisibility([`btnAddField-${className}`, `fieldinpts-${className}`]);
                         } else {
-                            displayClassDetails(className);
+                            return resp.json();
                         }
                     })
                     .then(data => {
@@ -1883,7 +1864,7 @@
 
             // Force the zIndex of the line's container
             if (line && line.line) {
-                const lineContainer = line.line; 
+                const lineContainer = line.line;
                 lineContainer.style.zIndex = 3000;
                 lineContainer.style.pointerEvents = 'none';
             }
@@ -1928,22 +1909,30 @@
          * @param {string} className - The name of the class.
          */
         function displayClassDetails(className) {
-            fetch(`/classdetails?name=${className}`)
+            return fetch(`/classdetails?name=${className}`)
                 .then(response => response.json())
                 .then(data => {
                     let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
-                    saved_x_pos = data.x_pos;
-                    saved_y_pos = data.y_pos;
+                    const savedXPos = data.x_pos;
+                    const savedYPos = data.y_pos;
 
                     if (existingDetailsDiv) {
+                        // Update the existing class details
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
-                        if (saved_x_pos != 0 || saved_y_pos != 0) {
-                            existingDetailsDiv.style.left = `${saved_x_pos}px`;
-                            existingDetailsDiv.style.top = `${saved_y_pos}px`;
+
+                        // Update position if saved positions exist
+                        if (savedXPos !== 0 || savedYPos !== 0) {
+                            existingDetailsDiv.style.left = `${savedXPos}px`;
+                            existingDetailsDiv.style.top = `${savedYPos}px`;
                         }
-                        makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
+
+                        // Reapply draggable functionality
+                        setTimeout(() => {
+                            makeElementDraggable(existingDetailsDiv.id, `draggableBar-${className}`);
+                        }, 0);
                     } else {
+                        // Create a new class details container
                         let detailsDiv = document.createElement("div");
                         detailsDiv.id = `ClassDetails-${className}`;
                         detailsDiv.className = "ClassDetails";
@@ -1951,11 +1940,12 @@
                         document.getElementById("content").appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
 
-                        if (saved_x_pos != 0 || saved_y_pos != 0) {
-                            detailsDiv.style.left = `${saved_x_pos}px`;
-                            detailsDiv.style.top = `${saved_y_pos}px`;
+                        // Set position
+                        if (savedXPos !== 0 || savedYPos !== 0) {
+                            detailsDiv.style.left = `${savedXPos}px`;
+                            detailsDiv.style.top = `${savedYPos}px`;
                         } else {
-                            // Center in current visible viewport considering zoom
+                            // Center in the current visible viewport considering zoom
                             const container = document.getElementById("diagramContainer");
                             const content = document.getElementById("content");
 
@@ -1979,7 +1969,7 @@
                             detailsDiv.style.left = `${left}px`;
                             detailsDiv.style.top = `${top}px`;
 
-                            // Only expand content area if needed
+                            // Expand content area if needed
                             const rightEdge = left + classWidth;
                             const bottomEdge = top + classHeight;
 
@@ -1991,9 +1981,13 @@
                             }
                         }
 
-                        makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
+                        // Apply draggable functionality
+                        setTimeout(() => {
+                            makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
+                        }, 0);
                     }
 
+                    // Redraw relationship lines after updating the class details
                     setTimeout(drawRelationshipLines, 100);
                     updateContentSize();
                 });
@@ -2185,8 +2179,64 @@
                 .catch(error => console.error("Error updating class position:", error));
         }
 
+        function showEditClassModal() {
+            closeAllModals();
+            populateClassDropdown();
+            document.getElementById("editClassModal").style.display = "block";
+        }
+
+        function closeEditClassModal() {
+            document.getElementById("editClassModal").style.display = "none";
+        }
+
+        function populateClassDropdown() {
+            fetch('/classlist')
+                .then(response => response.json())
+                .then(data => {
+                    const dropdown = document.getElementById("editClassDropdown");
+                    dropdown.innerHTML = ""; // Clear existing options
+
+                    // Check if the response contains a list of classes
+                    if (data.html) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data.html, "text/html");
+                        const classButtons = doc.querySelectorAll(".class-button");
+
+                        classButtons.forEach(button => {
+                            const className = button.textContent.trim();
+                            const option = document.createElement("option");
+                            option.value = className;
+                            option.textContent = className;
+                            dropdown.appendChild(option);
+                        });
+                    } else {
+                        console.error("No class list found in response.");
+                    }
+                })
+                .catch(error => console.error("Error fetching class list:", error));
+        }
+
+        function loadClassDetailsForEdit(className) {
+            fetch(`/classdetails?name=${className}`)
+                .then(response => response.json())
+                .then(data => {
+                    const editClassDetails = document.getElementById("editClassDetails");
+                    editClassDetails.innerHTML = data.html;
 
 
+                    const draggableBarId = `draggableBar-${className}`;
+                    makeElementDraggable(`ClassDetails-${className}`, draggableBarId);
+
+                    toggleEditMode(className);
+                });
+        }
+
+
+        function confirmClassSelection() {
+            const className = document.getElementById("editClassDropdown").value;
+            loadClassDetailsForEdit(className);
+            makeElementDraggable(`ClassDetails-${className}`, `draggableBar-${className}`);
+        }
     </script>
 </body>
 
