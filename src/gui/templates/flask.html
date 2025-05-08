@@ -19,7 +19,7 @@
             <button onclick="showAddRelationModal()">Add Relationship</button>
         </div>
         <div id="otherButtons">
-            <button onclick="toggleLists()">Lists</button>
+            <button onclick="showRecenterModal()">Re-center Class</button>
             <button onclick="showNewModal()">New</button>
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
@@ -143,9 +143,20 @@
         </div>
     </div>
 
+    <div id="recenterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAllModals()">&times;</span>
+            <h2>Re-center View</h2>
+            <p>Select a class to center the viewport on:</p>
+            <select id="recenterClassDropdown"></select>
+            <button onclick="recenterToSelectedClass()">Re-center</button>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
+            overflow: hidden;
             background-color: #0e1113;
             padding-top: 40px;
         }
@@ -734,6 +745,7 @@
         var newModal = document.getElementById("newModal");
         var addClassModal = document.getElementById("addClassModal");
         var addRelationModal = document.getElementById("addRelationModal");
+        var recenterModal = document.getElementById("recenterModal");
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
@@ -2053,6 +2065,61 @@
             content.style.width = `${maxWidth}px`;
             content.style.height = `${maxHeight}px`;
         }
+
+        function showRecenterModal() {
+            closeAllModals();
+            const dropdown = document.getElementById("recenterClassDropdown");
+            dropdown.innerHTML = "";
+
+            const classElements = document.querySelectorAll(".ClassDetails");
+            classElements.forEach(el => {
+                const className = el.id.replace("ClassDetails-", "");
+                const option = document.createElement("option");
+                option.value = className;
+                option.text = className;
+                dropdown.appendChild(option);
+            });
+
+            document.getElementById("recenterModal").style.display = "block";
+        }
+
+
+        function recenterToSelectedClass() {
+            const selectedClass = document.getElementById("recenterClassDropdown").value;
+            const classElement = document.getElementById(`ClassDetails-${selectedClass}`);
+            const container = document.getElementById("diagramContainer");
+            const content = document.getElementById("content");
+
+            if (!classElement) return;
+
+            const scaleMatch = content.style.transform.match(/scale\\(([^)]+)\\)/);
+            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+            // Get center of visible area
+            const scrollX = container.scrollLeft;
+            const scrollY = container.scrollTop;
+
+            const centerX = (scrollX + container.clientWidth / 2) / scale;
+            const centerY = (scrollY + container.clientHeight / 2) / scale;
+
+            const classWidth = classElement.offsetWidth;
+            const classHeight = classElement.offsetHeight;
+
+            const newLeft = centerX - classWidth / 2;
+            const newTop = centerY - classHeight / 2;
+
+            // Move the class
+            classElement.style.left = `${newLeft}px`;
+            classElement.style.top = `${newTop}px`;
+
+            updatePosition(classElement.id, classElement.style.left, classElement.style.top);
+            updateContentSize();
+            lines.forEach(line => line.position());
+
+            closeAllModals();
+        }
+
+
 
     </script>
 </body>
