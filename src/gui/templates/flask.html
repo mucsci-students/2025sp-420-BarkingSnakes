@@ -1730,6 +1730,8 @@
                 .catch(error => console.log(error));
         }
 
+        let zIndexCounter = 1000; // Global counter for zIndex
+
         function makeElementDraggable(elementId, handleId) {
             const element = document.getElementById(elementId);
             const handle = document.getElementById(handleId);
@@ -1737,6 +1739,10 @@
 
             handle.onmousedown = function (e) {
                 e.preventDefault();
+
+                // Increment zIndexCounter and assign it to the dragged element
+                zIndexCounter++;
+                element.style.zIndex = zIndexCounter;
 
                 const transform = content.style.transform;
                 const match = transform.match(/scale\(([^)]+)\)/);
@@ -1763,6 +1769,10 @@
                 function closeDragElement() {
                     document.removeEventListener("mouseup", closeDragElement);
                     document.removeEventListener("mousemove", elementDrag);
+
+                    // Keep the zIndex as the highest value when drag ends
+                    element.style.zIndex = zIndexCounter;
+
                     updatePosition(elementId, element.style.left, element.style.top);
                 }
 
@@ -1770,8 +1780,6 @@
                 document.addEventListener("mouseup", closeDragElement);
             };
         }
-
-
 
         let lines = []; // Store references to LeaderLine instances
 
@@ -1783,6 +1791,7 @@
                 path: 'fluid',
                 startSocket: 'auto',
                 endSocket: 'auto',
+                zIndex: 3000 // Set a high z-index for the lines
             };
 
             // Self-relationship anchor positions (bottom arc)
@@ -1794,9 +1803,10 @@
                 ? LeaderLine.pointAnchor(destinationElement, { x: '5%', y: '100%' })
                 : destinationElement;
 
+            let line;
             switch (type.toLowerCase()) {
                 case 'aggregation':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1811,9 +1821,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'composition':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1825,9 +1836,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'inheritance':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1843,9 +1855,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'realization':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1861,11 +1874,21 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 default:
                     console.error(`Unknown relationship type: ${type}`);
                     return null;
             }
+
+            // Force the zIndex of the line's container
+            if (line && line.line) {
+                const lineContainer = line.line; 
+                lineContainer.style.zIndex = 3000;
+                lineContainer.style.pointerEvents = 'none';
+            }
+
+            return line;
         }
 
         function drawRelationshipLines() {
