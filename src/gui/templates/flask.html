@@ -297,9 +297,9 @@
 
         .ClassDetails {
             position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 100px;
+            /* fallback value */
+            left: 100px;
             padding: 10px;
             background-color: #333;
             color: white;
@@ -895,6 +895,7 @@
             if (detailsDiv) {
                 detailsDiv.remove();
             }
+            updateContentSize();
         }
 
         // When the user clicks on <span> (x), close the modal
@@ -967,10 +968,18 @@
                         getClassList();
                         closeAddClassModal();
                     } else {
-                        snackbar("Failed to add class.");
+                        return response.json(); // Parse error message
                     }
                 })
-                .catch(error => console.error("Error adding class:", error));
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error); // Show real backend error
+                    }
+                })
+                .catch(error => {
+                    console.error("Error adding class:", error);
+                    snackbar("An unexpected error occurred.");
+                });
         }
 
         function deleteClass(classname, override) {
@@ -1693,55 +1702,42 @@
             const handle = document.getElementById(handleId);
             const content = document.getElementById("content");
 
-            let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-            let scale = 1;
-
-            handle.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
+            handle.onmousedown = function (e) {
                 e.preventDefault();
 
-                // Get current zoom scale
                 const transform = content.style.transform;
                 const match = transform.match(/scale\(([^)]+)\)/);
-                scale = match ? parseFloat(match[1]) : 1;
+                const scale = match ? parseFloat(match[1]) : 1;
 
-                // Get starting cursor position and element's position
-                startX = e.clientX;
-                startY = e.clientY;
+                let startX = e.clientX;
+                let startY = e.clientY;
+                let startLeft = parseFloat(element.style.left) || element.offsetLeft;
+                let startTop = parseFloat(element.style.top) || element.offsetTop;
 
-                startLeft = parseFloat(element.style.left) || element.offsetLeft;
-                startTop = parseFloat(element.style.top) || element.offsetTop;
+                function elementDrag(e) {
+                    e.preventDefault();
 
+                    const dx = (e.clientX - startX) / scale;
+                    const dy = (e.clientY - startY) / scale;
 
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
+                    element.style.left = (startLeft + dx) + "px";
+                    element.style.top = (startTop + dy) + "px";
 
-            function elementDrag(e) {
-                e.preventDefault();
+                    updateContentSize();
+                    lines.forEach(line => line.position());
+                }
 
-                // Read the latest zoom scale
-                const transform = content.style.transform;
-                const match = transform.match(/scale\(([^)]+)\)/);
-                const currentScale = match ? parseFloat(match[1]) : 1;
+                function closeDragElement() {
+                    document.removeEventListener("mouseup", closeDragElement);
+                    document.removeEventListener("mousemove", elementDrag);
+                    updatePosition(elementId, element.style.left, element.style.top);
+                }
 
-                const dx = (e.clientX - startX) / currentScale;
-                const dy = (e.clientY - startY) / currentScale;
-
-                element.style.left = (startLeft + dx) + "px";
-                element.style.top = (startTop + dy) + "px";
-
-                updateContentSize();
-                lines.forEach(line => line.position());
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-                updatePosition(elementId, element.style.left, element.style.top);
-            }
+                document.addEventListener("mousemove", elementDrag);
+                document.addEventListener("mouseup", closeDragElement);
+            };
         }
+
 
 
         let lines = []; // Store references to LeaderLine instances
@@ -1880,15 +1876,12 @@
                 .then(response => response.json())
                 .then(data => {
                     let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
-                    //get the class's position
                     saved_x_pos = data.x_pos;
                     saved_y_pos = data.y_pos;
+
                     if (existingDetailsDiv) {
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
-                        // if class of same name exists when a new project is loaded,
-                        // this will get called here since a new div is not currently
-                        // created when loading a project if the names match
                         if (saved_x_pos != 0 || saved_y_pos != 0) {
                             existingDetailsDiv.style.left = `${saved_x_pos}px`;
                             existingDetailsDiv.style.top = `${saved_y_pos}px`;
@@ -1901,17 +1894,56 @@
                         detailsDiv.innerHTML = data.html;
                         document.getElementById("content").appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
-                        // only update the pos from saved if the class was moved
+
                         if (saved_x_pos != 0 || saved_y_pos != 0) {
                             detailsDiv.style.left = `${saved_x_pos}px`;
                             detailsDiv.style.top = `${saved_y_pos}px`;
+                        } else {
+                            // Center in current visible viewport considering zoom
+                            const container = document.getElementById("diagramContainer");
+                            const content = document.getElementById("content");
+
+                            const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
+                            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+                            const scrollX = container.scrollLeft;
+                            const scrollY = container.scrollTop;
+
+                            const visibleCenterX = scrollX + container.clientWidth / 2;
+                            const visibleCenterY = scrollY + container.clientHeight / 2;
+
+                            const scaledX = visibleCenterX / scale;
+                            const scaledY = visibleCenterY / scale;
+
+                            const classWidth = 250;
+                            const classHeight = 100;
+                            const left = scaledX - classWidth / 2;
+                            const top = scaledY - classHeight / 2;
+
+                            detailsDiv.style.left = `${left}px`;
+                            detailsDiv.style.top = `${top}px`;
+
+                            // Only expand content area if needed
+                            const rightEdge = left + classWidth;
+                            const bottomEdge = top + classHeight;
+
+                            const contentWidth = content.offsetWidth;
+                            const contentHeight = content.offsetHeight;
+
+                            if (rightEdge > contentWidth || bottomEdge > contentHeight || left < 0 || top < 0) {
+                                updateContentSize();
+                            }
                         }
+
                         makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
                     }
-                    //makes sure lines are rendered 
+
                     setTimeout(drawRelationshipLines, 100);
+                    updateContentSize();
                 });
         }
+
+
         //added 4-7 for saving position
         function updatePosition(elementId, leftPos, topPos) {
             //strip extra characters
