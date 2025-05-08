@@ -559,7 +559,6 @@
             overflow: auto;
             width: 100%;
             height: calc(100vh - 60px);
-            /* Adjust height based on toolbar */
         }
 
         #content {
@@ -2002,7 +2001,6 @@
         document.getElementById("diagramContainer").addEventListener("scroll", () => {
             lines.forEach(line => line.position());
         });
-
 
         function updateContentSize() {
             const content = document.getElementById("content");
