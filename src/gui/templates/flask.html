@@ -25,15 +25,15 @@
             <button onclick="showLoadModal()">Load</button>
             <button onclick="showExportModal()">Export HTML</button>
         </div>
-        <div id="zoomControls" style="margin-left: auto; margin-right: 10px;">
-            <label for="zoomSlider" style="color: white;">Zoom:</label>
-            <input id="zoomSlider" type="range" min="50" max="200" value="100" step="10"
-                oninput="adjustZoom(this.value)" style="width: 150px;">
-        </div>
         <button id="quitButton" onclick="confirmQuit()">Quit</button>
     </div>
-    <div id="content">
+
+    <div id="zoomControls" style="margin-left: auto; margin-right: 10px;">
+        <label for="zoomSlider" style="color: white;">Zoom:</label>
+        <input id="zoomSlider" type="range" min="25" max="200" value="100" step="10" oninput="adjustZoom(this.value)"
+            style="width: 150px;">
     </div>
+
 
 
     <div id="diagramContainer" style="overflow: auto; width: 100%; height: calc(100vh - 60px);">
@@ -147,8 +147,22 @@
     <style>
         body {
             background-color: #0e1113;
-            padding-top: 60px;
+            padding-top: 40px;
         }
+
+        #zoomControls {
+            position: absolute;
+            top: 70px;
+            right: 35px;
+            z-index: 3;
+            background-color: #333;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
 
         #toolbar {
             position: fixed;
@@ -290,7 +304,8 @@
             background-color: #333;
             color: white;
             border-radius: 10px;
-            width: 15%;
+            width: 250px;
+            box-sizing: border-box;
             text-align: center;
             display: none;
             font-size: 0.9em;
@@ -549,11 +564,9 @@
 
         #content {
             width: 2000px;
-            /* Set a large enough width for the diagram */
             height: 2000px;
-            /* Set a large enough height for the diagram */
             transform-origin: 0 0;
-            /* Ensure scaling starts from the top-left corner */
+            overflow: hidden;
         }
 
         /* Animations to fade the snackbar in and out */
@@ -1698,8 +1711,9 @@
                 startX = e.clientX;
                 startY = e.clientY;
 
-                startLeft = parseFloat(element.style.left || 0);
-                startTop = parseFloat(element.style.top || 0);
+                startLeft = parseFloat(element.style.left) || element.offsetLeft;
+                startTop = parseFloat(element.style.top) || element.offsetTop;
+
 
                 document.onmouseup = closeDragElement;
                 document.onmousemove = elementDrag;
@@ -1969,25 +1983,26 @@
         function adjustZoom(zoomLevel) {
             const content = document.getElementById("content");
             const diagramContainer = document.getElementById("diagramContainer");
-            const scale = zoomLevel / 100; // Convert percentage to scale factor
 
-            // Update content size to include all classes
+            const prevScale = parseFloat(content.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1);
+            const newScale = zoomLevel / 100;
+
+            const scrollLeftRatio = diagramContainer.scrollLeft / (content.offsetWidth * prevScale);
+            const scrollTopRatio = diagramContainer.scrollTop / (content.offsetHeight * prevScale);
+
             updateContentSize();
+            content.style.transform = `scale(${newScale})`;
+            content.style.transformOrigin = "0 0";
 
-            // Apply scaling to the content
-            content.style.transform = `scale(${scale})`;
-            content.style.transformOrigin = "0 0"; // Ensure scaling starts from the top-left corner
-
-            // Adjust the container's scroll position to keep the center of the diagram in view
-            const containerWidth = diagramContainer.clientWidth;
-            const containerHeight = diagramContainer.clientHeight;
-            const contentWidth = content.offsetWidth * scale;
-            const contentHeight = content.offsetHeight * scale;
-
-            // Center the content within the container
-            diagramContainer.scrollLeft = (contentWidth - containerWidth) / 2;
-            diagramContainer.scrollTop = (contentHeight - containerHeight) / 2;
+            diagramContainer.scrollLeft = scrollLeftRatio * (content.offsetWidth * newScale);
+            diagramContainer.scrollTop = scrollTopRatio * (content.offsetHeight * newScale);
+            lines.forEach(line => line.position());
         }
+
+        document.getElementById("diagramContainer").addEventListener("scroll", () => {
+            lines.forEach(line => line.position());
+        });
+
 
         function updateContentSize() {
             const content = document.getElementById("content");
