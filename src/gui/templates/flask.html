@@ -977,15 +977,15 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        // Get the center of the viewport
+                        // Get the center of the visible viewport
                         const container = document.getElementById("diagramContainer");
                         const content = document.getElementById("content");
 
                         const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
                         const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
-                        const centerX = (container.scrollLeft + container.clientWidth / 2) / scale;
-                        const centerY = (container.scrollTop + container.clientHeight / 2) / scale;
+                        const visibleCenterX = (container.scrollLeft + container.clientWidth / 2) / scale;
+                        const visibleCenterY = (container.scrollTop + container.clientHeight / 2) / scale;
 
                         // Update the class position in the backend
                         fetch("/updateClassPosition", {
@@ -995,8 +995,8 @@
                             },
                             body: JSON.stringify({
                                 classname: className,
-                                x_pos: centerX,
-                                y_pos: centerY
+                                x_pos: visibleCenterX,
+                                y_pos: visibleCenterY
                             })
                         })
                             .then(() => {
