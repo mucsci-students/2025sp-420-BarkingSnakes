@@ -19,7 +19,7 @@
             <button onclick="showAddRelationModal()">Add Relationship</button>
         </div>
         <div id="otherButtons">
-            <button onclick="toggleLists()">Lists</button>
+            <button onclick="showRecenterModal()">Re-center Class</button>
             <button onclick="showNewModal()">New</button>
             <button onclick="showSaveModal()">Save</button>
             <button onclick="showLoadModal()">Load</button>
@@ -27,9 +27,20 @@
         </div>
         <button id="quitButton" onclick="confirmQuit()">Quit</button>
     </div>
-    <div id="content">
+
+    <div id="zoomControls" style="margin-left: auto; margin-right: 10px;">
+        <label for="zoomSlider" style="color: white;">Zoom:</label>
+        <input id="zoomSlider" type="range" min="25" max="200" value="100" step="10" oninput="adjustZoom(this.value)"
+            style="width: 150px;">
     </div>
 
+
+
+    <div id="diagramContainer" style="overflow: auto; width: 100%; height: calc(100vh - 60px);">
+        <div id="content" style="transform-origin: 0 0; transform: scale(1);">
+            <!-- Diagram content goes here -->
+        </div>
+    </div>
     <div id="ClassTable" style="display: none;">
         <!-- <table id="Data">
         </table> -->
@@ -132,12 +143,37 @@
         </div>
     </div>
 
+    <div id="recenterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAllModals()">&times;</span>
+            <h2>Re-center View</h2>
+            <p>Select a class to center the viewport on:</p>
+            <select id="recenterClassDropdown"></select>
+            <button onclick="recenterToSelectedClass()">Re-center</button>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
         body {
+            overflow: hidden;
             background-color: #0e1113;
-            padding-top: 60px;
+            padding-top: 40px;
         }
+
+        #zoomControls {
+            position: absolute;
+            top: 70px;
+            right: 35px;
+            z-index: 3;
+            background-color: #333;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
 
         #toolbar {
             position: fixed;
@@ -256,8 +292,8 @@
         }
 
         #ClassDetails {
-            position: fixed;
-            /* Changed from absolute to fixed */
+            position: absolute;
+            /* Changed from fixed to absolute */
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -271,15 +307,16 @@
         }
 
         .ClassDetails {
-            position: fixed;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: absolute;
+            top: 100px;
+            /* fallback value */
+            left: 100px;
             padding: 10px;
             background-color: #333;
             color: white;
             border-radius: 10px;
-            width: 15%;
+            width: 250px;
+            box-sizing: border-box;
             text-align: center;
             display: none;
             font-size: 0.9em;
@@ -529,6 +566,19 @@
             transform: scale(1.05);
         }
 
+        #diagramContainer {
+            overflow: auto;
+            width: 100%;
+            height: calc(100vh - 60px);
+        }
+
+        #content {
+            width: 2000px;
+            height: 2000px;
+            transform-origin: 0 0;
+            overflow: hidden;
+        }
+
         /* Animations to fade the snackbar in and out */
         @-webkit-keyframes fadein {
             from {
@@ -695,6 +745,7 @@
         var newModal = document.getElementById("newModal");
         var addClassModal = document.getElementById("addClassModal");
         var addRelationModal = document.getElementById("addRelationModal");
+        var recenterModal = document.getElementById("recenterModal");
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
@@ -856,6 +907,7 @@
             if (detailsDiv) {
                 detailsDiv.remove();
             }
+            updateContentSize();
         }
 
         // When the user clicks on <span> (x), close the modal
@@ -925,10 +977,39 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        getClassList();
-                        closeAddClassModal();
+                        // Get the center of the visible viewport
+                        const container = document.getElementById("diagramContainer");
+                        const content = document.getElementById("content");
+
+                        const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
+                        const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+                        const visibleCenterX = (container.scrollLeft + container.clientWidth / 2) / scale;
+                        const visibleCenterY = (container.scrollTop + container.clientHeight / 2) / scale;
+
+                        // Update the class position in the backend
+                        fetch("/updateClassPosition", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                classname: className,
+                                x_pos: visibleCenterX,
+                                y_pos: visibleCenterY
+                            })
+                        })
+                            .then(() => {
+                                getClassList(); // Refresh the class list
+                                closeAddClassModal();
+                            });
                     } else {
-                        snackbar("Failed to add class.");
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
                     }
                 })
                 .catch(error => console.error("Error adding class:", error));
@@ -1649,70 +1730,55 @@
                 .catch(error => console.log(error));
         }
 
+        let zIndexCounter = 1000; // Global counter for zIndex
+
         function makeElementDraggable(elementId, handleId) {
             const element = document.getElementById(elementId);
             const handle = document.getElementById(handleId);
-            let offsetX = 0, offsetY = 0, initialX = 0, initialY = 0;
+            const content = document.getElementById("content");
 
-            handle.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
+            handle.onmousedown = function (e) {
                 e.preventDefault();
 
-                // Get current screen position BEFORE removing transform
-                const rect = element.getBoundingClientRect();
+                // Increment zIndexCounter and assign it to the dragged element
+                zIndexCounter++;
+                element.style.zIndex = zIndexCounter;
 
-                // Set explicit top and left to keep it exactly in the same place
-                element.style.left = rect.left + "px";
-                element.style.top = rect.top + "px";
-                element.style.transform = "none";
-                initialX = e.clientX;
-                initialY = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
+                const transform = content.style.transform;
+                const match = transform.match(/scale\(([^)]+)\)/);
+                const scale = match ? parseFloat(match[1]) : 1;
 
-            function elementDrag(e) {
-                e.preventDefault();
-                offsetX = initialX - e.clientX;
-                offsetY = initialY - e.clientY;
-                initialX = e.clientX;
-                initialY = e.clientY;
+                let startX = e.clientX;
+                let startY = e.clientY;
+                let startLeft = parseFloat(element.style.left) || element.offsetLeft;
+                let startTop = parseFloat(element.style.top) || element.offsetTop;
 
-                const toolbarHeight = document.getElementById('toolbar').offsetHeight;
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
+                function elementDrag(e) {
+                    e.preventDefault();
 
-                let newLeft = element.offsetLeft - offsetX;
-                let newTop = element.offsetTop - offsetY;
+                    const dx = (e.clientX - startX) / scale;
+                    const dy = (e.clientY - startY) / scale;
 
-                // WALL: Left side
-                if (newLeft < 0) {
-                    newLeft = 0;
+                    element.style.left = (startLeft + dx) + "px";
+                    element.style.top = (startTop + dy) + "px";
+
+                    updateContentSize();
+                    lines.forEach(line => line.position());
                 }
-                // WALL: Top side (below toolbar)
-                if (newTop < toolbarHeight) {
-                    newTop = toolbarHeight;
-                }
-                // WALL: Right side
-                if (newLeft + element.offsetWidth > windowWidth) {
-                    newLeft = windowWidth - element.offsetWidth;
-                }
-                // WALL: Bottom side
-                if (newTop + element.offsetHeight > windowHeight) {
-                    newTop = windowHeight - element.offsetHeight;
-                }
-                element.style.left = newLeft + "px";
-                element.style.top = newTop + "px";
 
-                lines.forEach(line => line.position());
-            }
+                function closeDragElement() {
+                    document.removeEventListener("mouseup", closeDragElement);
+                    document.removeEventListener("mousemove", elementDrag);
 
-            function closeDragElement() {
-                updatePosition(elementId, element.style.left, element.style.top)
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
+                    // Keep the zIndex as the highest value when drag ends
+                    element.style.zIndex = zIndexCounter;
+
+                    updatePosition(elementId, element.style.left, element.style.top);
+                }
+
+                document.addEventListener("mousemove", elementDrag);
+                document.addEventListener("mouseup", closeDragElement);
+            };
         }
 
         let lines = []; // Store references to LeaderLine instances
@@ -1725,6 +1791,7 @@
                 path: 'fluid',
                 startSocket: 'auto',
                 endSocket: 'auto',
+                zIndex: 3000 // Set a high z-index for the lines
             };
 
             // Self-relationship anchor positions (bottom arc)
@@ -1736,9 +1803,10 @@
                 ? LeaderLine.pointAnchor(destinationElement, { x: '5%', y: '100%' })
                 : destinationElement;
 
+            let line;
             switch (type.toLowerCase()) {
                 case 'aggregation':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1753,9 +1821,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'composition':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1767,9 +1836,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'inheritance':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1785,9 +1855,10 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 case 'realization':
-                    return new LeaderLine(
+                    line = new LeaderLine(
                         startAnchor,
                         endAnchor,
                         {
@@ -1803,11 +1874,21 @@
                             endSocket: isSelfRelation ? 'bottom' : baseOptions.endSocket
                         }
                     );
+                    break;
 
                 default:
                     console.error(`Unknown relationship type: ${type}`);
                     return null;
             }
+
+            // Force the zIndex of the line's container
+            if (line && line.line) {
+                const lineContainer = line.line; 
+                lineContainer.style.zIndex = 3000;
+                lineContainer.style.pointerEvents = 'none';
+            }
+
+            return line;
         }
 
         function drawRelationshipLines() {
@@ -1851,15 +1932,12 @@
                 .then(response => response.json())
                 .then(data => {
                     let existingDetailsDiv = document.getElementById(`ClassDetails-${className}`);
-                    //get the class's position
                     saved_x_pos = data.x_pos;
                     saved_y_pos = data.y_pos;
+
                     if (existingDetailsDiv) {
                         existingDetailsDiv.innerHTML = data.html;
                         existingDetailsDiv.style.display = "block";
-                        // if class of same name exists when a new project is loaded,
-                        // this will get called here since a new div is not currently
-                        // created when loading a project if the names match
                         if (saved_x_pos != 0 || saved_y_pos != 0) {
                             existingDetailsDiv.style.left = `${saved_x_pos}px`;
                             existingDetailsDiv.style.top = `${saved_y_pos}px`;
@@ -1870,19 +1948,58 @@
                         detailsDiv.id = `ClassDetails-${className}`;
                         detailsDiv.className = "ClassDetails";
                         detailsDiv.innerHTML = data.html;
-                        document.body.appendChild(detailsDiv);
+                        document.getElementById("content").appendChild(detailsDiv);
                         detailsDiv.style.display = "block";
-                        // only update the pos from saved if the class was moved
+
                         if (saved_x_pos != 0 || saved_y_pos != 0) {
                             detailsDiv.style.left = `${saved_x_pos}px`;
                             detailsDiv.style.top = `${saved_y_pos}px`;
+                        } else {
+                            // Center in current visible viewport considering zoom
+                            const container = document.getElementById("diagramContainer");
+                            const content = document.getElementById("content");
+
+                            const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
+                            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+                            const scrollX = container.scrollLeft;
+                            const scrollY = container.scrollTop;
+
+                            const visibleCenterX = scrollX + container.clientWidth / 2;
+                            const visibleCenterY = scrollY + container.clientHeight / 2;
+
+                            const scaledX = visibleCenterX / scale;
+                            const scaledY = visibleCenterY / scale;
+
+                            const classWidth = 250;
+                            const classHeight = 100;
+                            const left = scaledX - classWidth / 2;
+                            const top = scaledY - classHeight / 2;
+
+                            detailsDiv.style.left = `${left}px`;
+                            detailsDiv.style.top = `${top}px`;
+
+                            // Only expand content area if needed
+                            const rightEdge = left + classWidth;
+                            const bottomEdge = top + classHeight;
+
+                            const contentWidth = content.offsetWidth;
+                            const contentHeight = content.offsetHeight;
+
+                            if (rightEdge > contentWidth || bottomEdge > contentHeight || left < 0 || top < 0) {
+                                updateContentSize();
+                            }
                         }
+
                         makeElementDraggable(detailsDiv.id, `draggableBar-${className}`);
                     }
-                    //makes sure lines are rendered 
+
                     setTimeout(drawRelationshipLines, 100);
+                    updateContentSize();
                 });
         }
+
+
         //added 4-7 for saving position
         function updatePosition(elementId, leftPos, topPos) {
             //strip extra characters
@@ -1948,6 +2065,128 @@
             closeExportModal();
             document.getElementById("exportFileNameInput").value = "";
         }
+
+
+        function adjustZoom(zoomLevel) {
+            const content = document.getElementById("content");
+            const diagramContainer = document.getElementById("diagramContainer");
+
+            const prevScale = parseFloat(content.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1);
+            const newScale = zoomLevel / 100;
+
+            const scrollLeftRatio = diagramContainer.scrollLeft / (content.offsetWidth * prevScale);
+            const scrollTopRatio = diagramContainer.scrollTop / (content.offsetHeight * prevScale);
+
+            updateContentSize();
+            content.style.transform = `scale(${newScale})`;
+            content.style.transformOrigin = "0 0";
+
+            diagramContainer.scrollLeft = scrollLeftRatio * (content.offsetWidth * newScale);
+            diagramContainer.scrollTop = scrollTopRatio * (content.offsetHeight * newScale);
+            lines.forEach(line => line.position());
+        }
+
+        document.getElementById("diagramContainer").addEventListener("scroll", () => {
+            lines.forEach(line => line.position());
+        });
+
+        function updateContentSize() {
+            const content = document.getElementById("content");
+            const classes = document.querySelectorAll(".ClassDetails");
+
+            let maxWidth = 0;
+            let maxHeight = 0;
+
+            classes.forEach(cls => {
+                const rect = cls.getBoundingClientRect();
+                const right = cls.offsetLeft + cls.offsetWidth;
+                const bottom = cls.offsetTop + cls.offsetHeight;
+
+                if (right > maxWidth) maxWidth = right;
+                if (bottom > maxHeight) maxHeight = bottom;
+            });
+
+            content.style.width = `${maxWidth}px`;
+            content.style.height = `${maxHeight}px`;
+        }
+
+        function showRecenterModal() {
+            closeAllModals();
+            const dropdown = document.getElementById("recenterClassDropdown");
+            dropdown.innerHTML = "";
+
+            const classElements = document.querySelectorAll(".ClassDetails");
+            classElements.forEach(el => {
+                const className = el.id.replace("ClassDetails-", "");
+                const option = document.createElement("option");
+                option.value = className;
+                option.text = className;
+                dropdown.appendChild(option);
+            });
+
+            document.getElementById("recenterModal").style.display = "block";
+        }
+
+
+        function recenterToSelectedClass() {
+            const selectedClass = document.getElementById("recenterClassDropdown").value;
+            const classElement = document.getElementById(`ClassDetails-${selectedClass}`);
+            const container = document.getElementById("diagramContainer");
+            const content = document.getElementById("content");
+
+            if (!classElement) return;
+
+            // Ensure content dimensions are updated
+            updateContentSize();
+
+            const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
+            const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            const centerX = (container.scrollLeft + containerWidth / 2) / scale;
+            const centerY = (container.scrollTop + containerHeight / 2) / scale;
+
+            const classWidth = classElement.offsetWidth;
+            const classHeight = classElement.offsetHeight;
+
+            // Calculate new position
+            let newLeft = centerX - classWidth / 2;
+            let newTop = centerY - classHeight / 2;
+
+            const contentWidth = content.offsetWidth / scale;
+            const contentHeight = content.offsetHeight / scale;
+
+            newLeft = Math.max(0, Math.min(newLeft, contentWidth - classWidth));
+            newTop = Math.max(0, Math.min(newTop, contentHeight - classHeight));
+
+            // Move the class
+            classElement.style.left = `${newLeft}px`;
+            classElement.style.top = `${newTop}px`;
+
+            // Update the position in the backend
+            fetch("/updateClassPosition", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: selectedClass,
+                    x_pos: newLeft,
+                    y_pos: newTop
+                })
+            })
+                .then(() => {
+                    const zoomSlider = document.getElementById("zoomSlider");
+                    adjustZoom(zoomSlider.value);
+                    closeAllModals();
+                })
+                .catch(error => console.error("Error updating class position:", error));
+        }
+
+
+
     </script>
 </body>
 
