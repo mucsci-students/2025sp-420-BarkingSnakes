@@ -977,21 +977,42 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        getClassList();
-                        closeAddClassModal();
+                        // Get the center of the viewport
+                        const container = document.getElementById("diagramContainer");
+                        const content = document.getElementById("content");
+
+                        const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
+                        const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+                        const centerX = (container.scrollLeft + container.clientWidth / 2) / scale;
+                        const centerY = (container.scrollTop + container.clientHeight / 2) / scale;
+
+                        // Update the class position in the backend
+                        fetch("/updateClassPosition", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                classname: className,
+                                x_pos: centerX,
+                                y_pos: centerY
+                            })
+                        })
+                            .then(() => {
+                                getClassList(); // Refresh the class list
+                                closeAddClassModal();
+                            });
                     } else {
-                        return response.json(); // Parse error message
+                        return response.json();
                     }
                 })
                 .then(data => {
                     if (data && data.error) {
-                        snackbar(data.error); // Show real backend error
+                        snackbar(data.error);
                     }
                 })
-                .catch(error => {
-                    console.error("Error adding class:", error);
-                    snackbar("An unexpected error occurred.");
-                });
+                .catch(error => console.error("Error adding class:", error));
         }
 
         function deleteClass(classname, override) {
@@ -2092,15 +2113,11 @@
 
             if (!classElement) return;
 
-            const scaleMatch = content.style.transform.match(/scale\\(([^)]+)\\)/);
+            const scaleMatch = content.style.transform.match(/scale\(([^)]+)\)/);
             const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
-            // Get center of visible area
-            const scrollX = container.scrollLeft;
-            const scrollY = container.scrollTop;
-
-            const centerX = (scrollX + container.clientWidth / 2) / scale;
-            const centerY = (scrollY + container.clientHeight / 2) / scale;
+            const centerX = (container.scrollLeft + container.clientWidth / 2) / scale;
+            const centerY = (container.scrollTop + container.clientHeight / 2) / scale;
 
             const classWidth = classElement.offsetWidth;
             const classHeight = classElement.offsetHeight;
@@ -2112,11 +2129,22 @@
             classElement.style.left = `${newLeft}px`;
             classElement.style.top = `${newTop}px`;
 
-            updatePosition(classElement.id, classElement.style.left, classElement.style.top);
-            updateContentSize();
-            lines.forEach(line => line.position());
-
-            closeAllModals();
+            // Update the position in the backend
+            fetch("/updateClassPosition", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    classname: selectedClass,
+                    x_pos: newLeft,
+                    y_pos: newTop
+                })
+            })
+                .then(() => {
+                    closeAllModals();
+                })
+                .catch(error => console.error("Error updating class position:", error));
         }
 
 
