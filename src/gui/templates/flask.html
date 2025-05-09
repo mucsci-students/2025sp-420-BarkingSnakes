@@ -17,6 +17,8 @@
         <div id="addButtons">
             <button onclick="showAddClassModal()">Add Class</button>
             <button onclick="showAddRelationModal()">Add Relationship</button>
+            <button onclick="showEditClassModal()">Edit Class</button> <!-- New button -->
+
         </div>
         <div id="otherButtons">
             <button onclick="showRecenterModal()">Re-center Class</button>
@@ -33,6 +35,55 @@
         <input id="zoomSlider" type="range" min="25" max="200" value="100" step="10" oninput="adjustZoom(this.value)"
             style="width: 150px;">
     </div>
+
+
+    <div id="editClassModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditClassModal()">&times;</span>
+            <h2>Edit Class</h2>
+            <p>Select a class to edit:</p>
+            <select id="editClassDropdown"></select>
+            <button onclick="openEditClassDetails()">Submit</button>
+        </div>
+    </div>
+
+    <div id="editClassDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAllModals()">&times;</span>
+            <h2>Edit Class Details</h2>
+
+            <!-- Editable Class Name -->
+            <h3>Class Name</h3>
+            <input type="text" id="editableClassName" class="editable-class-name" placeholder="Class Name" />
+
+            <h3>Relationships</h3>
+            <div id="existingRelationshipsList"></div>
+
+            <!-- Existing Fields -->
+            <h3>Fields</h3>
+            <div id="existingFieldsList"></div>
+
+            <!-- Add New Field -->
+            <h3>Add Field</h3>
+            <input type="text" id="newFieldName" placeholder="Field Name" />
+            <input type="text" id="newFieldType" placeholder="Field Type" />
+            <button onclick="addFieldToClass()">Add Field</button>
+
+            <hr />
+
+            <!-- Existing Methods -->
+            <h3>Methods</h3>
+            <div id="existingMethodsList"></div>
+
+            <!-- Add New Method -->
+            <h3>Add Method</h3>
+            <input type="text" id="newMethodName" placeholder="Method Name" />
+            <input type="text" id="newMethodReturnType" placeholder="Return Type" />
+            <input type="text" id="newMethodParams" placeholder="Parameters (space-separated)" />
+            <button onclick="addMethodToClass()">Add Method</button>
+        </div>
+    </div>
+
 
 
 
@@ -153,8 +204,57 @@
         </div>
     </div>
 
+    <div id="confirmDeleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirm Deletion</h2>
+            <p id="confirmDeleteMessage">Are you sure you want to delete this class?</p>
+            <div style="text-align: right;">
+                <button id="confirmDeleteYes" onclick="confirmDelete()">Yes</button>
+                <button id="confirmDeleteNo" onclick="closeConfirmDeleteModal()">No</button>
+            </div>
+        </div>
+    </div>
+
     <div id="snackbar">Some text some message..</div>
     <style>
+        .editable-field,
+        .editable-method {
+            background: #1c1c1c;
+            color: white;
+            border: 1px solid #04AA6D;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            font-size: 1em;
+        }
+
+        .editable-class-name {
+            background-color: #222;
+            border: 2px solid #04AA6D;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 10px;
+            width: 50%;
+            margin-bottom: 15px;
+            box-shadow: 0 0 5px rgba(4, 170, 109, 0.8);
+        }
+
+
+        .class-name-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0.5em 0;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         body {
             overflow: hidden;
             background-color: #0e1113;
@@ -368,6 +468,8 @@
             border: 1px solid #888;
             width: 80%;
             color: white;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .modal-content input[type="text"] {
@@ -576,7 +678,9 @@
             width: 2000px;
             height: 2000px;
             transform-origin: 0 0;
-            overflow: hidden;
+            position: relative;
+            /* Ensure child elements are positioned correctly */
+            overflow: visible;
         }
 
         /* Animations to fade the snackbar in and out */
@@ -808,116 +912,85 @@
         }
 
         /**
-         * Toggles on/off the edit mode on the class details
-         */
-        function toggleEditMode(className) {
-            const addFieldContainer = document.getElementById(`addFieldContainer-${className}`);
-            const deleteFieldbtn = document.getElementById(`deleteFieldbtn-${className}`);
-            const fieldTextInpt = document.getElementById(`umlfield-${className}`);
-            const addMethodContainer = document.getElementById(`addMethodContainer-${className}`);
-            const classTextInpt = document.getElementById(`classname-${className}`);
-            const isHidden = addFieldContainer.classList.contains('hidden');
-            let editModeState = false;
-
-            if (isHidden) {
-                if (addFieldContainer) {
-                    addFieldContainer.classList.remove('hidden');
-                }
-
-                if (deleteFieldbtn) {
-                    deleteFieldbtn.classList.remove('hidden');
-                }
-
-                if (addMethodContainer) {
-                    addMethodContainer.classList.remove('hidden');
-                }
-
-                if (fieldTextInpt) {
-                    fieldTextInpt.readOnly = false;
-                }
-
-                if (classTextInpt) {
-                    classTextInpt.readOnly = false;
-                    classTextInpt.classList.add('editable');
-                    classTextInpt.focus();
-                }
-
-                editModeState = true; // Set edit mode to true
-            } else {
-                if (addFieldContainer) {
-                    addFieldContainer.classList.add('hidden');
-                }
-
-                if (deleteFieldbtn) {
-                    deleteFieldbtn.classList.add('hidden');
-                }
-
-                if (addMethodContainer) {
-                    addMethodContainer.classList.add('hidden');
-                }
-
-                if (fieldTextInpt) {
-                    fieldTextInpt.readOnly = true;
-                }
-
-                if (classTextInpt) {
-                    classTextInpt.readOnly = true;
-                    classTextInpt.classList.remove('editable');
-                }
-
-                editModeState = false; // Set edit mode to false
-            }
-
-            setTimeout(drawRelationshipLines, 100);
-        }
-        /**
          * Closes the class details.
          */
+        let classToDelete = null; // Store the class name temporarily
+
         function closeClassDetails(className) {
-            let detailsDiv = document.getElementById(`ClassDetails-${className}`);
+            classToDelete = className; // Save the class name for deletion
+            document.getElementById("confirmDeleteMessage").innerText = `Are you sure you want to delete the class "${className}"? This action cannot be undone.`;
+            document.getElementById("confirmDeleteModal").style.display = "block";
+        }
+
+        function confirmDelete() {
+            if (!classToDelete) return;
+
+            let detailsDiv = document.getElementById(`ClassDetails-${classToDelete}`);
             if (detailsDiv) {
                 detailsDiv.style.display = "none";
-                console.log(`ClassDetails-${className} closed.`); // Debug log
-            } else {
-                console.log(`ClassDetails-${className} not found.`); // Debug log
             }
 
-            // Remove lines associated with the closed class, including self-relations
+            // Remove lines associated with the class
             const remainingLines = [];
             lines.forEach(line => {
-                const isStartClass = line.start && line.start.id === `ClassDetails-${className}`;
-                const isEndClass = line.end && line.end.id === `ClassDetails-${className}`;
+                const isStartClass = line.start && line.start.id === `ClassDetails-${classToDelete}`;
+                const isEndClass = line.end && line.end.id === `ClassDetails-${classToDelete}`;
                 const isSelfRelation = isStartClass && isEndClass;
 
                 if (isStartClass || isEndClass || isSelfRelation) {
-                    console.log(`Removing line connected to ClassDetails-${className}`); // Debug log
-                    line.remove(); // Remove the line from the DOM
+                    line.remove();
                 } else {
                     remainingLines.push(line);
                 }
             });
 
             lines = remainingLines;
-            console.log("Remaining lines:", lines);
-
-            // Force redraw of relationship lines to ensure self-relations are removed
             drawRelationshipLines();
 
             // Remove the class from the DOM
             if (detailsDiv) {
                 detailsDiv.remove();
             }
-            updateContentSize();
+
+            // Call the backend to delete the class
+            fetch("/deleteclass", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ classname: classToDelete, override: true })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        snackbar(`Class "${classToDelete}" deleted.`);
+                        getClassList();
+                        getRelationList();
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data && data.error) {
+                        snackbar(data.error);
+                    }
+                })
+                .catch(error => console.error("Error deleting class:", error));
+
+            closeConfirmDeleteModal(); // Close the modal
+            classToDelete = null; // Reset the temporary variable
         }
 
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function () {
-            modal.style.display = "none";
-            closeSaveModal();
+        function closeConfirmDeleteModal() {
+            document.getElementById("confirmDeleteModal").style.display = "none";
+            classToDelete = null; // Reset the temporary variable
         }
 
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
+            const editClassModal = document.getElementById("editClassModal");
+            if (event.target === editClassModal) {
+                closeEditClassModal();
+            }
             if (event.target == modal) {
                 modal.style.display = "none";
             }
@@ -936,6 +1009,9 @@
             if (event.target == addRelationModal) {
                 closeAddRelationModal();
             }
+            if (event.target === editClassDetailsModal) {
+                closeEditClassDetailsModal();
+            }
         }
 
         function closeAllModals() {
@@ -943,6 +1019,16 @@
             modals.forEach(modal => {
                 modal.style.display = "none";
             });
+        }
+
+        // Close Edit Class Modal
+        function closeEditClassModal() {
+            document.getElementById("editClassModal").style.display = "none";
+        }
+
+        // Close Edit Class Details Modal
+        function closeEditClassDetailsModal() {
+            document.getElementById("editClassDetailsModal").style.display = "none";
         }
 
         // Show Add Class Modal
@@ -1118,24 +1204,16 @@
         function updateRelationType(source, destination, newType) {
             fetch("/updateRelationType", {
                 method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    source: source,
-                    destination: destination,
-                    type: newType
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ source, destination, type: newType })
             })
                 .then(response => {
-                    if (response.ok) {
-                        getRelationList();
-                        drawRelationshipLines();
-                    } else {
-                        snackbar("Failed to update relationship type.");
-                    }
+                    if (!response.ok) throw new Error("Failed to update relationship type");
+                    snackbar("Relationship type updated successfully.");
+                    getClassList(); // Reload the classes
+                    drawRelationshipLines(); // Redraw the relationship lines
                 })
-                .catch(error => console.error("Error updating relationship type:", error));
+                .catch(err => console.error("Error updating relationship type:", err));
         }
 
         /**
@@ -1160,44 +1238,6 @@
             }
         }
 
-        function addField2(event, fieldName, fieldType, className) {
-            if (event.key === "Enter") {
-                if (!fieldName.trim()) {
-                    snackbar("Field name cannot be empty.");
-                    return;
-                }
-                if (!fieldType.trim()) {
-                    snackbar("Field type is required.");
-                    return;
-                }
-
-                fetch("/addField", {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        fieldname: fieldName,
-                        classname: className,
-                        type: fieldType
-                    })
-                })
-                    .then(resp => {
-                        if (resp.status >= 400) {
-                            return resp.json();
-                        } else {
-                            displayClassDetails(className);
-                        }
-                    })
-                    .then(data => {
-                        if (data && data.error) {
-                            snackbar(data.error);
-                        }
-                    })
-                    .catch(error => console.log(error));
-            }
-        }
 
         function deleteField(className, fieldName) {
             fetch("/deleteField", {
@@ -1239,45 +1279,6 @@
             modal.style.display = "none";
         }
 
-        function addMethod2(event, methodName, returntype, paramlist, className) {
-            if (event.key === "Enter") {
-                if (!methodName.trim()) {
-                    snackbar("Method name cannot be empty.");
-                    return;
-                }
-                if (!returntype.trim()) {
-                    snackbar("Return type is required.");
-                    return;
-                }
-
-                fetch("/addMethod", {
-                    method: "POST",
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        methodname: methodName,
-                        returntype: returntype,
-                        paramlist: paramlist,
-                        classname: className
-                    })
-                })
-                    .then(resp => {
-                        if (resp.status >= 400) {
-                            return resp.json();
-                        } else {
-                            displayClassDetails(className);
-                        }
-                    })
-                    .then(data => {
-                        if (data && data.error) {
-                            snackbar(data.error);
-                        }
-                    })
-                    .catch(error => console.log(error));
-            }
-        }
 
         function deleteMethod(methodName, arity, className) {
             fetch("/deleteMethod", {
@@ -1559,72 +1560,50 @@
             document.getElementById("loadError").style.display = "none";
         }
 
-        function closeLoadModal() {
-            document.getElementById("loadModal").style.display = "none";
-            document.getElementById("loadError").style.display = "none";
-        }
-
         function closeExportModal() {
             document.getElementById("exportModal").style.display = "none";
             document.getElementById("exportError").style.display = "none";
         }
 
-        function renameField(target, elem, className, fieldName) {
-            const newname = target.value;
-            if (fieldName === newname) {
-                return;
-            }
-
+        function renameField(className, oldName, newName) {
             fetch("/renameField", {
-                method: "post",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    classname: className,
-                    oldname: fieldName,
-                    newname: newname
-                })
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ classname: className, oldname: oldName, newname: newName })
             })
-                .then(resp => {
-                    return resp.json();
-                })
+                .then(res => res.json())
                 .then(data => {
                     if (data.error) {
-                        elem.value = fieldName
                         snackbar(data.error);
                     } else {
+                        snackbar("Field renamed.");
                         displayClassDetails(className);
+                        openEditClassDetails();
                     }
-                })
+                });
         }
 
         function renameMethod(oldname, newname, arity, className) {
             fetch("/renameMethod", {
                 method: "PUT",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    classname: className,
                     oldname: oldname,
                     newname: newname,
-                    arity: arity,
-                    classname: className
+                    arity: arity
                 })
             })
-                .then(resp => {
-                    return resp.json();
-                })
+                .then(res => res.json())
                 .then(data => {
                     if (data.error) {
-                        elem.value = methodName
                         snackbar(data.error);
                     } else {
+                        snackbar("Method renamed.");
                         displayClassDetails(className);
+                        openEditClassDetails();
                     }
-                })
+                });
         }
 
         function renameClass(target, classname) {
@@ -1883,7 +1862,7 @@
 
             // Force the zIndex of the line's container
             if (line && line.line) {
-                const lineContainer = line.line; 
+                const lineContainer = line.line;
                 lineContainer.style.zIndex = 3000;
                 lineContainer.style.pointerEvents = 'none';
             }
@@ -2184,6 +2163,278 @@
                 })
                 .catch(error => console.error("Error updating class position:", error));
         }
+
+
+        function adjustClassDetailsPosition(className) {
+            const detailsDiv = document.getElementById(`ClassDetails-${className}`);
+            const container = document.getElementById("diagramContainer");
+
+            if (detailsDiv) {
+                const rect = detailsDiv.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+
+                // Ensure the modal stays within the visible area of the container
+                if (rect.bottom > containerRect.bottom) {
+                    detailsDiv.style.top = `${parseFloat(detailsDiv.style.top) - (rect.bottom - containerRect.bottom)}px`;
+                }
+                if (rect.top < containerRect.top) {
+                    detailsDiv.style.top = `${parseFloat(detailsDiv.style.top) + (containerRect.top - rect.top)}px`;
+                }
+            }
+        }
+
+        function showEditClassModal() {
+            closeAllModals();
+            const dropdown = document.getElementById("editClassDropdown");
+            dropdown.innerHTML = ""; // Clear existing options
+
+            // Fetch the list of classes and populate the dropdown
+            fetch("/classlist")
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Classlist response:", data); // Debug log
+
+                    // Extract class names from the `data.html` property
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.html, "text/html");
+                    const classButtons = doc.querySelectorAll("button");
+                    const classes = Array.from(classButtons).map(button => button.textContent.trim());
+
+                    if (classes.length > 0) {
+                        classes.forEach(className => {
+                            const option = document.createElement("option");
+                            option.value = className;
+                            option.textContent = className;
+                            dropdown.appendChild(option);
+                        });
+                    } else {
+                        console.error("No classes found in the response.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching class list:", error);
+                });
+
+            document.getElementById("editClassModal").style.display = "block";
+        }
+
+        function closeEditClassModal() {
+            document.getElementById("editClassModal").style.display = "none";
+        }
+
+        function openEditClassDetails() {
+            const selectedClass = document.getElementById("editClassDropdown").value;
+            if (!selectedClass) return;
+
+            fetch(`/getClassData?name=${selectedClass}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate class name field
+                    document.getElementById("editableClassName").value = selectedClass;
+
+                    // ===== Fields =====
+                    const fieldsList = document.getElementById("existingFieldsList");
+                    fieldsList.innerHTML = "";
+                    data.fields.forEach(field => {
+                        const fieldDiv = document.createElement("div");
+
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = field.name;
+                        input.className = "editable-field";
+
+                        const label = document.createTextNode(` (${field.type})`);
+
+                        const button = document.createElement("button");
+                        button.textContent = "Rename";
+                        button.onclick = () => { /* Rename field logic */ };
+
+                        fieldDiv.appendChild(input);
+                        fieldDiv.appendChild(label);
+                        fieldDiv.appendChild(button);
+                        fieldsList.appendChild(fieldDiv);
+                    });
+
+                    // ===== Methods =====
+                    const methodsList = document.getElementById("existingMethodsList");
+                    methodsList.innerHTML = "";
+                    data.methods.forEach(method => {
+                        const methodDiv = document.createElement("div");
+
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = method.name;
+                        input.className = "editable-method";
+
+                        const paramText = method.params.map(p => `${p.name}:${p.type}`).join(", ");
+                        const label = document.createTextNode(`(${paramText}) → ${method.return_type}`);
+
+                        const button = document.createElement("button");
+                        button.textContent = "Rename";
+                        button.onclick = () => { /* Rename method logic */ };
+
+                        methodDiv.appendChild(input);
+                        methodDiv.appendChild(label);
+                        methodDiv.appendChild(button);
+                        methodsList.appendChild(methodDiv);
+                    });
+
+                    // ===== Relationships =====
+                    const relationshipsList = document.getElementById("existingRelationshipsList");
+                    relationshipsList.innerHTML = "";
+                    data.relationships.forEach(rel => {
+                        const relDiv = document.createElement("div");
+
+                        const source = document.createTextNode(`Source: ${rel.source}`);
+                        const destination = document.createTextNode(` → Destination: ${rel.destination}`);
+
+                        const dropdown = document.createElement("select");
+                        ["AGGREGATION", "COMPOSITION", "INHERITANCE", "REALIZATION"].forEach(type => {
+                            const option = document.createElement("option");
+                            option.value = type;
+                            option.textContent = type;
+                            if (type === rel.relation_type) option.selected = true;
+                            dropdown.appendChild(option);
+                        });
+
+                        dropdown.onchange = () => {
+                            updateRelationType(rel.source, rel.destination, dropdown.value);
+                        };
+
+                        relDiv.appendChild(source);
+                        relDiv.appendChild(destination);
+                        relDiv.appendChild(dropdown);
+                        relationshipsList.appendChild(relDiv);
+                    });
+
+                    // Show modal
+                    document.getElementById("editClassDetailsModal").style.display = "block";
+                })
+                .catch(err => console.error("Error fetching class data:", err));
+        }
+
+        function closeEditClassDetailsModal() {
+            document.getElementById("editClassDetailsModal").style.display = "none";
+        }
+
+        function addFieldToClass() {
+            const selectedClass = document.getElementById("editClassDropdown").value;
+            const fieldName = document.getElementById("newFieldName").value;
+            const fieldType = document.getElementById("newFieldType").value;
+
+            if (!fieldName || !fieldType) {
+                snackbar("Field name and type are required.");
+                return;
+            }
+
+            fetch("/addField", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fieldname: fieldName,
+                    type: fieldType,
+                    classname: selectedClass
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        openEditClassDetails(); // Refresh modal content
+                        displayClassDetails(selectedClass); // Refresh class box
+                        document.getElementById("newFieldName").value = "";
+                        document.getElementById("newFieldType").value = "";
+                    }
+                })
+                .catch(err => console.error("Error adding field:", err));
+        }
+
+
+
+        function addMethodToClass() {
+            const selectedClass = document.getElementById("editClassDropdown").value;
+            const methodName = document.getElementById("newMethodName").value;
+            const returnType = document.getElementById("newMethodReturnType").value;
+            const params = document.getElementById("newMethodParams").value;
+
+            if (!methodName || !returnType) {
+                snackbar("Method name and return type are required.");
+                return;
+            }
+
+            fetch("/addMethod", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    methodname: methodName,
+                    returntype: returnType,
+                    paramlist: params || "",
+                    classname: selectedClass
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        openEditClassDetails(); // Refresh modal content
+                        displayClassDetails(selectedClass); // Refresh class box
+                        document.getElementById("newMethodName").value = "";
+                        document.getElementById("newMethodReturnType").value = "";
+                        document.getElementById("newMethodParams").value = "";
+                    }
+                })
+                .catch(err => console.error("Error adding method:", err));
+        }
+
+
+
+        function renameClassFromModal() {
+            const oldName = document.getElementById("editClassDropdown").value;
+            const newName = document.getElementById("editableClassName").value;
+
+            if (!newName || oldName === newName) {
+                snackbar("Enter a different new class name.");
+                return;
+            }
+
+            fetch("/renameClass", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    oldname: oldName,
+                    newname: newName
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        snackbar(data.error);
+                    } else {
+                        snackbar("Class renamed successfully.");
+                        getClassList(); // Refresh class dropdowns
+                        document.getElementById("editClassDropdown").value = newName;
+                        openEditClassDetails(); // Reload modal with new name
+                    }
+                });
+        }
+
+
+        function updateModalClassNameDisplay() {
+            const newName = document.getElementById("editableClassName").value.trim();
+            const selectedClass = document.getElementById("editClassDropdown").value;
+
+            const header = document.querySelector(`#ClassDetails-${selectedClass} .class-name-header`);
+            if (header) {
+                header.textContent = newName || selectedClass;
+            }
+        }
+
 
 
 
