@@ -10,6 +10,8 @@ from umlcommands.base_commands import UmlCommand, TypedCommand, CallbackCommand,
 from umlcontroller_observer import UmlControllerObserver
 from umlclass import UmlClass, UmlMethod
 from umlrelationship import UmlRelationship, RelationshipType
+from utilities.uml_svg_builder import UmlDiagramSvgBuilder
+from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
 
 class ControllerCommand(TypedCommand[UmlControllerObserver]):
@@ -1061,6 +1063,29 @@ class RedoCommand(ControllerCommand):
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 
+class ExportCommand(ControllerCommand):
+    def execute(self):
+        try:
+            model = UmlModelNamedTupleEncoder().encode(self.driver.model)
+            builder = UmlDiagramSvgBuilder(model)
+            builder.produce_svg_part()
+
+            if self.driver.model._save_path:
+                filename = self.driver.model._save_path.replace(".json", ".svg")
+            else:
+                import datetime as dt
+                timestamp = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+                filename = f"uml_diagram_{timestamp}.svg"
+            
+            with open(filename, "w") as f:
+                f.write(builder.image.xml)
+            
+            print("Diagram saved to file:", filename)
+
+            self.set_result(CommandOutcome.SUCCESS)
+        except Exception as e:
+            self.set_result(CommandOutcome.EXCEPTION, e)
+
 UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^list$": ListClassesCommand,
     r"^class list$": ListClassesCommand,
@@ -1093,5 +1118,6 @@ UMLCOMMANDS:dict[str, UmlCommand] = {
     r"^controller back$": BackCommand,
     r"^undo$": UndoCommand,
     r"^redo$": RedoCommand,
-    r"^class position set [0-9]+(\.[0-9]+){0,1} [0-9]+(\.[0-9]+){0,1}$": SetClassPositionCommand
+    r"^class position set [0-9]+(\.[0-9]+){0,1} [0-9]+(\.[0-9]+){0,1}$": SetClassPositionCommand,
+    r"^export$": ExportCommand
 }
