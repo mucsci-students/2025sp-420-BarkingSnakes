@@ -60,24 +60,9 @@ def quit():
 
 @app.get("/classlist")
 def class_list():
-    # app.view.set_command("class list")
-    # while app.view.get_renderable() is None:
-    #     True
-    # renderable = app.view.get_renderable()
-    # data = {
-    #     'html': renderable.render(),
-    #     'data': renderable.classes
-    # }
-    # app.view.render(None)
-    # return jsonify(data), 200
-
-    # return jsonify(app.controller.model.classes)
     try:
         classes = [k for k in app.controller.model.classes.keys()]
-        # project_dto = app.view.get_umlproject()
-        # classes = [c.name for c in project_dto.classes]
         data = {"html": render_template("/_umlclasslist.html", classes=classes)}
-
         return jsonify(data)
     except errors.UMLException as uml_e:
         app.view.handle_umlexception(uml_e)
@@ -421,3 +406,31 @@ def update_relation_type():
         app.controller.execute_command(["relation", "set", source, destination, new_type])
         return jsonify({"message": "Relationship type updated successfully"}), 200
     return jsonify({"error": "Invalid input"}), 406
+
+@app.get("/getClassData")
+def get_class_data():
+    class_name = request.args.get("name")
+    umlclass = app.controller.model.get_umlclass(class_name)
+    if umlclass is None:
+        return jsonify({"error": "Class not found"}), 404
+
+    dto = app.controller._get_class_data_object(umlclass)
+    relationships = [
+        {
+            "source": r.source_class.class_name,
+            "destination": r.destination_class.class_name,
+            "relation_type": r.relationship_type.name
+        }
+        for r in app.controller.model.relationships
+        if r.source_class.class_name == class_name or r.destination_class.class_name == class_name
+    ]
+
+    return jsonify({
+        "fields": [{"name": f.name, "type": f.type} for f in dto.fields],
+        "methods": [ {
+            "name": m.name,
+            "return_type": m.return_type,
+            "params": [{"name": p.name, "type": p.type} for p in m.params]
+        } for m in dto.methods],
+        "relationships": relationships
+    })
