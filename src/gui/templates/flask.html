@@ -96,7 +96,8 @@
             <h2>Export File</h2>
             <p>Enter File Name:</p>
             <input type="text" id="exportFileNameInput" />
-            <button onclick="exportHTML()">Export</button>
+            <!-- <button onclick="exportHTML()">Export</button> -->
+            <button onclick="exportSVG()">Export</button>
             <p id="exportError" style="color: red; display: none;">Incorrect file name/type</p>
         </div>
     </div>
@@ -2066,6 +2067,31 @@
             document.getElementById("exportFileNameInput").value = "";
         }
 
+        function exportSVG() {
+            const fileNameInput = document.getElementById("exportFileNameInput").value.trim();
+
+            if (!fileNameInput) {
+                snackbar("File name cannot be empty.");
+                return;
+            }
+
+            const fileName = fileNameInput.endsWith(".svg") ? fileNameInput : `${fileNameInput}.svg`;
+
+            const exportModal = document.getElementById("exportModal");
+            const previousDisplay = exportModal.style.display;
+            exportModal.style.display = "none";
+
+            fetch("/export", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: fileName
+                })
+            })
+        }
 
         function adjustZoom(zoomLevel) {
             const content = document.getElementById("content");

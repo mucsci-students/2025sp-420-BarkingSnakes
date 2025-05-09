@@ -4,6 +4,8 @@ from flask import Flask, request, Response, render_template, jsonify
 from umlcontroller import UmlController
 from views.umlview_gui import UmlGuiView
 from umlrelationship import RelationshipType
+from utilities.uml_svg_builder import UmlDiagramSvgBuilder
+from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
 import sys
 
@@ -421,3 +423,10 @@ def update_relation_type():
         app.controller.execute_command(["relation", "set", source, destination, new_type])
         return jsonify({"message": "Relationship type updated successfully"}), 200
     return jsonify({"error": "Invalid input"}), 406
+
+@app.post("/export")
+def export():
+    data = request.get_json()
+    fname = data.get("filename")
+    app.controller.execute_command(["export", fname])
+    return Response(status=200)

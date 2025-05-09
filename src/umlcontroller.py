@@ -20,6 +20,8 @@ from gui.renderables import UmlClassListRenderable, UmlClassRenderable
 from views.umlview import *
 from views.umlview_gui import UmlGuiView
 from views.umlview_cli import UmlCliView
+from utilities.uml_svg_builder import UmlDiagramSvgBuilder
+from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
 #class UmlApplication:()
 
@@ -443,6 +445,9 @@ class UmlController:
         elif cmd == 'redo':
             self.command_redo()
 
+        elif cmd == 'export':
+            self.command_export(args[1])
+
         else:
             self.view.handle_exceptions(error_text)
 
@@ -813,6 +818,22 @@ class UmlController:
             self.set_active_method(active_method, len(parameters))
         elif umlcommand == UmlCommands.UmlParameterCommands.HelpParameter:
             self.view.handle_exceptions(UmlCommands.UmlParameterCommands.Usage)
+
+    def command_export(self, filename:str):
+        model = UmlModelNamedTupleEncoder().encode(self.model)
+        builder = UmlDiagramSvgBuilder(model)
+        builder.produce_svg_part()
+
+        if not filename:
+            if self.model._save_path:
+                filename = self.model._save_path.replace(".json", ".svg")
+            else:
+                import datetime as dt
+                timestamp = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+                filename = f"uml_diagram_{timestamp}.svg"
+        
+        with open(filename, "w") as f:
+            f.write(builder.image.xml)
 
     def _get_model_as_data_object(self) -> UmlProjectData:
         classes = list(map(self._get_class_data_object, self.model.classes.values()))
