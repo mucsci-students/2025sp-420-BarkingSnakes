@@ -228,8 +228,8 @@ class UmlProject:
         if data.get("methods"):
             uml_methods.extend(list(map(_parse_uml_method, data.get("methods"))))
             #check for dupes
-            if self._has_duplicate_objects(data.get("methods")):
-                raise errors.InvalidJsonSchemaException()
+            # if self._has_duplicate_objects(data.get("methods")):
+            #     raise errors.InvalidJsonSchemaException()
         
         methods = {}
         for method in uml_methods:
