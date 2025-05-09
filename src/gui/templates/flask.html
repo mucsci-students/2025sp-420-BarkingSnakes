@@ -1243,42 +1243,40 @@
         function deleteField(className, fieldName) {
             fetch("/deleteField", {
                 method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    fieldname: fieldName,
-                    classname: className
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ classname: className, fieldname: fieldName })
             })
-                .then(resp => {
-                    return resp.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        snackbar(data.error);
+                .then(res => {
+                    if (res.ok) {
+                        openEditClassDetails();
+                        getClassList()  // refresh modal content
                     } else {
-                        displayClassDetails(className);
+                        res.json().then(data => snackbar(data.error || "Error deleting field"));
                     }
-                })
+                });
         }
+
 
         /**
          * Adds a new method.
          * Adds the new method to the class details and updates the display.
          */
-        function addMethod() {
-            let methodName = document.getElementById("classNameInput").value;
-            // Add logic to handle the new method name
-            console.log("New method name:", methodName);
-            // Add the new method to the list above the "Add Method" button
-            let methodsList = document.getElementById("methodsList");
-            let div = document.createElement("div");
-            div.innerHTML = `+ ${methodName}`;
-            methodsList.appendChild(div);
-            modal.style.display = "none";
+        function deleteMethod(methodName, arity, className) {
+            fetch("/deleteMethod", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ classname: className, methodname: methodName, arity: arity })
+            })
+                .then(res => {
+                    if (res.ok) {
+                        openEditClassDetails();
+                        getClassList()  // refresh modal content
+                    } else {
+                        res.json().then(data => snackbar(data.error || "Error deleting method"));
+                    }
+                });
         }
+
 
 
         function deleteMethod(methodName, arity, className) {
@@ -2263,21 +2261,26 @@
                     fieldsList.innerHTML = "";
                     data.fields.forEach(field => {
                         const fieldDiv = document.createElement("div");
+                        fieldDiv.style.display = "flex";
+                        fieldDiv.style.alignItems = "center";
+                        fieldDiv.style.gap = "10px";
 
                         const input = document.createElement("input");
                         input.type = "text";
                         input.value = field.name;
                         input.className = "editable-field";
+                        input.onblur = () => renameField(selectedClass, field.name, input.value);
 
                         const label = document.createTextNode(` (${field.type})`);
 
-                        const button = document.createElement("button");
-                        button.textContent = "Rename";
-                        button.onclick = () => { /* Rename field logic */ };
+                        const deleteIcon = document.createElement("i");
+                        deleteIcon.className = "fa fa-trash delete-icon";
+                        deleteIcon.title = "Delete Field";
+                        deleteIcon.onclick = () => deleteField(selectedClass, field.name);
 
                         fieldDiv.appendChild(input);
                         fieldDiv.appendChild(label);
-                        fieldDiv.appendChild(button);
+                        fieldDiv.appendChild(deleteIcon);
                         fieldsList.appendChild(fieldDiv);
                     });
 
@@ -2286,22 +2289,27 @@
                     methodsList.innerHTML = "";
                     data.methods.forEach(method => {
                         const methodDiv = document.createElement("div");
+                        methodDiv.style.display = "flex";
+                        methodDiv.style.alignItems = "center";
+                        methodDiv.style.gap = "10px";
 
                         const input = document.createElement("input");
                         input.type = "text";
                         input.value = method.name;
                         input.className = "editable-method";
+                        input.onblur = () => renameMethod(method.name, input.value, method.params.length, selectedClass);
 
                         const paramText = method.params.map(p => `${p.name}:${p.type}`).join(", ");
                         const label = document.createTextNode(`(${paramText}) → ${method.return_type}`);
 
-                        const button = document.createElement("button");
-                        button.textContent = "Rename";
-                        button.onclick = () => { /* Rename method logic */ };
+                        const deleteIcon = document.createElement("i");
+                        deleteIcon.className = "fa fa-trash delete-icon";
+                        deleteIcon.title = "Delete Method";
+                        deleteIcon.onclick = () => deleteMethod(method.name, method.params.length, selectedClass);
 
                         methodDiv.appendChild(input);
                         methodDiv.appendChild(label);
-                        methodDiv.appendChild(button);
+                        methodDiv.appendChild(deleteIcon);
                         methodsList.appendChild(methodDiv);
                     });
 
@@ -2338,6 +2346,7 @@
                 })
                 .catch(err => console.error("Error fetching class data:", err));
         }
+
 
         function closeEditClassDetailsModal() {
             document.getElementById("editClassDetailsModal").style.display = "none";
