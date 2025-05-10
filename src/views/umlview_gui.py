@@ -2,23 +2,17 @@ from dataclasses import dataclass
 from flask import Response, jsonify
 
 from views.umlview import *
-from renderable import Renderable
-from gui.renderables import UmlClassListRenderable
 import errors
 
 @dataclass
 class UmlGuiView(UmlView):
     """"""
     command:str = ""
-    renderable:Renderable = None
     _active_class:str = None
     _umlexception:errors.UMLException = None
-    _active_method:tuple[str, int] = None
+    _active_method:tuple[str, str] = None
     _callback:Callable = None
     _override:bool = None
-
-    def render(self, renderable:Renderable):
-        self.renderable = renderable
 
     def prompt_user(self, prompt:str, callback:Callable) -> bool:
         """Shown directly to the user for additional information."""
@@ -45,19 +39,6 @@ class UmlGuiView(UmlView):
     def callback(self) -> Callable:
         """"""
         return self._callback
-
-    def get_renderable(self) -> Renderable:
-        """"""
-        return self.renderable
-    
-    def set_active_class(self, name:str):
-        """"""
-        self._active_class = name
-
-    @property
-    def active_class(self) -> str:
-        """"""
-        return self._active_class
     
     @property
     def get_umlexception(self) -> errors.UMLException:
@@ -96,11 +77,11 @@ class UmlGuiView(UmlView):
         except errors.InvalidNameException:
             self.handle_exceptions("Failed: That name contains invalid characters, or begins with a number.")
         except errors.MethodOverloadNotExistsException:
-            self.handle_exceptions("Failed: The arity level does not exist for this method.")
+            self.handle_exceptions("Failed: The overload does not exist for this method.")
         except errors.NoActiveMethodException:
             self.handle_exceptions("Failed: Not in a method context. Use: method help")
         except errors.DuplicateMethodOverloadException:
-            self.handle_exceptions("Failed: An arity level already exists for the target method.")
+            self.handle_exceptions("Failed: An overload already exists for the target method.")
         except errors.FileAlreadyExistsException:
             prompt = "Warning: A file with that name already exists.  Would you like to override the file?"
             self.prompt_user(prompt, None)
@@ -160,11 +141,12 @@ class UmlGuiView(UmlView):
         """"""
         self.relation_dto = umlrelationship
 
-    def set_active_method(self, method:tuple[str, int]):
-        """"""
+    def set_active_method(self, method:tuple[str, str]):
+        """sets the active method to a tuple containing the method name 
+        and overloadID(a string of its param names)"""
         self._active_method = method
 
     @property
-    def active_method(self) -> tuple[str, int]:
-        """"""
+    def active_method(self) -> tuple[str, str]:
+        """returns the active method as a tuple of name and overloadID"""
         return self._active_method
