@@ -136,7 +136,7 @@ class SvgRect(SvgBoundary):
 
     def anchors(self) -> list[tuple[int, int]]:
         """Returns anchor points for the boundry object in which arrows can path
-        to and from."""
+        to and from. (left, top, right, bottom)"""
         
         x1, x2 = math.floor(self.x), math.floor(self.x + self.width)
         y1, y2 = math.floor(self.y), math.floor(self.y + self.height)
@@ -238,6 +238,18 @@ class SvgText(SvgElement):
             w += self.font_size * (char_widths[c] / self.scaling_magnitude)
         return Boxsize(w, h)
 
+class SvgInheritance(SvgElement):
+    """"""
+
+class SvgAggregation(SvgElement):
+    """"""
+
+class SvgComposition(SvgElement):
+    """"""
+
+class SvgRealization(SvgElement):
+    """"""
+
 class SvgTriangle(SvgElement):
     def __init__(self, points:tuple[tuple[int, int]], element_id:ElementId = "glyph", x:float=None, y:float=None):
         super().__init__(id, x, y)
@@ -294,8 +306,44 @@ class SvgRelation(SvgElement):
                         best_line = [start, goal]
                     shortest_dist = min(dist, shortest_dist)
 
-            (x1,y1), (x2,y2) = best_line
+            (x1,y1), (x2,y2) = best_line            
+            if (x2,y2) == r2_anchors[0]:
+            # Left anchor
+                points = (
+                    (x2, y2),
+                    (x2 - self.glyph_size, y2 - self.glyph_size),
+                    (x2 - self.glyph_size, y2 + self.glyph_size)
+                )
+                x2 -= 1
+            elif (x2,y2) == r2_anchors[1]:
+            # Top anchor
+                points = (
+                    (x2, y2),
+                    (x2 - self.glyph_size, y2 - self.glyph_size),
+                    (x2 + self.glyph_size, y2 - self.glyph_size),
+                )
+                y2 -= 1
+            elif (x2,y2) == r2_anchors[2]:
+            # Right anchor
+                points = (
+                    (x2, y2),
+                    (x2 + self.glyph_size, y2 - self.glyph_size),
+                    (x2 + self.glyph_size, y2 + self.glyph_size)
+                )
+                x2 += 1
+            else:
+            # Bottom anchor
+                points = (
+                    (x2, y2,),
+                    (x2 - self.glyph_size, y2 + self.glyph_size),
+                    (x2 + self.glyph_size, y2 + self.glyph_size),
+                )
+                y2 += 1
+
+            glyph = SvgTriangle(points)
+
             xml = f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="white" />'
+            xml += '\n' + glyph.xml
 
         return xml
 

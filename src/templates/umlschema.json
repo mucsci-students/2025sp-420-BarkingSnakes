@@ -95,7 +95,8 @@
         "required": [
           "name",
           "fields",
-          "methods"
+          "methods",
+          "position"
         ],
         "additionalProperties": false
       }

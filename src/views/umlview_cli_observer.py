@@ -87,6 +87,10 @@ class UmlShell(cmd.Cmd):
     def do_back(self, arg):
         return self.default('back ' + arg)
     
+    def do_export(self, arg):
+        """Exports the diagram to an SVG file."""
+        return self.default('export ' + arg)
+
     #maybe put help stuff here possibly dont know lol 
     def help_help(self):
         print("\nhelp\n\
