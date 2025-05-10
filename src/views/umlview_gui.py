@@ -1,3 +1,7 @@
+#Filename: umlview_gui.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
+# Last edit Date 2025-5-10
+# Description: 
 from dataclasses import dataclass
 from flask import Response, jsonify
 
@@ -140,13 +144,3 @@ class UmlGuiView(UmlView):
     def render_umlrelationship(self, umlrelationship:UmlRelationshipData):
         """"""
         self.relation_dto = umlrelationship
-
-    def set_active_method(self, method:tuple[str, str]):
-        """sets the active method to a tuple containing the method name 
-        and overloadID(a string of its param names)"""
-        self._active_method = method
-
-    @property
-    def active_method(self) -> tuple[str, str]:
-        """returns the active method as a tuple of name and overloadID"""
-        return self._active_method

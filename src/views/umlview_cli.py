@@ -1,3 +1,7 @@
+#Filename: umlview_cli.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
+# Last edit Date 2025-5-10
+# Description: CLI (MVC) for UML program.
 from typing import Callable
 
 from views.umlview import *
@@ -74,24 +78,6 @@ class UmlCliView(UmlView):
         """"""
         print(error_text)
 
-    def set_active_class(self, name:str):
-        """"""
-        self._active_class = name
-
-    @property
-    def active_class(self) -> str:
-        """"""
-        return self._active_class
-
-    def set_active_method(self, method:tuple[str, int]):
-        """"""
-        self._active_method = method
-
-    @property
-    def active_method(self) -> tuple[str, int]:
-        """"""
-        return self._active_method
-
     def render_umlproject(self, project:UmlProjectData):
         """"""
         if any(project.classes):
@@ -162,8 +148,8 @@ class UmlCliView(UmlView):
             prompt = "Warning: A file with that name already exists.  Would you like to override the file?"
             print(self.callback)
             callback = self.callback
-            # self.set_callback(None)
-            self.prompt_user(prompt, callback)
+            self.set_callback(None)
+            self.prompt_user(prompt, self.callback)
         except errors.FileHasUnsavedChangesException:
             prompt = "Warning: The current project has unsaved changes.  Do you want to continue without saving?"
             callback = self.callback

@@ -1,6 +1,6 @@
-# Filename: uml.py
+# Filename: umlcontroller.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Date: 2025-02-25, Last edit date: 2025-04-25
+# Creation Date: 2025-02-25, Last edit date: 2025-05-10
 # Description: Controller for the UML
 from __future__ import annotations
 
@@ -15,15 +15,12 @@ from umlmodel import UmlProject,Caretaker
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
-from gui.renderables import UmlClassListRenderable, UmlClassRenderable
-# from views.umlview import UmlView
 from views.umlview import *
 from views.umlview_gui import UmlGuiView
 from views.umlview_cli import UmlCliView
 from utilities.uml_svg_builder import UmlDiagramSvgBuilder
 from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
-#class UmlApplication:()
 
 class UmlCommand(Protocol):
     id:str
@@ -739,13 +736,13 @@ class UmlController:
         elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
             oldname = args[2]
             newname = args[3]
-            arity = int(args[5])
-            self.model.rename_method(active_class, oldname, newname, arity)
-            self.set_active_method(newname, arity)
+            overload_id = int(args[5])
+            self.model.rename_method(active_class, oldname, newname, overload_id)
+            self.set_active_method(newname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.DeleteMethod:
             methodname = args[2]
-            arity = int(args[4])
-            self.model.delete_method(active_class, methodname, arity)
+            overload_id = int(args[4])
+            self.model.delete_method(active_class, methodname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.ListMethod:
             umlclass = self.model.get_umlclass(active_class)
             data_object = self._get_class_data_object(umlclass)
@@ -753,8 +750,8 @@ class UmlController:
                 self.view.render_umlmethod(m)
         elif umlcommand == UmlCommands.UmlMethodCommands.ContextMethod:
             methodname = args[1]
-            arity = int(args[3])
-            self.set_active_method(methodname, arity)
+            overload_id = int(args[3])
+            self.set_active_method(methodname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.HelpMethod:
             self.view.handle_exceptions(UmlCommands.UmlMethodCommands.Usage)
 
