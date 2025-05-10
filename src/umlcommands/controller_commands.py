@@ -823,9 +823,9 @@ class SaveCommand(PromptingCommand, CallbackCommand):
 
     def execute(self):
         try:
-            if not self.driver.model._save_path:
-                """Prompt for a save path."""
-                # if user entered filepath use that, otherwise ask
+            # if the user entered a save path or there isn't one saved, get a save path
+            if self.filepath or not self.driver.model._save_path:
+                # if user entered filepath use that, otherwise prompt for one
                 filepath = self.filepath or self._get_filepath()
                 if self.driver.model._filepath_exists(filepath):
                     if not self._ask_overwrite_file():
@@ -844,6 +844,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
             self.set_result(CommandOutcome.EXCEPTION, e)
 
     def _get_filepath(self) -> str:
+        
         requester = self.get_prompt_requester()
         input_cmd:InputPromptCommand = requester.get_prompt(InputPromptCommand, "Please provide a file name to continue:")
         input_cmd.execute()
@@ -856,7 +857,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
     
     @property
     def filepath(self) -> str:
-        prop_index = 1
+        """return entered filepath or None if one wasn't entered"""
         if len(self._args) == 1:
             return None
         return self._args[1]
