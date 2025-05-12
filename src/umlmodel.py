@@ -84,7 +84,7 @@ class UmlProject:
             self._parse_uml_data(data)
         # use when saving later
         # use command to ensure the save path is only set to valid files
-        self._set_save_path(filepath)
+        self.set_save_path(filepath)
 
         return 0
 
@@ -103,8 +103,8 @@ class UmlProject:
             raise errors.NoActiveProjectException()
         # this shouldn't be called since the save path should only be set 
         # by its setter method that should already do this, 
-        # but in case its still set manually, save checks that the path is valid
-        self._validate_filepath(self._save_path)
+        # but in case it's still set manually, save checks that the path is valid
+        self._is_json_file(self._save_path)
         self.validate_json_schema(self._save_object)
         # will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
@@ -112,12 +112,28 @@ class UmlProject:
         self.has_unsaved_changes = False
         return 0
     
-    def _set_save_path(self, filepath: str):
+    def set_save_path(self, filepath: str):
         """sets the model's save path, as long as it is a valid file"""
         # make sure the filepath is valid before setting it 
-        # so that it cant be set to an invalid file
-        self._validate_filepath(filepath)
+        # so that it cant be set to an invalid file type
+        # but only if a type was specifed
+        if filepath:
+            self._is_json_file(filepath)
         self._save_path = filepath
+
+    def _is_json_file(self, filepath: str) -> bool:
+        """Validates if the filepath is .json\n
+
+        Params:
+            filename: name to check is a .json file
+        Returns:
+            None
+        Exceptions:
+            InvalidFileException: if the file was not a .json type
+        """
+        
+        if not filepath.endswith(".json"):#bool(re.search('\\.json', filepath, flags=re.IGNORECASE)):
+            raise errors.InvalidFileException("not a json file")
 
     def validate_json_schema(self, data: dict) -> bool:
         "verifies that the given dict matches the project template"
@@ -304,14 +320,13 @@ class UmlProject:
         Exceptions:
             InvalidFileException
         """
-        if not os.path.exists(filepath):
+        if not self._filepath_exists(filepath):
             raise errors.InvalidFileException("does not exist")
 
         if not os.path.isfile(filepath):
             raise errors.InvalidFileException("not a file")
-
-        if not bool(re.search('\\.json', filepath, flags=re.IGNORECASE)):
-            raise errors.InvalidFileException("not a json file")
+        #this now raises an error on its own if the file given wasn't a json file
+        self._is_json_file(filepath)
 
         return 0
 
@@ -783,7 +798,7 @@ class Caretaker:
             self._redo_stack.append(self._current_memento)
             self._current_memento = memento
         else:
-            raise errors.NoActionsLeftException("undo")
+            raise errors.NoActionsLeftException()
             
 
     def redo(self) -> None:
@@ -799,4 +814,4 @@ class Caretaker:
             # Set the _current_memento to the new current memento
             self._current_memento = memento
         else:
-            raise errors.NoActionsLeftException("redo")
+            raise errors.NoActionsLeftException()

@@ -831,7 +831,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
                     if not self._ask_overwrite_file():
                         self.set_result(CommandOutcome.DEFERRED)
                         return
-                self.driver.model._set_save_path(filepath)
+                self.driver.model.set_save_path(filepath)
             self.driver.model.save()
             self.set_result(CommandOutcome.SUCCESS)
         except errors.FileAlreadyExistsException as fae_e:
@@ -976,7 +976,7 @@ class NewCommand(PromptingCommand):
                         return
             
             self.driver.model.new()
-            self.driver.model._set_save_path(self.filepath)
+            self.driver.model.set_save_path(self.filepath)
             
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
@@ -1025,7 +1025,7 @@ class UndoCommand(ControllerCommand):
             self.set_result(CommandOutcome.SUCCESS)
         #if no change was possible report the failure
         except errors.NoActionsLeftException as noact:
-            self.set_result(CommandOutcome.FAILED, noact, f"nothing to {noact.args[0]}.")
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to undo.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 
@@ -1050,7 +1050,7 @@ class RedoCommand(ControllerCommand):
             self.set_result(CommandOutcome.SUCCESS)
         #if no change was possible report the failure
         except errors.NoActionsLeftException as noact:
-            self.set_result(CommandOutcome.FAILED, noact, f"nothing to {noact.args[0]}.")
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to redo.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 

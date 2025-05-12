@@ -283,9 +283,8 @@ class UmlController:
         """
         # validate filename is json and set it
         if filename:
-            if not self.model.is_json_file(filename):
-                raise errors.InvalidFileException()
-            
+            #this now errors on its own
+            self.model._is_json_file(filename)
             if self.model._save_path != filename and self.model._filepath_exists(filename) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
@@ -294,7 +293,7 @@ class UmlController:
                 if not self.view.prompt_user(prompt, None):
                     return
                 
-            self.model._save_path = filename
+            self.model.set_save_path(filename)
         #set current filepath to ignore save prompts on later saves of file
         self.model.save()
     
@@ -313,9 +312,9 @@ class UmlController:
             InvalidFileException
         """
         if filepath:
-            if not self.model.is_json_file(filepath):
-                raise errors.InvalidFileException()
-
+            # will raise an error if the file is not a .json
+            self.model._is_json_file(filepath)
+            
             if self.model._filepath_exists(filepath) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
@@ -327,7 +326,7 @@ class UmlController:
             
         #declare new project, and call "new" method
         self.model = UmlProject()
-        self.model._set_save_path(filepath)
+        self.model.set_save_path(filepath)
         self.model.new()
 
     def execute_command(self, args:list):

@@ -5,7 +5,7 @@
 #          Kyle Kalbach
 #          Juliana Vinluan
 #          Spencer Hoover
-# Date: 2025-03-23
+# Creation Date: 2025-03-23, Last Edit Date: 2025-05-12
 # Description: Encapsulation of a method on a UML Class.
 
 from __future__ import annotations
@@ -185,12 +185,3 @@ class UmlMethod:
                 return False
         return True
     
-    def __hash__(self):
-        """dataclass default __hash__ is unsuitable due to non-comparable list params.
-        """
-        result = hash(self.name) + 3 * hash(self.return_type) + 5
-        scale = 7
-        for i in range(len(self.params)):
-            result += scale * hash(self.params[i])
-            scale += 2**i
-        return result
