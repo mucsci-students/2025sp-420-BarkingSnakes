@@ -746,7 +746,6 @@ class Memento(ABC):
     def get_date(self) -> datetime:
         """Returns the creation date and time of the memento."""
 
-
 class ConcreteMemento(Memento):
     """Implementation of the memento interface that stores a state accessible to the originator object."""
 
@@ -761,7 +760,6 @@ class ConcreteMemento(Memento):
     def get_date(self):
         """returns the creation date and time of the Concrete Memento"""
         return self._date
-
 
 class Caretaker:
     """Class for keeping track of mementos and the redo stack and the originator."""
@@ -786,6 +784,9 @@ class Caretaker:
             self._originator._restore_memento(memento)
             self._redo_stack.append(self._current_memento)
             self._current_memento = memento
+        else:
+            raise errors.NoActionsLeftException("undo")
+            
 
     def redo(self) -> None:
         """Returns the state to a previously undon state."""
@@ -799,5 +800,5 @@ class Caretaker:
             self._undo_stack.append(self._current_memento)
             # Set the _current_memento to the new current memento
             self._current_memento = memento
-            
-
+        else:
+            raise errors.NoActionsLeftException("redo")

@@ -1023,6 +1023,7 @@ class NewCommand(PromptingCommand):
         return self._args[1]
 
 class UndoCommand(ControllerCommand):
+    """command for running undo"""
     def execute(self):
         try:
             self.driver.caretaker.undo()
@@ -1040,10 +1041,14 @@ class UndoCommand(ControllerCommand):
                 except:
                     self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
+        #if no change was possible report the failure
+        except errors.NoActionsLeftException as noact:
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to {noact.args[0]}.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 
 class RedoCommand(ControllerCommand):
+    """command for running redo"""
     def execute(self):
         try:
             self.driver.caretaker.redo()
@@ -1061,6 +1066,9 @@ class RedoCommand(ControllerCommand):
                 except:
                     self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
+        #if no change was possible report the failure
+        except errors.NoActionsLeftException as noact:
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to {noact.args[0]}.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 

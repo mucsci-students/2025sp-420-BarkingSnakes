@@ -174,3 +174,6 @@ class TestViewPromptException(UMLException):
         
 class InvalidPositionArgsException(UMLException):
     """exception for invalid position arguments"""
+    
+class NoActionsLeftException(UMLException):
+    """exception for redo and undo failing due to no actions left to revert"""
