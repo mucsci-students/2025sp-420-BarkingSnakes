@@ -36,6 +36,15 @@ def test_load_invalid_file():
         assert e == errors.InvalidFileException()
     #make sure an exception was raised
     assert var
+    
+def test_load_dir():
+    """make sure an error was raised when a directory is given as a filepath"""
+    try:
+        model = UmlProject()
+        model.load("src")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidFileException()
 
 def test_load_invalid_Json_file(tmp_path):
     """Tests that an invalid file error is given when loading a file that violates the JSON schema"""
@@ -153,6 +162,64 @@ def test_new_old_file_exists():
         assert e == None
     assert not var
 
+#set_save_path
+def test_set_save_path_no_file():
+    """make sure that no error is raised if no filename is given"""
+    model = UmlProject()
+    try:
+        model.set_save_path("")
+    except Exception as e:
+        assert e == None
+    assert model._save_path == ""
+    
+def test_set_save_path_no_file_still_change():
+    """make sure that no error is raised if no filename is given"""
+    model = UmlProject()
+    try:
+        model._save_path = "temp"
+        model.set_save_path("")
+    except Exception as e:
+        assert e == None
+    assert model._save_path == ""
+    
+def test_set_save_path_not_json():
+    """make sure that an error is raised if the given file is not json"""
+    model = UmlProject()
+    try:
+        model.set_save_path("wrong")
+    except Exception as e:
+        assert e == errors.InvalidFileException()
+    assert model._save_path == None
+    
+def test_set_save_path_not_json_not_changed():
+    """make sure that an error is raised if the filename is invalid, 
+        and the save path is not changed"""
+    model = UmlProject()
+    try:
+        model._save_path ="path"
+        model.set_save_path("wrong")
+    except Exception as e:
+        assert e == errors.InvalidFileException()
+    assert model._save_path == "path"
+
+#_is_json_file
+def test_is_json_file_not_json():
+    """make sure an error is raised when the filename isn't a json"""
+    try:
+        model = UmlProject()
+        model._is_json_file("test")
+        assert False
+    except Exception as e:
+        assert e == errors.InvalidFileException()
+        
+def test_is_json_file_is_json():
+    """make sure no error is raised when the filename is a json"""
+    try:
+        model = UmlProject()
+        model._is_json_file("test.json")
+    except Exception as e:
+        assert e == None
+        
 ### parsing tests
 #parse_uml_data
 def test_parse_data_valid_empty():

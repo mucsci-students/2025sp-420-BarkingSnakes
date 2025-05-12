@@ -172,8 +172,6 @@ class UmlMethod:
             'return_type': self.return_type,
             'params': [p.to_dict() for p in self.params]
         }
-    
-
 
     def __eq__(self, other:UmlMethod):
         """dataclass default __eq__ is unsuitable due to non-comparable list params.
@@ -185,3 +183,6 @@ class UmlMethod:
                 return False
         return True
     
+    def __hash__(self):
+        "convert the method to its string version and hash that"
+        return hash(self.name + self.return_type + " ".join(i.name for i in self.params))
