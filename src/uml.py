@@ -1,3 +1,7 @@
+# Filename: uml.py
+# Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
+# Last edit date: 2025-05-11
+# Description: entry point for the program
 import os
 import webbrowser
 import threading
@@ -8,7 +12,6 @@ import argparse
 
 from umlcontroller import UmlController
 from views.umlview import UmlView
-from views.umlview_cli import UmlCliView
 from views.umlview_gui import UmlGuiView
 from gui.gui import app
 
@@ -23,10 +26,6 @@ def main(gui_type:GUI_TYPE):
     """"""
     view:UmlView = None
     if gui_type == GUI_TYPE.CLI:
-        # view = UmlCliView()
-        # controller = UmlController(view)
-        # view.init()
-        # controller.run()
         view = UmlViewCliObserver()
         controller = UmlControllerObserver()
 

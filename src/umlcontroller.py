@@ -1,6 +1,6 @@
 # Filename: umlcontroller.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Creation Date: 2025-02-25, Last edit date: 2025-05-10
+# Creation Date: 2025-02-25, Last edit date: 2025-05-11
 # Description: Controller for the UML
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
 from views.umlview import *
 from views.umlview_gui import UmlGuiView
-from views.umlview_cli import UmlCliView
+#from views.umlview_cli import UmlCliView
 from utilities.uml_svg_builder import UmlDiagramSvgBuilder
 from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
@@ -408,7 +408,7 @@ class UmlController:
                 args.append(None)
             else:
                 #if no save filepath but only one arg then request filepath
-                if len(args) == 1 and isinstance(self.view, UmlCliView):
+                if len(args) == 1:
                     args.append(self.view.get_user_input("enter file name: "))
             override = False
             if len(args) == 3:
