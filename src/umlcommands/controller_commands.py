@@ -1,6 +1,6 @@
 # Filename: controller_commands.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Last Edit Date: 2025-04-27
+# Last Edit Date: 2025-05-12
 # Description: contains the list of all controller commands, and their execution
 from __future__ import annotations
 import copy
@@ -831,7 +831,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
                     if not self._ask_overwrite_file():
                         self.set_result(CommandOutcome.DEFERRED)
                         return
-                self.driver.model._save_path = filepath
+                self.driver.model._set_save_path(filepath)
             self.driver.model.save()
             self.set_result(CommandOutcome.SUCCESS)
         except errors.FileAlreadyExistsException as fae_e:
@@ -919,17 +919,8 @@ class LoadCommand(PromptingCommand):
             if not filepath:
                 filepath = self._get_filepath()
 
-            if self.driver.model._filepath_exists(filepath):
-                self.driver.model.load(filepath)
-            else:
-                if self._ask_to_create_new():
-                    self.driver.model.new()
-                    self.driver.model._save_path = filepath
-                    self.driver.model.save()
-                else:
-                    self.set_result(CommandOutcome.DEFERRED)
-                    return
-            
+            # call load; if the file is invalid or doesn't exist, the model will handle it
+            self.driver.model.load(filepath)
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.InvalidFileException as if_e:
@@ -960,14 +951,6 @@ class LoadCommand(PromptingCommand):
             if not self.driver.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
             return filepath
-    
-    def _ask_to_create_new(self) -> bool:
-        requester = self.get_prompt_requester()
-        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "The file provided doesn't exist. Would you like to create it now?")
-        binary_cmd.execute()
-        result = binary_cmd.get_result()
-        if result.outcome == CommandOutcome.CONTINUE:
-            return binary_cmd.outcome
 
     @property
     def filepath(self) -> str:
@@ -993,8 +976,7 @@ class NewCommand(PromptingCommand):
                         return
             
             self.driver.model.new()
-            if self.filepath and self.driver.model.is_json_file(self.filepath):
-                self.driver.model._save_path = self.filepath
+            self.driver.model._set_save_path(self.filepath)
             
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()

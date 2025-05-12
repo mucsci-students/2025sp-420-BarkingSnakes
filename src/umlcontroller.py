@@ -327,7 +327,7 @@ class UmlController:
             
         #declare new project, and call "new" method
         self.model = UmlProject()
-        self.model._save_path = filepath
+        self.model._set_save_path(filepath)
         self.model.new()
 
     def execute_command(self, args:list):

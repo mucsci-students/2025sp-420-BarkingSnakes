@@ -83,7 +83,8 @@ class UmlProject:
             self.validate_json_schema(data)
             self._parse_uml_data(data)
         # use when saving later
-        self._save_path = filepath
+        # use command to ensure the save path is only set to valid files
+        self._set_save_path(filepath)
 
         return 0
 
