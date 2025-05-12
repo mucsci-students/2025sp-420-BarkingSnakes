@@ -1,6 +1,6 @@
 # Filename: umlmodel.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Last Edit Date: 2025-04-27
+# Last Edit Date: 2025-05-12
 # Description: Model for the Uml editor program.
 
 from __future__ import annotations
@@ -100,15 +100,26 @@ class UmlProject:
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
-
+        # this shouldn't be called since the save path should only be set 
+        # by its setter method that should already do this, 
+        # but in case its still set manually, save checks that the path is valid
+        self._validate_filepath(self._save_path)
         self.validate_json_schema(self._save_object)
         # will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
         self.has_unsaved_changes = False
         return 0
+    
+    def _set_save_path(self, filepath: str):
+        """sets the model's save path, as long as it is a valid file"""
+        # make sure the filepath is valid before setting it 
+        # so that it cant be set to an invalid file
+        self._validate_filepath(filepath)
+        self._save_path = filepath
 
     def validate_json_schema(self, data: dict) -> bool:
+        "verifies that the given dict matches the project template"
         with open(SCHEMA_PATH, "r") as f:
             schema = json.load(f)
 
@@ -121,21 +132,6 @@ class UmlProject:
         except jsonschema.exceptions.ValidationError:
             raise errors.InvalidJsonSchemaException()
         return True
-
-    def is_json_file(self, filepath: str) -> bool:
-        """Validates if the filepath is .json\n
-        error handling is left to callee
-
-        Params:
-            filename: name to check is a .json file
-        Returns:
-            True: if file was json format
-            False: if file was not json format
-        Exceptions:
-            None
-        """
-        return bool(re.search('\\.json', filepath, flags=re.IGNORECASE))
-    
 
     # parsing methods
     def _parse_uml_data(self, data:dict) -> int:
@@ -308,13 +304,13 @@ class UmlProject:
             InvalidFileException
         """
         if not os.path.exists(filepath):
-            raise errors.InvalidFileException()
+            raise errors.InvalidFileException("does not exist")
 
         if not os.path.isfile(filepath):
-            raise errors.InvalidFileException()
+            raise errors.InvalidFileException("not a file")
 
-        if not self.is_json_file(filepath):
-            raise errors.InvalidFileException()
+        if not bool(re.search('\\.json', filepath, flags=re.IGNORECASE)):
+            raise errors.InvalidFileException("not a json file")
 
         return 0
 
@@ -326,6 +322,7 @@ class UmlProject:
             True: if file exists
         """
         return os.path.exists(filepath)
+    
     #class methods
     def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project.

@@ -1,6 +1,6 @@
 # Filename: errors.py
 # Authors: John Hershey, Evan Magill, Steven Barnes
-# Creation Date 2025-02-25. Last Edit Date: 2025-04-18
+# Creation Date 2025-02-25. Last Edit Date: 2025-05-12
 # Description: class listing errors
 
 ## imports
