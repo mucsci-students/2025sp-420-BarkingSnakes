@@ -1,6 +1,6 @@
 # Filename: umlmodel.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Last Edit Date: 2025-04-27
+# Last Edit Date: 2025-05-12
 # Description: Model for the Uml editor program.
 
 from __future__ import annotations
@@ -83,7 +83,8 @@ class UmlProject:
             self.validate_json_schema(data)
             self._parse_uml_data(data)
         # use when saving later
-        self._save_path = filepath
+        # use command to ensure the save path is only set to valid files
+        self.set_save_path(filepath)
 
         return 0
 
@@ -100,15 +101,42 @@ class UmlProject:
         """
         if not self._save_path:
             raise errors.NoActiveProjectException()
-
+        # this shouldn't be called since the save path should only be set 
+        # by its setter method that should already do this, 
+        # but in case it's still set manually, save checks that the path is valid
+        self._is_json_file(self._save_path)
         self.validate_json_schema(self._save_object)
         # will override, handled by caller(umlapplication)
         with open(self._save_path, "w") as f:
             json.dump(self._save_object, f, indent=4)
         self.has_unsaved_changes = False
         return 0
+    
+    def set_save_path(self, filepath: str):
+        """sets the model's save path, as long as it is a valid file"""
+        # make sure the filepath is valid before setting it 
+        # so that it cant be set to an invalid file type
+        # but only if a type was specifed
+        if filepath:
+            self._is_json_file(filepath)
+        self._save_path = filepath
+
+    def _is_json_file(self, filepath: str) -> bool:
+        """Validates if the filepath is .json\n
+
+        Params:
+            filename: name to check is a .json file
+        Returns:
+            None
+        Exceptions:
+            InvalidFileException: if the file was not a .json type
+        """
+        
+        if not filepath.endswith(".json"):#bool(re.search('\\.json', filepath, flags=re.IGNORECASE)):
+            raise errors.InvalidFileException("not a json file")
 
     def validate_json_schema(self, data: dict) -> bool:
+        "verifies that the given dict matches the project template"
         with open(SCHEMA_PATH, "r") as f:
             schema = json.load(f)
 
@@ -121,21 +149,6 @@ class UmlProject:
         except jsonschema.exceptions.ValidationError:
             raise errors.InvalidJsonSchemaException()
         return True
-
-    def is_json_file(self, filepath: str) -> bool:
-        """Validates if the filepath is .json\n
-        error handling is left to callee
-
-        Params:
-            filename: name to check is a .json file
-        Returns:
-            True: if file was json format
-            False: if file was not json format
-        Exceptions:
-            None
-        """
-        return bool(re.search('\\.json', filepath, flags=re.IGNORECASE))
-    
 
     # parsing methods
     def _parse_uml_data(self, data:dict) -> int:
@@ -307,14 +320,13 @@ class UmlProject:
         Exceptions:
             InvalidFileException
         """
-        if not os.path.exists(filepath):
-            raise errors.InvalidFileException()
+        if not self._filepath_exists(filepath):
+            raise errors.InvalidFileException("does not exist")
 
         if not os.path.isfile(filepath):
-            raise errors.InvalidFileException()
-
-        if not self.is_json_file(filepath):
-            raise errors.InvalidFileException()
+            raise errors.InvalidFileException("not a file")
+        #this now raises an error on its own if the file given wasn't a json file
+        self._is_json_file(filepath)
 
         return 0
 
@@ -326,6 +338,7 @@ class UmlProject:
             True: if file exists
         """
         return os.path.exists(filepath)
+    
     #class methods
     def contains_umlclass(self, uml_class_name:str) -> bool:
         """Check if the UmlClass is in the project.
@@ -746,7 +759,6 @@ class Memento(ABC):
     def get_date(self) -> datetime:
         """Returns the creation date and time of the memento."""
 
-
 class ConcreteMemento(Memento):
     """Implementation of the memento interface that stores a state accessible to the originator object."""
 
@@ -761,7 +773,6 @@ class ConcreteMemento(Memento):
     def get_date(self):
         """returns the creation date and time of the Concrete Memento"""
         return self._date
-
 
 class Caretaker:
     """Class for keeping track of mementos and the redo stack and the originator."""
@@ -786,6 +797,9 @@ class Caretaker:
             self._originator._restore_memento(memento)
             self._redo_stack.append(self._current_memento)
             self._current_memento = memento
+        else:
+            raise errors.NoActionsLeftException()
+            
 
     def redo(self) -> None:
         """Returns the state to a previously undon state."""
@@ -799,5 +813,5 @@ class Caretaker:
             self._undo_stack.append(self._current_memento)
             # Set the _current_memento to the new current memento
             self._current_memento = memento
-            
-
+        else:
+            raise errors.NoActionsLeftException()

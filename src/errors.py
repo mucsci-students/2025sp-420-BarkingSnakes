@@ -1,6 +1,6 @@
 # Filename: errors.py
 # Authors: John Hershey, Evan Magill, Steven Barnes
-# Creation Date 2025-02-25. Last Edit Date: 2025-04-18
+# Creation Date 2025-02-25. Last Edit Date: 2025-05-12
 # Description: class listing errors
 
 ## imports
@@ -174,3 +174,6 @@ class TestViewPromptException(UMLException):
         
 class InvalidPositionArgsException(UMLException):
     """exception for invalid position arguments"""
+    
+class NoActionsLeftException(UMLException):
+    """exception for redo and undo failing due to no actions left to revert"""
