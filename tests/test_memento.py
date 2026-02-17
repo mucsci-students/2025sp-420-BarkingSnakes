@@ -1,11 +1,12 @@
 # Filename: test_memento.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Creation Date: 2025-04-02, Last Edit Date: 2025-04-02
+# Creation Date: 2025-04-02, Last Edit Date: 2025-05-12
 # Description: Unit Tests for Memento design pattern.
 
 from src.umlmodel import UmlProject,Caretaker,ConcreteMemento
 from src.umlclass import UmlClass
 from datetime import datetime
+from src.errors import NoActionsLeftException
 
 def test_save_memento():
     """Tests that a memento is returned when requested from the originator."""
@@ -128,3 +129,21 @@ def test_caretaker_redo_undo_complex():
 
     assert len(caretaker._undo_stack) == 2
     assert len(caretaker._redo_stack) == 0
+    
+def test_undo_errors_when_no_actions():
+    """Tests that an error is raised if nothing can be undone"""
+    try:
+        care = Caretaker(UmlProject())
+        care.undo()
+        assert False
+    except Exception as e:
+        assert e == NoActionsLeftException()
+        
+def test_redo_errors_when_no_actions():
+    """Tests that an error is raised if nothing can be redone"""
+    try:
+        care = Caretaker(UmlProject())
+        care.redo()
+        assert False
+    except Exception as e:
+        assert e == NoActionsLeftException()

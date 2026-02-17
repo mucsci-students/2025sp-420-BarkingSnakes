@@ -1,6 +1,6 @@
 # Filename: controller_commands.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Last Edit Date: 2025-04-27
+# Last Edit Date: 2025-05-12
 # Description: contains the list of all controller commands, and their execution
 from __future__ import annotations
 import copy
@@ -823,15 +823,15 @@ class SaveCommand(PromptingCommand, CallbackCommand):
 
     def execute(self):
         try:
-            if not self.driver.model._save_path:
-                """Prompt for a save path."""
-                # if user entered filepath use that, otherwise ask
+            # if the user entered a save path or there isn't one saved, get a save path
+            if self.filepath or not self.driver.model._save_path:
+                # if user entered filepath use that, otherwise prompt for one
                 filepath = self.filepath or self._get_filepath()
                 if self.driver.model._filepath_exists(filepath):
                     if not self._ask_overwrite_file():
                         self.set_result(CommandOutcome.DEFERRED)
                         return
-                self.driver.model._save_path = filepath
+                self.driver.model.set_save_path(filepath)
             self.driver.model.save()
             self.set_result(CommandOutcome.SUCCESS)
         except errors.FileAlreadyExistsException as fae_e:
@@ -844,6 +844,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
             self.set_result(CommandOutcome.EXCEPTION, e)
 
     def _get_filepath(self) -> str:
+        
         requester = self.get_prompt_requester()
         input_cmd:InputPromptCommand = requester.get_prompt(InputPromptCommand, "Please provide a file name to continue:")
         input_cmd.execute()
@@ -856,7 +857,7 @@ class SaveCommand(PromptingCommand, CallbackCommand):
     
     @property
     def filepath(self) -> str:
-        prop_index = 1
+        """return entered filepath or None if one wasn't entered"""
         if len(self._args) == 1:
             return None
         return self._args[1]
@@ -918,17 +919,8 @@ class LoadCommand(PromptingCommand):
             if not filepath:
                 filepath = self._get_filepath()
 
-            if self.driver.model._filepath_exists(filepath):
-                self.driver.model.load(filepath)
-            else:
-                if self._ask_to_create_new():
-                    self.driver.model.new()
-                    self.driver.model._save_path = filepath
-                    self.driver.model.save()
-                else:
-                    self.set_result(CommandOutcome.DEFERRED)
-                    return
-            
+            # call load; if the file is invalid or doesn't exist, the model will handle it
+            self.driver.model.load(filepath)
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
         except errors.InvalidFileException as if_e:
@@ -959,14 +951,6 @@ class LoadCommand(PromptingCommand):
             if not self.driver.model.is_json_file(filepath):
                 raise errors.InvalidFileException()
             return filepath
-    
-    def _ask_to_create_new(self) -> bool:
-        requester = self.get_prompt_requester()
-        binary_cmd:BinaryPromptCommand = requester.get_prompt(BinaryPromptCommand, "The file provided doesn't exist. Would you like to create it now?")
-        binary_cmd.execute()
-        result = binary_cmd.get_result()
-        if result.outcome == CommandOutcome.CONTINUE:
-            return binary_cmd.outcome
 
     @property
     def filepath(self) -> str:
@@ -992,8 +976,7 @@ class NewCommand(PromptingCommand):
                         return
             
             self.driver.model.new()
-            if self.filepath and self.driver.model.is_json_file(self.filepath):
-                self.driver.model._save_path = self.filepath
+            self.driver.model.set_save_path(self.filepath)
             
             self.set_result(CommandOutcome.SUCCESS)
             self.driver.caretaker.backup()
@@ -1022,6 +1005,7 @@ class NewCommand(PromptingCommand):
         return self._args[1]
 
 class UndoCommand(ControllerCommand):
+    """command for running undo"""
     def execute(self):
         try:
             self.driver.caretaker.undo()
@@ -1039,10 +1023,14 @@ class UndoCommand(ControllerCommand):
                 except:
                     self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
+        #if no change was possible report the failure
+        except errors.NoActionsLeftException as noact:
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to undo.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 
 class RedoCommand(ControllerCommand):
+    """command for running redo"""
     def execute(self):
         try:
             self.driver.caretaker.redo()
@@ -1060,6 +1048,9 @@ class RedoCommand(ControllerCommand):
                 except:
                     self.driver.active_method = None
             self.set_result(CommandOutcome.SUCCESS)
+        #if no change was possible report the failure
+        except errors.NoActionsLeftException as noact:
+            self.set_result(CommandOutcome.FAILED, noact, f"nothing to redo.")
         except Exception as e:
             self.set_result(CommandOutcome.EXCEPTION, e)
 

@@ -1,6 +1,6 @@
 # Filename: umlview.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Spencer Hoover, Juliana Vinluan
-# Date: 2025-03-01
+# Creation Date: 2025-03-01, Last edit Date 2025-5-10
 # Description: View (MVC) for UML program.
 
 from dataclasses import dataclass
@@ -54,23 +54,6 @@ class UmlView(Protocol):
     def handle_exceptions(self, error_text:str):
         """"""
 
-    def handle_umlexception(self, uml_exception:errors.UMLException):
-        """"""
-
-    def set_active_class(self, name:str):
-        """"""
-
-    @property
-    def active_class(self) -> str:
-        """"""
-
-    def set_active_method(self, method:tuple[str, int]):
-        """"""
-
-    @property
-    def active_method(self) -> tuple[str, int]:
-        """"""
-
     @property
     def get_umlexception(self) -> errors.UMLException:
         """"""
@@ -111,3 +94,25 @@ class UmlView(Protocol):
 
     def init(self):
         """"""
+    
+    ##functions that match between CLI and GUI
+    def handle_umlexception(self, uml_exception:errors.UMLException):
+        """"""
+
+    def set_active_class(self, name:str):
+        """sets the active class\n\nthe same for the gui and cli"""
+        self._active_class = name
+    
+    def set_active_method(self, method:tuple[str, str]):
+        """set the active method"""
+        self._active_method = method
+        
+    @property
+    def active_class(self) -> str:
+        """return the current active class"""
+        return self._active_class
+
+    @property
+    def active_method(self) -> tuple[str, str]:
+        """return active method as a tuple of name and overloadID"""
+        return self._active_method

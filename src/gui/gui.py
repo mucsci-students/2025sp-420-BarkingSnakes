@@ -50,7 +50,9 @@ def index():
 @app.post("/quit")
 @handle_umlexception
 def quit():
-    if app.controller.model.has_unsaved_changes:
+    # if there was a "true" override, don't show the modal again
+    override = request.args.get("override") == "true"
+    if app.controller.model.has_unsaved_changes and not override:
         return jsonify({
             "action": "showModal",
             "tagId": "yesNoModal",
@@ -63,6 +65,7 @@ def quit():
 @app.get("/classlist")
 def class_list():
     try:
+        #this is probably not MVC
         classes = [k for k in app.controller.model.classes.keys()]
         data = {"html": render_template("/_umlclasslist.html", classes=classes)}
         return jsonify(data)

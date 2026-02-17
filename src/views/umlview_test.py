@@ -1,5 +1,4 @@
-from typing import Callable
-
+#file for testing commands that can prompt the user
 from views.umlview import *
 
 class UmlTestView(UmlView):

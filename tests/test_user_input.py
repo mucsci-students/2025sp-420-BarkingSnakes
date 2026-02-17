@@ -1,15 +1,16 @@
 # Filename: test_user_input.py
 # Authors: Steven Barnes, John Hershey
-# Date: 2025-02-15, Last edit date: 2025-04-18
+# Date: 2025-02-15, Last edit date: 2025-05-11
 # Description: Unit Tests CLI user input portion of UML
+# NOTE:many of these commands have been deprecated in the CLI, but are used by the GUI
 
 import pytest
 
 from src.umlcontroller import UmlController
-from src.views import umlview_cli
+from src.views import umlview_test
 import src.errors as errors
 
-app = UmlController(umlview_cli.UmlCliView())
+app = UmlController(umlview_test.UmlTestView())
 
 def test_command_list_raises_exception_with_no_project_loaded():
     retval = False

@@ -1,6 +1,6 @@
-# Filename: uml.py
+# Filename: umlcontroller.py
 # Authors: Steven Barnes, John Hershey, Evan Magill, Kyle Kalbach, Juliana Vinluan, Spencer Hoover
-# Date: 2025-02-25, Last edit date: 2025-04-25
+# Creation Date: 2025-02-25, Last edit date: 2025-05-11
 # Description: Controller for the UML
 from __future__ import annotations
 
@@ -15,15 +15,12 @@ from umlmodel import UmlProject,Caretaker
 from umlclass import UmlClass, UmlField
 from umlmethod import UmlMethod, UmlParameter
 from umlrelationship import UmlRelationship, RelationshipType
-from gui.renderables import UmlClassListRenderable, UmlClassRenderable
-# from views.umlview import UmlView
 from views.umlview import *
 from views.umlview_gui import UmlGuiView
-from views.umlview_cli import UmlCliView
+#from views.umlview_cli import UmlCliView
 from utilities.uml_svg_builder import UmlDiagramSvgBuilder
 from utilities.model_utils import UmlModelNamedTupleEncoder
 import errors
-#class UmlApplication:()
 
 class UmlCommand(Protocol):
     id:str
@@ -286,9 +283,8 @@ class UmlController:
         """
         # validate filename is json and set it
         if filename:
-            if not self.model.is_json_file(filename):
-                raise errors.InvalidFileException()
-            
+            #this now errors on its own
+            self.model._is_json_file(filename)
             if self.model._save_path != filename and self.model._filepath_exists(filename) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
@@ -297,7 +293,7 @@ class UmlController:
                 if not self.view.prompt_user(prompt, None):
                     return
                 
-            self.model._save_path = filename
+            self.model.set_save_path(filename)
         #set current filepath to ignore save prompts on later saves of file
         self.model.save()
     
@@ -316,9 +312,9 @@ class UmlController:
             InvalidFileException
         """
         if filepath:
-            if not self.model.is_json_file(filepath):
-                raise errors.InvalidFileException()
-
+            # will raise an error if the file is not a .json
+            self.model._is_json_file(filepath)
+            
             if self.model._filepath_exists(filepath) and not override:
                 if isinstance(self.view, UmlGuiView):
                     raise errors.FileAlreadyExistsException()
@@ -330,7 +326,7 @@ class UmlController:
             
         #declare new project, and call "new" method
         self.model = UmlProject()
-        self.model._save_path = filepath
+        self.model.set_save_path(filepath)
         self.model.new()
 
     def execute_command(self, args:list):
@@ -411,7 +407,7 @@ class UmlController:
                 args.append(None)
             else:
                 #if no save filepath but only one arg then request filepath
-                if len(args) == 1 and isinstance(self.view, UmlCliView):
+                if len(args) == 1:
                     args.append(self.view.get_user_input("enter file name: "))
             override = False
             if len(args) == 3:
@@ -739,13 +735,13 @@ class UmlController:
         elif umlcommand == UmlCommands.UmlMethodCommands.RenameMethod:
             oldname = args[2]
             newname = args[3]
-            arity = int(args[5])
-            self.model.rename_method(active_class, oldname, newname, arity)
-            self.set_active_method(newname, arity)
+            overload_id = int(args[5])
+            self.model.rename_method(active_class, oldname, newname, overload_id)
+            self.set_active_method(newname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.DeleteMethod:
             methodname = args[2]
-            arity = int(args[4])
-            self.model.delete_method(active_class, methodname, arity)
+            overload_id = int(args[4])
+            self.model.delete_method(active_class, methodname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.ListMethod:
             umlclass = self.model.get_umlclass(active_class)
             data_object = self._get_class_data_object(umlclass)
@@ -753,8 +749,8 @@ class UmlController:
                 self.view.render_umlmethod(m)
         elif umlcommand == UmlCommands.UmlMethodCommands.ContextMethod:
             methodname = args[1]
-            arity = int(args[3])
-            self.set_active_method(methodname, arity)
+            overload_id = int(args[3])
+            self.set_active_method(methodname, overload_id)
         elif umlcommand == UmlCommands.UmlMethodCommands.HelpMethod:
             self.view.handle_exceptions(UmlCommands.UmlMethodCommands.Usage)
 
